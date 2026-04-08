@@ -29,6 +29,8 @@ The judge cascade is strictly ordered: **T0 (BuildJudge, deterministic) → T1 (
 ### Step 1.0: Codebase Review and Design Validation
 
 **Entry criteria**:
+- [ ] Read: `plans/VISION.md` — project goals, scope, constraints
+- [ ] Read: `plans/DESIGN.md` — architecture, data models, interfaces, design decisions
 - [ ] Read: Python source in `/tmp/prmerge/` — existing implementation reference
 - [ ] Read: AgentWorks source in `~/projects/agentworks/` — API surface understanding
 - [ ] Read: `workflow-core` Step<I,O>, Workflow, AgentContext APIs
