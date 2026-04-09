@@ -18,7 +18,7 @@ Workshop-teachable PR review pipeline for Spring conferences.
 ```
 
 ## Stack
-- Spring Boot 4.0.3
+- Spring Boot 4.0.3 (uses Jackson 3.x: `tools.jackson.databind`, NOT `com.fasterxml.jackson.databind`)
 - Java 21
 - Spring AI 2.0.0-M3 (transitive via workflow-flows; needs Spring milestones repo)
 
@@ -48,6 +48,14 @@ Workshop-teachable PR review pipeline for Spring conferences.
 - `Judgment.pass(String reasoning)` — convenience factory, auto-sets `BooleanScore(true)`
 - `AssessmentResult` uses `JudgmentStatus` from agent-judge-core (not a local enum)
 - All list-containing records use `List.copyOf()` in compact constructors (defensive + null-rejecting)
+
+## Step Implementation Pattern
+1. Implement `Step<I, O>` from `io.github.markpollack.workflow.flows`
+2. Override `name()` with kebab-case name
+3. Override `inputType()` and `outputType()` for `WorkflowGraphAssert`
+4. Do work in `execute()`, return primary output
+5. Override `updateContext()` to publish side-channel data via `ContextKey`
+6. Define `ContextKey` constants as `public static final` on the producing step
 
 ## Test Infrastructure
 - `TestPrContexts` / `TestAssessments` in test model package — factory methods for all domain models

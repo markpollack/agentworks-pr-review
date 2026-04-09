@@ -217,19 +217,19 @@ The judge cascade uses `CascadedJury` from agent-judge-core: **T0 (BuildJudge, d
 ### Step 2.0: Stage 2 Entry — Review and Context Load
 
 **Entry criteria** *(inter-stage gate — do not skip)*:
-- [ ] Stage 1 consolidation complete — Read: `plans/learnings/step-1.5-stage1-summary.md`
-- [ ] Read: `plans/learnings/LEARNINGS.md` — full compacted project learnings
+- [x] Stage 1 consolidation complete — Read: `plans/learnings/step-1.5-stage1-summary.md`
+- [x] Read: `plans/learnings/LEARNINGS.md` — full compacted project learnings
 
 **Work items**:
-- [ ] REVIEW Stage 1 summary for open questions or deferred decisions
-- [ ] VERIFY AgentWorks API assumptions still hold
-- [ ] DOCUMENT any scope changes discovered during review
+- [x] REVIEW Stage 1 summary for open questions or deferred decisions
+- [x] VERIFY AgentWorks API assumptions still hold
+- [x] DOCUMENT any scope changes discovered during review
 
 **Exit criteria**:
-- [ ] Stage 1 context loaded; no blocking issues unresolved
-- [ ] Create: `plans/learnings/step-2.0-stage2-entry.md`
-- [ ] Update `ROADMAP.md` checkboxes
-- [ ] COMMIT
+- [x] Stage 1 context loaded; no blocking issues unresolved
+- [x] Create: `plans/learnings/step-2.0-stage2-entry.md`
+- [x] Update `ROADMAP.md` checkboxes
+- [x] COMMIT
 
 **Deliverables**: Verified entry into Stage 2
 
@@ -238,31 +238,33 @@ The judge cascade uses `CascadedJury` from agent-judge-core: **T0 (BuildJudge, d
 ### Step 2.1: GitHub REST Client
 
 **Entry criteria**:
-- [ ] Step 2.0 complete
-- [ ] Read: `plans/learnings/step-2.0-stage2-entry.md` — prior step learnings
-- [ ] Read: Python `github_rest_client.py` — implementation reference
+- [x] Step 2.0 complete
+- [x] Read: `plans/learnings/step-2.0-stage2-entry.md` — prior step learnings
+- [x] Read: Python `github_rest_client.py` — implementation reference
 
 **Work items**:
-- [ ] CREATE `GitHubRestClient.java` using Spring's `RestClient`:
-  - `getPr(int prNumber)` → PrContext
-  - `getPrFiles(int prNumber)` → List<FileChange>
-  - `getPrComments(int prNumber)` → List<Comment>
-  - `getPrReviews(int prNumber)` → List<Review>
-  - `getLinkedIssues(int prNumber)` → List<Issue>
-  - Pagination support
-  - Optional `GITHUB_TOKEN` header
-- [ ] CREATE `@ConfigurationProperties("github")` for base URL, repo, token
-- [ ] WRITE tests with WireMock (mock GitHub API responses using JSON fixtures from Step 1.4)
-- [ ] VERIFY: unauthenticated access works against live spring-ai repo (smoke test, disabled by default)
+- [x] CREATE `GitHubRestClient.java` using Spring's `RestClient`:
+  - `fetchPrContext(int prNumber)` → PrContext (assembles from 4 API calls)
+  - `fetchFiles(int prNumber)` → List<FileChange> (paginated)
+  - `fetchComments(int prNumber)` → List<Comment>
+  - `fetchReviews(int prNumber)` → List<Review>
+  - `parseLinkedIssues(String body)` → List<Issue> (regex from PR body)
+  - `getRateLimit()` → RateLimitInfo (for pre-flight check)
+  - Pagination support (files endpoint)
+  - Optional `GITHUB_TOKEN` header via Bearer auth
+- [x] CREATE `@ConfigurationProperties("github")` for base URL, repo, token
+- [x] CREATE `@ConfigurationProperties("workshop")` for default PR, skip-ai, journal-dir
+- [x] WRITE tests with WireMock (mock GitHub API responses using JSON fixtures from Step 1.4)
+- [ ] ~~VERIFY: unauthenticated access works against live spring-ai repo~~ — deferred (smoke test is the pre-flight check in Stage 4)
 
 **Exit criteria**:
-- [ ] All GitHub API endpoints implemented and tested
-- [ ] WireMock tests cover success, pagination, rate limiting
-- [ ] `./mvnw test` passes
-- [ ] Create: `plans/learnings/step-2.1-github-client.md`
-- [ ] Update `CLAUDE.md` with distilled learnings
-- [ ] Update `ROADMAP.md` checkboxes
-- [ ] COMMIT
+- [x] All GitHub API endpoints implemented and tested
+- [x] WireMock tests cover success, rate limiting; pagination tested via file endpoint
+- [x] `./mvnw test` passes
+- [x] Create: `plans/learnings/step-2.1-github-client.md`
+- [x] Update `CLAUDE.md` with distilled learnings
+- [x] Update `ROADMAP.md` checkboxes
+- [x] COMMIT
 
 **Deliverables**: `GitHubRestClient` with full test coverage
 
@@ -271,26 +273,26 @@ The judge cascade uses `CascadedJury` from agent-judge-core: **T0 (BuildJudge, d
 ### Step 2.2: FetchPrContext Step
 
 **Entry criteria**:
-- [ ] Step 2.1 complete
-- [ ] Read: `plans/learnings/step-2.1-github-client.md` — prior step learnings
+- [x] Step 2.1 complete
+- [x] Read: `plans/learnings/step-2.1-github-client.md` — prior step learnings
 
 **Work items**:
-- [ ] CREATE `FetchPrContext.java` implementing `Step<Integer, PrContext>`:
+- [x] CREATE `FetchPrContextStep.java` implementing `Step<Integer, PrContext>`:
   - Takes PR number as input
   - Calls GitHubRestClient to assemble full PrContext
-  - Logs to Journal (JournalEvent for API calls)
-- [ ] WIRE into AgentWorkflow DSL
-- [ ] WRITE unit test with mocked GitHubRestClient
-- [ ] VERIFY: step executes in workflow context
+  - Publishes PrContext to AgentContext via `updateContext()` + `ContextKey`
+- [ ] ~~WIRE into AgentWorkflow DSL~~ — deferred to workflow composition step
+- [x] WRITE unit test with mocked GitHubRestClient
+- [x] VERIFY: step executes with AgentContext
 
 **Exit criteria**:
-- [ ] FetchPrContext produces complete PrContext from PR number
-- [ ] Journal events logged for API calls
-- [ ] `./mvnw test` passes
-- [ ] Create: `plans/learnings/step-2.2-fetch-pr-context.md`
-- [ ] Update `CLAUDE.md` with distilled learnings
-- [ ] Update `ROADMAP.md` checkboxes
-- [ ] COMMIT
+- [x] FetchPrContextStep produces complete PrContext from PR number
+- [ ] ~~Journal events logged for API calls~~ — deferred to journal wiring step
+- [x] `./mvnw test` passes
+- [x] Create: `plans/learnings/step-2.2-fetch-pr-context.md`
+- [x] Update `CLAUDE.md` with distilled learnings
+- [x] Update `ROADMAP.md` checkboxes
+- [x] COMMIT
 
 **Deliverables**: `FetchPrContext` step with Journal integration
 
