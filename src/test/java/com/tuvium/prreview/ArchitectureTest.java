@@ -63,6 +63,20 @@ class ArchitectureTest {
 		.dependOnClassesThat()
 		.resideInAPackage("..github..");
 
+	@ArchTest
+	static final ArchRule config_should_not_depend_on_steps = noClasses().that()
+		.resideInAPackage("..config..")
+		.should()
+		.dependOnClassesThat()
+		.resideInAPackage("..steps..");
+
+	@ArchTest
+	static final ArchRule config_should_not_depend_on_judges = noClasses().that()
+		.resideInAPackage("..config..")
+		.should()
+		.dependOnClassesThat()
+		.resideInAPackage("..judges..");
+
 	// --- Naming conventions ---
 
 	@ArchTest
