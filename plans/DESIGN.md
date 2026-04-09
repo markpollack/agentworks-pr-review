@@ -18,7 +18,7 @@ A three-phase Spring Boot application that reviews pull requests against the Spr
 | **Packaging** | `jar` |
 | **Java version** | 21 |
 | **Spring Boot** | 4.0.x |
-| **Base package** | `com.tuvium.prreview` |
+| **Base package** | `io.github.markpollack.prreview` |
 
 ### Module Structure
 
@@ -27,7 +27,7 @@ Single module (not multi-module — workshop simplicity):
 ```
 agentworks-pr-review/
 ├── pom.xml
-├── src/main/java/com/tuvium/prreview/
+├── src/main/java/io.github.markpollack.prreview/
 │   ├── PrReviewApplication.java
 │   ├── PrReviewWorkflow.java
 │   ├── config/
@@ -61,7 +61,7 @@ agentworks-pr-review/
 │   └── prompts/
 │       ├── code-quality-assessment.md
 │       └── backport-assessment.md
-├── src/test/java/com/tuvium/prreview/
+├── src/test/java/io.github.markpollack.prreview/
 │   ├── PrReviewWorkflowTest.java
 │   ├── steps/
 │   │   └── FetchPrContextTest.java

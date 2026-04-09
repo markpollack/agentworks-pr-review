@@ -43,7 +43,7 @@ Workshop-teachable PR review pipeline for Spring conferences.
 - Journal git events: GitPatchEvent, GitCommitEvent, GitBranchEvent, GitPullRequestEvent
 
 ## Domain Models
-- All in `com.tuvium.prreview.model` package, all Java records
+- All in `io.github.markpollack.prreview.model` package, all Java records
 - Record factory method names must not clash with component accessor names (e.g., `skippedBuild()` not `skipped()`)
 - `Judgment.pass(String reasoning)` — convenience factory, auto-sets `BooleanScore(true)`
 - `AssessmentResult` uses `JudgmentStatus` from agent-judge-core (not a local enum)

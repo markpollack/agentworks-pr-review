@@ -24,7 +24,7 @@ Naming conventions (2 rules, allowEmptyShould):
 - Classes in `judges/` must end with "Judge"
 
 No cycles (1 rule):
-- No package-level cycles across `com.tuvium.prreview.(*)`
+- No package-level cycles across `io.github.markpollack.prreview.(*)`
 
 ## Pitfall
 

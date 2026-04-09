@@ -75,7 +75,7 @@ The judge cascade uses `CascadedJury` from agent-judge-core: **T0 (BuildJudge, d
   - Java 21 compiler settings
 - [x] CREATE source directory layout:
   ```
-  src/main/java/com/tuvium/prreview/
+  src/main/java/io.github.markpollack.prreview/
   ├── PrReviewApplication.java
   ├── config/
   ├── steps/
