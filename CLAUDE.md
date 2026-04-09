@@ -11,9 +11,10 @@ Workshop-teachable PR review pipeline for Spring conferences.
 
 ## Build
 ```bash
-./mvnw compile    # compile
-./mvnw test       # unit tests
-./mvnw verify     # full build with quality checks
+./mvnw compile                    # compile
+./mvnw test                       # unit tests (includes ArchUnit)
+./mvnw verify                     # full build with quality checks (JaCoCo, spring-javaformat)
+./mvnw spring-javaformat:apply    # auto-fix formatting
 ```
 
 ## Stack
