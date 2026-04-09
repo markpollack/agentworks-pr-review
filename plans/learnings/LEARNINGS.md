@@ -30,6 +30,7 @@ Findings from the Python system that must inform the Java design:
 - **Judge.judge(JudgmentContext) → Judgment**: Not `evaluate()`, not `Verdict`. `JudgmentStatus` has PASS/FAIL/ABSTAIN/ERROR — no WARN. For warning semantics, use `NumericalScore` with `TieredGate` (PASS/ESCALATE/FAIL).
 - **CascadedJury for the three-tier cascade**: `CascadedJury.builder().tier("name", jury, TierPolicy.REJECT_ON_ANY_FAIL)` — purpose-built for fail-fast tiered evaluation. No custom cascade needed.
 - **AgentClient → AgentModel → ClaudeAgentModel → claude-code-sdk**: Four-layer dependency chain. `agent-client-core` is the facade, `agent-model` is the SPI, `agent-claude` is the Claude CLI bridge (runtime dep), `claude-code-sdk` is the pure-Java CLI driver.
+- **CascadedJury preserves per-tier verdicts**: `verdict.subVerdicts()` returns each tier's full `Verdict` (with `individual` and `individualByName`). Report can show per-tier breakdown — the "AI said LGTM, judge said wait" story is supported.
 
 ## Deviations from Design
 

@@ -363,6 +363,12 @@ Workflow.<Integer, Path>define("pr-review")
 
 **Note**: T0 (BuildJudge) and T1 (VersionPatternJudge) are combined into a single `CascadedJury` for the first gate. T1 reads `PrContext` from `AgentContext` metadata. T2 (QualityJudge) runs as a separate gate after the AI steps.
 
+**Per-tier verdict preservation**: `CascadedJury.vote()` collects each tier's `Verdict` into `subVerdicts`. The report can iterate `verdict.subVerdicts()` to show per-tier results independently — "T0: PASS (build clean), T1: FAIL (found javax import)". The `individualByName` map on each sub-verdict preserves judge identity. This supports the "AI said LGTM, deterministic judge said wait" teaching story.
+
+**`onFail(generateReport)` on T0+T1 gate**: When deterministic gates fail, AI steps are skipped — no `AssessmentResult` in context. `GenerateReport` must handle absent AI assessments gracefully (use `ctx.get()` returning `Optional.empty()`, not `ctx.require()`). Same for T2 gate fail path — report generates regardless, just notes the failure.
+
+**`PrReviewGate` is the highest-risk custom code**: It bridges `AgentContext` → `JudgmentContext.metadata()`. Test it first in Step 2.6 — unit test that constructs `AgentContext` with known `PrContext`, runs through gate, verifies judge receives diff in metadata.
+
 ---
 
 ## Data Models
