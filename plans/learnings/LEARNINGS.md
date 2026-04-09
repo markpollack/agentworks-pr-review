@@ -1,7 +1,7 @@
 # Learnings: AgentWorks PR Review Pipeline
 
-> **Last compacted**: 2026-04-08T22:45-04:00
-> **Covers through**: Stage 1 complete (Steps 1.0–1.4)
+> **Last compacted**: 2026-04-08T23:30-04:00
+> **Covers through**: Stage 2 complete (Steps 1.0–2.6)
 
 This is the **Tier 1 compacted summary**. Read this first for the current state of project knowledge. For details on specific steps, see the per-step files (Tier 2).
 
@@ -30,6 +30,17 @@ This is the **Tier 1 compacted summary**. Read this first for the current state 
 11. **github-collector as reference** — `~/tuvium/projects/github-collector` has production GitHub REST DTOs with SNAKE_CASE ObjectMapper, Author record, separate issue/review comment endpoints.
 12. **JSON fixtures use raw API format** — snake_case, nested `user.login`, `base.ref`. The `GitHubRestClient` parsing layer flattens into our domain model.
 
+### From Stage 2: Deterministic Context Gathering (Steps 2.0–2.6)
+
+13. **Boot 4 uses Jackson 3.x** — `tools.jackson.databind.*`, NOT `com.fasterxml.jackson.databind.*`. Jackson 2.x is still on classpath transitively so code compiles but fails at runtime. Always use `tools.jackson.databind.JsonNode`.
+14. **JudgmentContext.metadata() rejects null values** — `builder().metadata(key, value)` throws NPE on null. Guard with null check before calling.
+15. **ArchUnit naming rules should scope to public classes** — Package-private utilities (e.g., `ModuleDiscovery`) don't need naming convention enforcement. Add `.arePublic()` to the predicate.
+16. **ProcessBuilder over JGit for git operations** — Direct CLI is simpler and more workshop-readable. `ProcessResult` inner record keeps it clean.
+17. **Conflict classification by filename pattern, not markers** — Simpler and sufficient for workshop. Five patterns cover build/config files as SIMPLE; everything else COMPLEX.
+18. **Module discovery via `/src/` marker** — `filePath.indexOf("/src/")` reliably finds Maven module boundary. Root files map to `.`.
+19. **Judge is @FunctionalInterface** — `Judgment judge(JudgmentContext context)`. Use `Check` sub-assertions for granular reporting. `Judgment.builder()` requires explicit score, status, reasoning, checks.
+20. **JudgeGate confirmed: only passes output.toString()** — Custom `PrReviewGate` (DD-8) needed to bridge `AgentContext` → `JudgmentContext.metadata()` with structured domain objects.
+
 ## Patterns Established
 
 | Pattern | Detail |
@@ -41,14 +52,21 @@ This is the **Tier 1 compacted summary**. Read this first for the current state 
 | **config/ stays pure** | `@ConfigurationProperties` records only. Wiring class (`PrReviewWorkflow`) at top-level package, not in config/ |
 | **spring-javaformat at validate phase** | Run `./mvnw spring-javaformat:apply` before commit. Plugin at validate phase catches formatting before compile |
 | **Test fixture conventions** | `TestPrContexts` / `TestAssessments` in test model package. JSON fixtures in `src/test/resources/fixtures/` |
+| **Step side-channel data via ContextKey** | `FetchPrContextStep.PR_CONTEXT` — public static constant on producing step. Downstream reads via `ctx.require(KEY)` |
+| **ProcessBuilder for CLI steps** | Configurable `workingDirectory(Path)`, inner `ProcessResult(exitCode, stdout, stderr)` record, error returns domain result (not exception) |
+| **WireMock for REST client tests** | WireMock 3.13.1, `@WireMockTest` annotation, JSON fixture stubs for all GitHub API endpoints |
+| **Judge Check sub-assertions** | `Check.pass(name)` / `Check.fail(name, message)` for granular reporting within a single `Judgment` |
 
 ## Deviations from Design
 
 | Design says | Implementation does | Why |
 |-------------|-------------------|-----|
 | `BuildResult.skipped()` | `BuildResult.skippedBuild()` | Record accessor name clash |
-| `ContextKeys.java` in Step 1.3 | Deferred to Step 2.x | Can't define meaningful keys until steps exist |
+| `ContextKeys.java` in Step 1.3 | ContextKey constants on producing steps | Each step defines its own public static ContextKey |
 | Fallback journal in Step 1.4 | Deferred to Stage 4 | Can't validate format until pipeline produces real events |
+| Parse git conflict markers | Classify by filename pattern | Simpler, sufficient for workshop |
+| JudgeGate wiring in Step 2.6 | Deferred to Step 4.2 | DD-8: need custom gate for structured metadata |
+| Journal logging in Steps 2.2–2.5 | Deferred to journal wiring step | Journal infrastructure not yet built |
 
 ## Common Pitfalls
 
@@ -73,12 +91,12 @@ agent-client-core:0.11.0 → agent-model:0.11.0 → agent-sandbox-core:0.9.1
 agent-claude:0.11.0 (runtime)
 ```
 
-## Stage 2 Setup Notes
+## Stage 3 Setup Notes
 
-- `GitHubRestClient` needs `ObjectMapper` with `SNAKE_CASE` + `JavaTimeModule` (same as github-collector)
-- `Comment` uses `Instant` but API returns ISO-8601 strings — parsing layer handles conversion
-- `PrReviewGate` (DD-8) is highest-risk custom code — test-first in Step 2.6
+- `PrReviewGate` (DD-8) custom gate — bridges `AgentContext` → `JudgmentContext.metadata()`. Highest-risk custom code for workflow composition.
 - `GenerateReport` must handle absent AI assessments via `ctx.get()` → `Optional.empty()`
+- VersionPatternJudge (T1) — deterministic, scans diff for Boot 3→4 anti-patterns. Runs before any LLM spend.
+- AgentClient integration: workflow-flows' simple interface vs agent-client-core's fluent builder — choose based on prompt complexity.
 
 ---
 
@@ -91,6 +109,13 @@ agent-claude:0.11.0 (runtime)
 | `step-1.2-quality-infrastructure.md` | 1.2 | ArchUnit rules, JaCoCo, spring-javaformat |
 | `step-1.3-domain-models.md` | 1.3 | 12 records, factory method clash, defensive copying |
 | `step-1.4-test-infrastructure.md` | 1.4 | Test fixtures, JSON payloads, github-collector reference |
+| `step-2.0-stage2-entry.md` | 2.0 | Stage entry review, github-collector decision |
+| `step-2.1-github-client.md` | 2.1 | Spring RestClient, Jackson 3.x, WireMock, rate limits |
+| `step-2.2-fetch-pr-context.md` | 2.2 | Step<I,O> template, ContextKey pattern |
+| `step-2.3-rebase-step.md` | 2.3 | ProcessBuilder, git CLI, configurable working dir |
+| `step-2.4-conflict-detection.md` | 2.4 | Filename-pattern classification, SIMPLE vs COMPLEX |
+| `step-2.5-run-tests.md` | 2.5 | Module discovery, ArchUnit public-only naming rule |
+| `step-2.6-build-judge.md` | 2.6 | Judge API, Check sub-assertions, metadata key pattern |
 
 ---
 
@@ -103,3 +128,4 @@ agent-claude:0.11.0 (runtime)
 | 2026-04-08T19:30-04:00 | Added docs comparison findings | Docs comparison |
 | 2026-04-08T20:00-04:00 | Added source validation findings (4 parallel agents) | Source code validation |
 | 2026-04-08T22:45-04:00 | **Stage 1 consolidation** — compacted Steps 1.0–1.4 | Step 1.5 |
+| 2026-04-08T23:30-04:00 | **Stage 2 consolidation** — compacted Steps 2.0–2.6 | Step 2.7 |

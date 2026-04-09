@@ -427,20 +427,20 @@ The judge cascade uses `CascadedJury` from agent-judge-core: **T0 (BuildJudge, d
 ### Step 2.7: Stage 2 Consolidation
 
 **Entry criteria**:
-- [ ] All Stage 2 steps complete (2.0–2.6)
-- [ ] Read: all `plans/learnings/step-2.*` files from this stage
+- [x] All Stage 2 steps complete (2.0–2.6)
+- [x] Read: all `plans/learnings/step-2.*` files from this stage
 
 **Work items**:
-- [ ] COMPACT learnings from all Stage 2 steps into `plans/learnings/LEARNINGS.md`
-- [ ] UPDATE `CLAUDE.md` with distilled learnings from Stage 2
-- [ ] VERIFY: `./mvnw verify` passes
+- [x] COMPACT learnings from all Stage 2 steps into `plans/learnings/LEARNINGS.md`
+- [x] UPDATE `CLAUDE.md` with distilled learnings from Stage 2
+- [x] VERIFY: `./mvnw verify` passes
 
 **Exit criteria**:
-- [ ] `LEARNINGS.md` updated with compacted summary covering Stages 1–2
-- [ ] Create: `plans/learnings/step-2.7-stage2-summary.md`
-- [ ] Update `CLAUDE.md` with distilled learnings
-- [ ] Update `ROADMAP.md` checkboxes
-- [ ] COMMIT
+- [x] `LEARNINGS.md` updated with compacted summary covering Stages 1–2
+- [x] Create: `plans/learnings/step-2.7-stage2-summary.md`
+- [x] Update `CLAUDE.md` with distilled learnings
+- [x] Update `ROADMAP.md` checkboxes
+- [x] COMMIT
 
 ---
 
