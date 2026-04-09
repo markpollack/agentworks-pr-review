@@ -62,18 +62,18 @@ The judge cascade uses `CascadedJury` from agent-judge-core: **T0 (BuildJudge, d
 ### Step 1.1: Project Scaffolding
 
 **Entry criteria**:
-- [ ] Step 1.0 complete
-- [ ] Read: `plans/learnings/step-1.0-design-review.md` — prior step learnings
+- [x] Step 1.0 complete
+- [x] Read: `plans/learnings/step-1.0-design-review.md` — prior step learnings
 
 **Work items**:
-- [ ] CREATE `agentworks-pr-review/` project directory at `~/projects/agentworks-pr-review/`
-- [ ] CREATE `pom.xml` with:
+- [x] CREATE `agentworks-pr-review/` project directory at `~/projects/agentworks-pr-review/`
+- [x] CREATE `pom.xml` with:
   - `agentworks-bom` 1.0.4 as BOM import
-  - `workflow-core`, `journal-core`, `agent-judge-core`, `agent-client-core` deps
-  - Spring Boot 4.0.x parent
-  - `spring-web` for RestClient (GitHub API)
-  - Java 21+ compiler settings
-- [ ] CREATE source directory layout:
+  - `workflow-flows`, `journal-core`, `agent-judge-core`, `agent-client-core`, `agent-claude` deps
+  - Spring Boot 4.0.3 parent
+  - `spring-boot-starter-web` for RestClient (GitHub API)
+  - Java 21 compiler settings
+- [x] CREATE source directory layout:
   ```
   src/main/java/com/tuvium/prreview/
   ├── PrReviewApplication.java
@@ -83,19 +83,19 @@ The judge cascade uses `CascadedJury` from agent-judge-core: **T0 (BuildJudge, d
   ├── github/
   └── model/
   ```
-- [ ] CREATE `src/main/resources/application.yml` with default config (spring-ai repo, known PR)
-- [ ] CREATE `.gitignore`
-- [ ] VERIFY: `./mvnw compile -q` succeeds with empty source
-- [ ] COMMIT
+- [x] CREATE `src/main/resources/application.yml` with default config (spring-ai repo, known PR)
+- [x] CREATE `.gitignore`
+- [x] VERIFY: `./mvnw compile` succeeds — BUILD SUCCESS
+- [x] COMMIT
 
 **Exit criteria**:
-- [ ] Project compiles with Spring Boot main class only
-- [ ] All AgentWorks dependencies resolve from local Maven repo
-- [ ] Directory structure matches design
-- [ ] Create: `plans/learnings/step-1.1-project-scaffolding.md`
-- [ ] Update `CLAUDE.md` with distilled learnings
-- [ ] Update `ROADMAP.md` checkboxes
-- [ ] COMMIT
+- [x] Project compiles with Spring Boot main class only
+- [x] All AgentWorks dependencies resolve from local Maven repo + Spring milestones
+- [x] Directory structure matches design
+- [x] Create: `plans/learnings/step-1.1-project-scaffolding.md`
+- [x] Update `CLAUDE.md` with distilled learnings
+- [x] Update `ROADMAP.md` checkboxes
+- [x] COMMIT
 
 **Deliverables**: Compilable empty project with AgentWorks dependencies
 

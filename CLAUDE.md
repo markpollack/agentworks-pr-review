@@ -16,6 +16,11 @@ Workshop-teachable PR review pipeline for Spring conferences.
 ./mvnw verify     # full build with quality checks
 ```
 
+## Stack
+- Spring Boot 4.0.3
+- Java 21
+- Spring AI 2.0.0-M3 (transitive via workflow-flows; needs Spring milestones repo)
+
 ## Key AgentWorks Dependencies (all released, no SNAPSHOTs)
 - `agentworks-bom` 1.0.4 (`io.github.markpollack`)
 - `workflow-flows` 0.3.0 (`io.github.markpollack`) — Step<I,O>, Workflow DSL, AgentContext, ContextKey, JudgeGate, TieredGate

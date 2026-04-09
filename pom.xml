@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.3</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.tuvium</groupId>
+    <artifactId>agentworks-pr-review</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <name>AgentWorks PR Review</name>
+    <description>Workshop-teachable PR review pipeline using the AgentWorks stack</description>
+
+    <properties>
+        <java.version>21</java.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.github.markpollack</groupId>
+                <artifactId>agentworks-bom</artifactId>
+                <version>1.0.4</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <!-- AgentWorks: Workflow DSL -->
+        <dependency>
+            <groupId>io.github.markpollack</groupId>
+            <artifactId>workflow-flows</artifactId>
+        </dependency>
+
+        <!-- AgentWorks: Journal -->
+        <dependency>
+            <groupId>io.github.markpollack</groupId>
+            <artifactId>journal-core</artifactId>
+        </dependency>
+
+        <!-- AgentWorks: Judge framework -->
+        <dependency>
+            <groupId>org.springaicommunity</groupId>
+            <artifactId>agent-judge-core</artifactId>
+        </dependency>
+
+        <!-- AgentWorks: Agent client facade -->
+        <dependency>
+            <groupId>org.springaicommunity.agents</groupId>
+            <artifactId>agent-client-core</artifactId>
+        </dependency>
+
+        <!-- AgentWorks: Claude Code bridge (runtime only) -->
+        <dependency>
+            <groupId>org.springaicommunity.agents</groupId>
+            <artifactId>agent-claude</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Spring Boot -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- Test -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+    <repositories>
+        <repository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/milestone</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+</project>

@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: agentworks-pr-review
+
+github:
+  repo: spring-projects/spring-ai
+  base-url: https://api.github.com
+
+workshop:
+  default-pr: 5774
+  skip-ai: false
+  journal-dir: ./journal
