@@ -70,6 +70,15 @@ Workshop-teachable PR review pipeline for Spring conferences.
 - **ModuleDiscovery**: Package-private utility in steps/. Extracts module from `/src/` marker in file path. Root files map to `.`
 - ArchUnit naming rules only apply to public classes (`.arePublic()`) — package-private utilities exempt
 
+## Judge Implementation Pattern
+- `Judge` is `@FunctionalInterface`: `Judgment judge(JudgmentContext context)`
+- Read structured data from `JudgmentContext.metadata()` with String key constants
+- `JudgmentContext.builder().metadata(key, value)` rejects null values — guard before calling
+- Use `Check.pass(name)` / `Check.fail(name, message)` for sub-assertions
+- `Judgment.builder()` needs explicit score, status, reasoning, checks
+- Wrap with `NamedJudge(judge, new JudgeMetadata(name, desc, JudgeType))` for metadata
+- JudgeGate only passes `output.toString()` — custom gate needed for structured metadata (DD-8)
+
 ## Architecture
 Three-phase pipeline:
 1. **Deterministic Context Gathering** — GitHub API, git rebase, conflict detection, tests

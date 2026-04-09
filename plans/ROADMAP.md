@@ -399,27 +399,26 @@ The judge cascade uses `CascadedJury` from agent-judge-core: **T0 (BuildJudge, d
 ### Step 2.6: BuildJudge (T0)
 
 **Entry criteria**:
-- [ ] Step 2.5 complete
-- [ ] Read: `plans/learnings/step-2.5-run-tests.md` — prior step learnings
+- [x] Step 2.5 complete
+- [x] Read: `plans/learnings/step-2.5-run-tests.md` — prior step learnings
 
 **Work items**:
-- [ ] CREATE `BuildJudge.java` implementing agent-judge `Judge` interface:
+- [x] CREATE `BuildJudge.java` implementing agent-judge `Judge` interface:
   - T0 deterministic judge — no AI
-  - Checks: compilation success, test pass rate, rebase clean, no complex conflicts
-  - Returns verdict: PASS / WARN / FAIL with rationale
+  - Checks: rebase clean, no complex conflicts, build executed, tests passed
+  - Returns PASS / FAIL with `Check` sub-assertions and `BooleanScore`
   - FAIL blocks all downstream steps (T1, T2, AI assessment)
-  - WARN allows downstream but flags in report
-- [ ] WIRE as JudgeGate in workflow (blocks Phase 2 AI steps if FAIL)
-- [ ] WRITE unit tests with known BuildResult + ConflictReport inputs
+- [ ] ~~WIRE as JudgeGate in workflow~~ — deferred to Step 4.2 (workflow composition)
+- [x] WRITE unit tests with known BuildResult + ConflictReport + RebaseResult inputs (10 tests)
 
 **Exit criteria**:
-- [ ] BuildJudge correctly evaluates build outcomes with three-state verdict
-- [ ] JudgeGate integration tested (FAIL blocks, WARN passes, PASS passes)
-- [ ] `./mvnw test` passes
-- [ ] Create: `plans/learnings/step-2.6-build-judge.md`
-- [ ] Update `CLAUDE.md` with distilled learnings
-- [ ] Update `ROADMAP.md` checkboxes
-- [ ] COMMIT
+- [x] BuildJudge correctly evaluates build outcomes with PASS/FAIL verdict and Check sub-assertions
+- [ ] ~~JudgeGate integration tested~~ — deferred to workflow composition (DD-8: custom gate needed)
+- [x] `./mvnw test` passes
+- [x] Create: `plans/learnings/step-2.6-build-judge.md`
+- [x] Update `CLAUDE.md` with distilled learnings
+- [x] Update `ROADMAP.md` checkboxes
+- [x] COMMIT
 
 **Deliverables**: `BuildJudge` (T0 deterministic) with JudgeGate
 
