@@ -79,6 +79,14 @@ Workshop-teachable PR review pipeline for Spring conferences.
 - Wrap with `NamedJudge(judge, new JudgeMetadata(name, desc, JudgeType))` for metadata
 - JudgeGate only passes `output.toString()` — custom gate needed for structured metadata (DD-8)
 
+## AI Assessment Pattern
+- Use agent-client-core's `AgentClient` (`org.springaicommunity.agents.client.AgentClient`)
+- `agentClient.run(prompt)` → `AgentClientResponse.getResult()` → String
+- Test mocks: `new AgentResponse(List.of(new AgentGeneration(text)))` → `new AgentClientResponse(response)`
+- `AssessmentParser` parses JSON via regex — no Jackson dependency in parsing path
+- `PromptHelper` renders file summary + diff from PrContext
+- Prompt templates in `src/main/resources/prompts/` with `{placeholder}` substitution
+
 ## Architecture
 Three-phase pipeline:
 1. **Deterministic Context Gathering** — GitHub API, git rebase, conflict detection, tests

@@ -1,7 +1,7 @@
 # Learnings: AgentWorks PR Review Pipeline
 
-> **Last compacted**: 2026-04-08T23:30-04:00
-> **Covers through**: Stage 2 complete (Steps 1.0–2.6)
+> **Last compacted**: 2026-04-09T08:00-04:00
+> **Covers through**: Stage 3 complete (Steps 1.0–3.5)
 
 This is the **Tier 1 compacted summary**. Read this first for the current state of project knowledge. For details on specific steps, see the per-step files (Tier 2).
 
@@ -40,6 +40,14 @@ This is the **Tier 1 compacted summary**. Read this first for the current state 
 18. **Module discovery via `/src/` marker** — `filePath.indexOf("/src/")` reliably finds Maven module boundary. Root files map to `.`.
 19. **Judge is @FunctionalInterface** — `Judgment judge(JudgmentContext context)`. Use `Check` sub-assertions for granular reporting. `Judgment.builder()` requires explicit score, status, reasoning, checks.
 20. **JudgeGate confirmed: only passes output.toString()** — Custom `PrReviewGate` (DD-8) needed to bridge `AgentContext` → `JudgmentContext.metadata()` with structured domain objects.
+
+### From Stage 3: AI Assessment Pipeline (Steps 3.0–3.5)
+
+21. **VersionPatternJudge scans added lines only** — `^\\+` prefix ensures removed lines don't trigger false positives. Five patterns: javax, jackson-2x, @MockBean, MockMvcRequestBuilders, WebSecurityConfigurerAdapter.
+22. **Regex-based JSON parsing for AI responses** — `AssessmentParser` avoids Jackson coupling in the response parsing path. Handles malformed responses gracefully with ERROR status.
+23. **AgentGeneration, not AgentResult** — `new AgentResponse(List.of(new AgentGeneration(text)))` for constructing test responses. No `AgentResult` class exists in agent-client-core.
+24. **QualityJudge uses NumericalScore** — Weighted composite (70% quality + 30% backport). TieredGate compatible for PASS/ESCALATE/FAIL at workflow level.
+25. **AgentClient from agent-client-core** — `org.springaicommunity.agents.client.AgentClient` (fluent API). `run(String)` convenience method returns `AgentClientResponse.getResult()` as String.
 
 ## Patterns Established
 
@@ -116,6 +124,7 @@ agent-claude:0.11.0 (runtime)
 | `step-2.4-conflict-detection.md` | 2.4 | Filename-pattern classification, SIMPLE vs COMPLEX |
 | `step-2.5-run-tests.md` | 2.5 | Module discovery, ArchUnit public-only naming rule |
 | `step-2.6-build-judge.md` | 2.6 | Judge API, Check sub-assertions, metadata key pattern |
+| `step-3.6-stage3-summary.md` | 3.6 | Full Stage 3: T1, AI steps, T2, AgentClient API |
 
 ---
 
@@ -129,3 +138,4 @@ agent-claude:0.11.0 (runtime)
 | 2026-04-08T20:00-04:00 | Added source validation findings (4 parallel agents) | Source code validation |
 | 2026-04-08T22:45-04:00 | **Stage 1 consolidation** — compacted Steps 1.0–1.4 | Step 1.5 |
 | 2026-04-08T23:30-04:00 | **Stage 2 consolidation** — compacted Steps 2.0–2.6 | Step 2.7 |
+| 2026-04-09T08:00-04:00 | **Stage 3 consolidation** — compacted Steps 3.0–3.5 | Step 3.6 |
