@@ -30,30 +30,30 @@ The judge cascade uses `CascadedJury` from agent-judge-core: **T0 (BuildJudge, d
 ### Step 1.0: Codebase Review and Design Validation
 
 **Entry criteria**:
-- [ ] Read: `plans/VISION.md` — project goals, scope, constraints
-- [ ] Read: `plans/DESIGN.md` — architecture, data models, interfaces, design decisions
-- [ ] Read: Python source in `/tmp/prmerge/` — existing implementation reference
-- [ ] Read: AgentWorks source in `~/projects/agentworks/` — API surface understanding
-- [ ] Read: `workflow-flows` Step<I,O>, Workflow DSL, AgentContext, ContextKey, JudgeGate, TieredGate APIs
-- [ ] Read: `journal-core` Journal, Run, JournalEvent APIs
-- [ ] Read: `agent-judge-core` Judge, Judgment, JudgmentContext, CascadedJury, TierPolicy APIs
-- [ ] Read: `agent-client-core` AgentClient facade + `agent-claude` ClaudeAgentModel
+- [x] Read: `plans/VISION.md` — project goals, scope, constraints
+- [x] Read: `plans/DESIGN.md` — architecture, data models, interfaces, design decisions
+- [x] Read: Python source in `/tmp/prmerge/` — existing implementation reference
+- [x] Read: AgentWorks source in `~/projects/agentworks/` — API surface understanding
+- [x] Read: `workflow-flows` Step<I,O>, Workflow DSL, AgentContext, ContextKey, JudgeGate, TieredGate APIs
+- [x] Read: `journal-core` Journal, Run, JournalEvent APIs
+- [x] Read: `agent-judge-core` Judge, Judgment, JudgmentContext, CascadedJury, TierPolicy APIs
+- [x] Read: `agent-client-core` AgentClient facade + `agent-claude` ClaudeAgentModel
 
 **Work items**:
-- [ ] REVIEW Python pipeline's three-phase structure against AgentWorks capabilities
-- [ ] VERIFY Step<I,O> interface fits each pipeline step's input/output contract
-- [ ] VERIFY JudgeGate integration for the three-tier judge cascade (T0/T1/T2)
-- [ ] VERIFY Journal event types cover needed observability (git ops, API calls, AI calls)
-- [ ] DOCUMENT mapping: Python scripts → Java steps/judges/models
-- [ ] IDENTIFY any AgentWorks API gaps that need workarounds
+- [x] REVIEW Python pipeline's three-phase structure against AgentWorks capabilities
+- [x] VERIFY Step<I,O> interface fits each pipeline step's input/output contract
+- [x] VERIFY JudgeGate integration for the three-tier judge cascade (T0/T1/T2)
+- [x] VERIFY Journal event types cover needed observability (git ops, API calls, AI calls)
+- [x] DOCUMENT mapping: Python scripts → Java steps/judges/models
+- [x] IDENTIFY any AgentWorks API gaps that need workarounds — found JudgeGate metadata gap (DD-8), dual AgentClient interfaces
 
 **Exit criteria**:
-- [ ] Design validated against actual AgentWorks APIs
-- [ ] Python-to-Java mapping documented
-- [ ] Create: `plans/learnings/step-1.0-design-review.md`
-- [ ] Update `CLAUDE.md` with distilled learnings
-- [ ] Update `ROADMAP.md` checkboxes
-- [ ] COMMIT
+- [x] Design validated against actual AgentWorks APIs — 43 claims, 4 parallel agents
+- [x] Python-to-Java mapping documented — in DESIGN.md components table
+- [x] Create: `plans/learnings/step-1.0-design-review.md`
+- [x] Update `CLAUDE.md` with distilled learnings
+- [x] Update `ROADMAP.md` checkboxes
+- [x] COMMIT
 
 **Deliverables**: Validated design mapping, API gap analysis
 
