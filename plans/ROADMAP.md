@@ -133,31 +133,31 @@ The judge cascade uses `CascadedJury` from agent-judge-core: **T0 (BuildJudge, d
 ### Step 1.3: Domain Models
 
 **Entry criteria**:
-- [ ] Step 1.2 complete
-- [ ] Read: `plans/learnings/step-1.2-quality-infrastructure.md` — prior step learnings
-- [ ] Read: Python `pr_context_collector.py` — data model reference
+- [x] Step 1.2 complete
+- [x] Read: `plans/learnings/step-1.2-quality-infrastructure.md` — prior step learnings
+- [x] Read: Python `pr_context_collector.py` — data model reference
 
 **Work items**:
-- [ ] CREATE `PrContext.java` record hierarchy:
+- [x] CREATE `PrContext.java` record hierarchy:
   - PR metadata (number, title, description, author, labels, state)
   - File changes (filename, status, additions, deletions, patch)
   - Comments and reviews
   - Linked issues
-- [ ] CREATE `AssessmentResult.java` — judge verdict model (verdict enum, confidence, rationale, judge name)
-- [ ] CREATE `ReviewReport.java` — final report model (PR context, assessment results, build status, recommendations)
-- [ ] CREATE `BuildResult.java` — compilation/test result (success, module, output, duration)
-- [ ] CREATE `ConflictReport.java` — conflict report (conflict list, hasComplexConflicts, summary)
-- [ ] CREATE `ConflictFile.java` — per-file conflict (path, classification: SIMPLE/COMPLEX, description)
-- [ ] WRITE unit tests for record construction, equality, serialization
-- [ ] VERIFY: `./mvnw test` passes
+- [x] CREATE `AssessmentResult.java` — judge verdict model (verdict enum, confidence, rationale, judge name)
+- [x] CREATE `ReviewReport.java` — final report model (PR context, assessment results, build status, recommendations)
+- [x] CREATE `BuildResult.java` — compilation/test result (success, module, output, duration)
+- [x] CREATE `ConflictReport.java` — conflict report (conflict list, hasComplexConflicts, summary)
+- [x] CREATE `ConflictFile.java` — per-file conflict (path, classification: SIMPLE/COMPLEX, description)
+- [x] WRITE unit tests for record construction, equality, serialization
+- [x] VERIFY: `./mvnw test` passes
 
 **Exit criteria**:
-- [ ] All domain models are Java records with JSpecify annotations
-- [ ] Tests pass for model construction and serialization
-- [ ] Create: `plans/learnings/step-1.3-domain-models.md`
-- [ ] Update `CLAUDE.md` with distilled learnings
-- [ ] Update `ROADMAP.md` checkboxes
-- [ ] COMMIT
+- [x] All domain models are Java records with JSpecify annotations
+- [x] Tests pass for model construction and serialization
+- [x] Create: `plans/learnings/step-1.3-domain-models.md`
+- [x] Update `CLAUDE.md` with distilled learnings
+- [x] Update `ROADMAP.md` checkboxes
+- [x] COMMIT
 
 **Deliverables**: Immutable domain model records with tests
 

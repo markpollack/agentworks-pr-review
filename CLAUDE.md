@@ -42,6 +42,13 @@ Workshop-teachable PR review pipeline for Spring conferences.
 - `JudgmentStatus`: PASS/FAIL/ABSTAIN/ERROR — no WARN. Use TieredGate (ESCALATE) for warnings
 - Journal git events: GitPatchEvent, GitCommitEvent, GitBranchEvent, GitPullRequestEvent
 
+## Domain Models
+- All in `com.tuvium.prreview.model` package, all Java records
+- Record factory method names must not clash with component accessor names (e.g., `buildSkipped()` not `skipped()`)
+- `Judgment.pass(String reasoning)` — convenience factory, auto-sets `BooleanScore(true)`
+- `AssessmentResult` uses `JudgmentStatus` from agent-judge-core (not a local enum)
+- All list-containing records use `List.copyOf()` in compact constructors (defensive + null-rejecting)
+
 ## Architecture
 Three-phase pipeline:
 1. **Deterministic Context Gathering** — GitHub API, git rebase, conflict detection, tests
