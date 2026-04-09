@@ -1,14 +1,14 @@
 # Roadmap: AgentWorks PR Review Pipeline
 
 > **Created**: 2026-04-08T17:00-04:00
-> **Last updated**: 2026-04-08T17:30-04:00
+> **Last updated**: 2026-04-08T19:00-04:00
 > **Source plan**: Python PR review pipeline rewrite using AgentWorks stack
 
 ## Overview
 
-Rewrite the Python PR review/merge pipeline (pr-review/, ~20 scripts, 832KB) as a Java project using the AgentWorks stack (workflow-core, journal-core, agent-judge, agent-client). The goal is a production-ready, workshop-teachable PR review pipeline that participants can run live at a Spring conference. Implementation follows dependency order: foundation and quality infrastructure first (Stage 1), then deterministic context gathering with no AI (Stage 2), AI assessment with judges (Stage 3), and finally report generation with workshop polish (Stage 4).
+Rewrite the Python PR review/merge pipeline (pr-review/, ~20 scripts, 832KB) as a Java project using the AgentWorks stack (workflow-flows, journal-core, agent-judge-core, agent-client-core). The goal is a production-ready, workshop-teachable PR review pipeline that participants can run live at a Spring conference. Implementation follows dependency order: foundation and quality infrastructure first (Stage 1), then deterministic context gathering with no AI (Stage 2), AI assessment with judges (Stage 3), and finally report generation with workshop polish (Stage 4).
 
-The judge cascade is strictly ordered: **T0 (BuildJudge, deterministic) → T1 (VersionPatternJudge, deterministic) → T2 (QualityJudge, LLM)**. T2 only fires if T0 and T1 pass or return warnings — never on failures. Deterministic checks always before LLM spend.
+The judge cascade uses `CascadedJury` from agent-judge-core: **T0 (BuildJudge, deterministic, `REJECT_ON_ANY_FAIL`) → T1 (VersionPatternJudge, deterministic, `REJECT_ON_ANY_FAIL`) → T2 (QualityJudge, LLM, `FINAL_TIER`)**. T2 only fires if T0 and T1 pass. `TieredGate` provides PASS/ESCALATE/FAIL semantics at workflow level (ESCALATE = warning). Deterministic checks always before LLM spend.
 
 > **Before every commit**: Verify ALL exit criteria for the current step are met — especially the standard items (see [Step Exit Criteria Convention](#step-exit-criteria-convention)). Do NOT remove exit criteria to mark a step complete — fulfill them.
 
@@ -17,10 +17,11 @@ The judge cascade is strictly ordered: **T0 (BuildJudge, deterministic) → T1 (
 | Artifact | Version | GroupId | Purpose |
 |----------|---------|---------|---------|
 | `agentworks-bom` | 1.0.4 | `io.github.markpollack` | Unified dependency management |
-| `workflow-core` | 0.3.0 | `io.github.markpollack` | Step<I,O>, Workflow DSL, AgentContext, gates |
+| `workflow-flows` | 0.3.0 | `io.github.markpollack` | Step<I,O>, Workflow DSL, AgentContext, ContextKey, JudgeGate, TieredGate |
 | `journal-core` | 0.9.0 | `io.github.markpollack` | Run tracking, events, metrics, artifacts |
-| `agent-judge-core` | 0.9.1 | `org.springaicommunity` | Judge framework (deterministic + LLM) |
-| `agent-client-core` | 0.11.0 | `org.springaicommunity.agents` | AgentClient abstraction for Claude Code |
+| `agent-judge-core` | 0.9.1 | `org.springaicommunity` | Judge, Judgment, CascadedJury, Score, TierPolicy |
+| `agent-client-core` | 0.11.0 | `org.springaicommunity.agents` | AgentClient facade (high-level fluent API) |
+| `agent-claude` | 0.11.0 | `org.springaicommunity.agents` | ClaudeAgentModel — Claude Code CLI bridge (runtime) |
 
 ---
 
@@ -33,10 +34,10 @@ The judge cascade is strictly ordered: **T0 (BuildJudge, deterministic) → T1 (
 - [ ] Read: `plans/DESIGN.md` — architecture, data models, interfaces, design decisions
 - [ ] Read: Python source in `/tmp/prmerge/` — existing implementation reference
 - [ ] Read: AgentWorks source in `~/projects/agentworks/` — API surface understanding
-- [ ] Read: `workflow-core` Step<I,O>, Workflow, AgentContext APIs
+- [ ] Read: `workflow-flows` Step<I,O>, Workflow DSL, AgentContext, ContextKey, JudgeGate, TieredGate APIs
 - [ ] Read: `journal-core` Journal, Run, JournalEvent APIs
-- [ ] Read: `agent-judge-core` Judge interface and verdict model
-- [ ] Read: `agent-client-core` AgentClient interface
+- [ ] Read: `agent-judge-core` Judge, Judgment, JudgmentContext, CascadedJury, TierPolicy APIs
+- [ ] Read: `agent-client-core` AgentClient facade + `agent-claude` ClaudeAgentModel
 
 **Work items**:
 - [ ] REVIEW Python pipeline's three-phase structure against AgentWorks capabilities
@@ -69,7 +70,7 @@ The judge cascade is strictly ordered: **T0 (BuildJudge, deterministic) → T1 (
 - [ ] CREATE `pom.xml` with:
   - `agentworks-bom` 1.0.4 as BOM import
   - `workflow-core`, `journal-core`, `agent-judge-core`, `agent-client-core` deps
-  - Spring Boot 3.5+ parent (or Boot 4 if available)
+  - Spring Boot 4.0.x parent
   - `spring-web` for RestClient (GitHub API)
   - Java 21+ compiler settings
 - [ ] CREATE source directory layout:
@@ -145,7 +146,8 @@ The judge cascade is strictly ordered: **T0 (BuildJudge, deterministic) → T1 (
 - [ ] CREATE `AssessmentResult.java` — judge verdict model (verdict enum, confidence, rationale, judge name)
 - [ ] CREATE `ReviewReport.java` — final report model (PR context, assessment results, build status, recommendations)
 - [ ] CREATE `BuildResult.java` — compilation/test result (success, module, output, duration)
-- [ ] CREATE `ConflictInfo.java` — conflict detection result (conflicted files, classification: simple/complex)
+- [ ] CREATE `ConflictReport.java` — conflict report (conflict list, hasComplexConflicts, summary)
+- [ ] CREATE `ConflictFile.java` — per-file conflict (path, classification: SIMPLE/COMPLEX, description)
 - [ ] WRITE unit tests for record construction, equality, serialization
 - [ ] VERIFY: `./mvnw test` passes
 
@@ -865,3 +867,5 @@ First step of Stage N (N > 1) gates on Stage N-1 consolidation and reads `LEARNI
 |-----------|--------|---------|
 | 2026-04-08T17:00-04:00 | Initial draft | Python-to-Java rewrite plan |
 | 2026-04-08T17:30-04:00 | Add ConflictDetectionStep (2.4), reorder Stage 3 (T1 before AI), fix BOM to 1.0.4 | User feedback |
+| 2026-04-08T19:00-04:00 | Ground in actual APIs: workflow-flows (not workflow-core), CascadedJury/TieredGate, fix ConflictInfo→ConflictReport naming, add agent-claude dep | Review feedback + source exploration |
+| 2026-04-08T20:00-04:00 | Boot 4.0.x, full source validation (4 parallel agents), all API claims verified | Docs comparison + source validation |

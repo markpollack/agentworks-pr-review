@@ -1,7 +1,7 @@
 # Vision: AgentWorks PR Review Pipeline
 
 > **Created**: 2026-04-08T18:00-04:00
-> **Last updated**: 2026-04-08T18:00-04:00
+> **Last updated**: 2026-04-08T19:00-04:00
 > **Status**: Stable
 
 ## Problem Statement
@@ -46,10 +46,10 @@ The secondary audience is Spring conference workshop participants. They need a l
 
 ## Unknowns and Research Questions
 
-1. Does `workflow-core` 0.3.0's `JudgeGate` support the PASS/WARN/FAIL three-state verdict model, or only binary PASS/FAIL?
-2. What Journal event types exist for git operations? May need custom event types beyond LLMCallEvent/ToolCallEvent.
-3. Can AgentClient drive Claude Code for structured JSON output reliably, or do we need response parsing fallbacks?
-4. What's the actual GitHub API call count for a full PR review? Need to verify GITHUB_TOKEN rate limit math for 20+ concurrent workshop participants.
+1. ~~Does `JudgeGate` support PASS/WARN/FAIL?~~ **Resolved**: `JudgeGate` is binary PASS/FAIL. `TieredGate` adds ESCALATE (our WARN equivalent). `CascadedJury` provides the fail-fast tiered cascade. See DESIGN.md DD-3 and DD-7.
+2. What Journal event types exist for git operations? May need custom event types beyond LLMCallEvent/ToolCallEvent. (Resolve in Step 1.0)
+3. Can AgentClient drive Claude Code for structured JSON output reliably, or do we need response parsing fallbacks? (Resolve in Step 3.3)
+4. What's the actual GitHub API call count for a full PR review? Need to verify GITHUB_TOKEN rate limit math for 20+ concurrent workshop participants. (Resolve in Step 2.1)
 
 ## Assumptions
 
@@ -61,7 +61,7 @@ The secondary audience is Spring conference workshop participants. They need a l
 
 ## Constraints
 
-- **Technology**: Java 21+, Spring Boot 3.5+, AgentWorks stack (workflow-core 0.3.0, journal-core 0.9.0, agent-judge-core 0.9.1, agent-client-core 0.11.0). All deps via agentworks-bom 1.0.4.
+- **Technology**: Java 21+, Spring Boot 4.0.x, AgentWorks stack (workflow-flows 0.3.0, journal-core 0.9.0, agent-judge-core 0.9.1, agent-client-core 0.11.0). All deps via agentworks-bom 1.0.4.
 - **No `gh` CLI**: Broadcom SAML SSO blocks OAuth tokens for spring-projects org. Must use direct REST API via Spring's RestClient.
 - **Workshop**: Must be teachable in a 90-minute session. Pipeline complexity must be lower than the Python system, not higher.
 - **Dependencies**: No SNAPSHOTs. All released versions only.
@@ -73,3 +73,5 @@ The secondary audience is Spring conference workshop participants. They need a l
 | Timestamp | Change | Trigger |
 |-----------|--------|---------|
 | 2026-04-08T18:00-04:00 | Initial draft | Project creation |
+| 2026-04-08T19:00-04:00 | Resolved JudgeGate question (#1), pinned Boot 3.5.x, corrected workflow-core→workflow-flows | Review feedback + source exploration |
+| 2026-04-08T19:30-04:00 | Updated Spring Boot to 4.0.x (Boot 4 is GA, Spring AI 2.0 requires it) | User correction |

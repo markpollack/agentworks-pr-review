@@ -18,14 +18,23 @@ Workshop-teachable PR review pipeline for Spring conferences.
 
 ## Key AgentWorks Dependencies (all released, no SNAPSHOTs)
 - `agentworks-bom` 1.0.4 (`io.github.markpollack`)
-- `workflow-core` 0.3.0 (`io.github.markpollack`) — Step<I,O>, Workflow DSL
-- `journal-core` 0.9.0 (`io.github.markpollack`) — Run tracking, events
-- `agent-judge-core` 0.9.1 (`org.springaicommunity`) — Judge framework
-- `agent-client-core` 0.11.0 (`org.springaicommunity.agents`) — AgentClient for Claude Code
+- `workflow-flows` 0.3.0 (`io.github.markpollack`) — Step<I,O>, Workflow DSL, AgentContext, ContextKey, JudgeGate, TieredGate
+- `journal-core` 0.9.0 (`io.github.markpollack`) — Run tracking, events (default: InMemoryStorage; configure JsonFileStorage for persistence)
+- `agent-judge-core` 0.9.1 (`org.springaicommunity`) — Judge, Judgment, CascadedJury, Score
+- `agent-client-core` 0.11.0 (`org.springaicommunity.agents`) — AgentClient facade (package: `org.springaicommunity.agents.client`)
+- `agent-claude` 0.11.0 (`org.springaicommunity.agents`) — ClaudeAgentModel (runtime dep)
 
 ## AgentWorks Source
-- Local source: `~/projects/agentworks/`
+- Local source: `~/projects/agentworks/` (BOM), `~/projects/agent-workflow/` (workflow-flows), `~/projects/agent-journal/` (journal-core)
+- Community source: `~/community/agent-judge/`, `~/community/agent-client/`
+- Docs: `~/projects/docs/docs/agent-workflow/`, `~/community/mintlify-docs/`
 - Prefer reading source over decompiling from ~/.m2
+
+## Key API Notes (validated against source)
+- Two different `AgentClient` interfaces: workflow-flows' simple one vs agent-client-core's full fluent API
+- `JudgeGate` does NOT bridge AgentContext → JudgmentContext — need custom `PrReviewGate` (DD-8)
+- `JudgmentStatus`: PASS/FAIL/ABSTAIN/ERROR — no WARN. Use TieredGate (ESCALATE) for warnings
+- Journal git events: GitPatchEvent, GitCommitEvent, GitBranchEvent, GitPullRequestEvent
 
 ## Architecture
 Three-phase pipeline:
