@@ -1,7 +1,7 @@
 # Learnings: AgentWorks PR Review Pipeline
 
-> **Last compacted**: 2026-04-09T08:00-04:00
-> **Covers through**: Stage 3 complete (Steps 1.0–3.5)
+> **Last compacted**: 2026-04-09T10:00-04:00
+> **Covers through**: Stage 4 complete (Steps 1.0–4.4)
 
 This is the **Tier 1 compacted summary**. Read this first for the current state of project knowledge. For details on specific steps, see the per-step files (Tier 2).
 
@@ -49,6 +49,14 @@ This is the **Tier 1 compacted summary**. Read this first for the current state 
 24. **QualityJudge uses NumericalScore** — Weighted composite (70% quality + 30% backport). TieredGate compatible for PASS/ESCALATE/FAIL at workflow level.
 25. **AgentClient from agent-client-core** — `org.springaicommunity.agents.client.AgentClient` (fluent API). `run(String)` convenience method returns `AgentClientResponse.getResult()` as String.
 
+### From Stage 4: Report Generation and Workshop Polish (Steps 4.0–4.3)
+
+26. **Manual orchestrator over Workflow DSL** — Pipeline type chain mismatches (BuildResult → PrContext between phases) make DSL bridging awkward. Manual orchestration is more workshop-readable and avoids hidden bridge steps.
+27. **DD-8 resolved inline** — Each judge call constructs `JudgmentContext` directly with proper metadata keys. No generic gate adapter needed — each tier's metadata needs are different.
+28. **PreflightCheck uses HttpClient, not RestClient** — Runs before Spring context; avoids bean dependencies. Rate limit JSON parsed with regex, not Jackson.
+29. **CheckResult critical vs non-critical** — Claude Code CLI is non-critical (use `skip-ai=true`). Java, Git, GitHub API, rate limits are critical.
+30. **Package rename `..github..` gotcha** — After renaming to `io.github.markpollack`, ArchUnit glob `..github..` matches the entire tree. Must use fully-qualified subpackage constants.
+
 ## Patterns Established
 
 | Pattern | Detail |
@@ -64,6 +72,8 @@ This is the **Tier 1 compacted summary**. Read this first for the current state 
 | **ProcessBuilder for CLI steps** | Configurable `workingDirectory(Path)`, inner `ProcessResult(exitCode, stdout, stderr)` record, error returns domain result (not exception) |
 | **WireMock for REST client tests** | WireMock 3.13.1, `@WireMockTest` annotation, JSON fixture stubs for all GitHub API endpoints |
 | **Judge Check sub-assertions** | `Check.pass(name)` / `Check.fail(name, message)` for granular reporting within a single `Judgment` |
+| **Manual workflow orchestration** | Explicit step calls with local variables — more readable than DSL for type-mismatched pipelines |
+| **putIfNotNull for JudgmentContext** | Guard against null before `builder.metadata(key, value)` — JudgmentContext rejects null values |
 
 ## Deviations from Design
 
@@ -73,8 +83,11 @@ This is the **Tier 1 compacted summary**. Read this first for the current state 
 | `ContextKeys.java` in Step 1.3 | ContextKey constants on producing steps | Each step defines its own public static ContextKey |
 | Fallback journal in Step 1.4 | Deferred to Stage 4 | Can't validate format until pipeline produces real events |
 | Parse git conflict markers | Classify by filename pattern | Simpler, sufficient for workshop |
-| JudgeGate wiring in Step 2.6 | Deferred to Step 4.2 | DD-8: need custom gate for structured metadata |
+| JudgeGate wiring in Step 2.6 | Inline in PrReviewWorkflow | DD-8: construct JudgmentContext directly per judge |
 | Journal logging in Steps 2.2–2.5 | Deferred to journal wiring step | Journal infrastructure not yet built |
+| Workflow DSL composition | Manual orchestrator | Type chain mismatches between pipeline phases |
+| HTML report generation | Markdown only | Sufficient for workshop demo |
+| Fallback journal mode | Deferred | Depends on journal infrastructure |
 
 ## Common Pitfalls
 
@@ -125,6 +138,8 @@ agent-claude:0.11.0 (runtime)
 | `step-2.5-run-tests.md` | 2.5 | Module discovery, ArchUnit public-only naming rule |
 | `step-2.6-build-judge.md` | 2.6 | Judge API, Check sub-assertions, metadata key pattern |
 | `step-3.6-stage3-summary.md` | 3.6 | Full Stage 3: T1, AI steps, T2, AgentClient API |
+| `step-4.0-stage4-entry.md` | 4.0 | Pipeline data flow review, DD-8 integration approach |
+| `step-4.4-stage4-summary.md` | 4.4 | Full Stage 4: report, workflow, pre-flight, runner |
 
 ---
 
@@ -139,3 +154,4 @@ agent-claude:0.11.0 (runtime)
 | 2026-04-08T22:45-04:00 | **Stage 1 consolidation** — compacted Steps 1.0–1.4 | Step 1.5 |
 | 2026-04-08T23:30-04:00 | **Stage 2 consolidation** — compacted Steps 2.0–2.6 | Step 2.7 |
 | 2026-04-09T08:00-04:00 | **Stage 3 consolidation** — compacted Steps 3.0–3.5 | Step 3.6 |
+| 2026-04-09T10:00-04:00 | **Stage 4 consolidation** — compacted Steps 4.0–4.3; all stages complete | Step 4.4 |

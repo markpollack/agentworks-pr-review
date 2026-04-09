@@ -91,11 +91,26 @@ Workshop-teachable PR review pipeline for Spring conferences.
 Three-phase pipeline:
 1. **Deterministic Context Gathering** — GitHub API, git rebase, conflict detection, tests
 2. **AI Assessment** — Code quality + backport assessment via AgentClient
-3. **Report Generation** — Markdown/HTML from judge verdicts
+3. **Report Generation** — Markdown from judge verdicts
 
 Judge cascade: **T0 (BuildJudge)** → **T1 (VersionPatternJudge)** → AI steps → **T2 (QualityJudge)**
 - T0/T1 are deterministic (no AI)
-- T2 only fires if T0 and T1 pass or warn
+- T2 only fires if T0 and T1 pass
+- `skip-ai=true` gates Phase 2 entirely
+
+## Workflow Composition
+- `PrReviewWorkflow` uses manual orchestration (not Workflow DSL) for workshop readability
+- Each judge call constructs `JudgmentContext` directly with `putIfNotNull()` for metadata bridging (DD-8)
+- `JudgmentContext.builder().metadata(key, value)` rejects null — always guard before calling
+- Type chain: FetchPrContext→PrContext→RebaseResult→ConflictReport→BuildResult; then bridges back to PrContext for AI steps
+
+## Running
+```bash
+./mvnw spring-boot:run                                          # default PR
+./mvnw spring-boot:run -Dspring-boot.run.arguments="5774"       # specific PR
+./mvnw spring-boot:run -Dspring-boot.run.arguments="--check"    # pre-flight only
+./mvnw spring-boot:run -Dspring-boot.run.arguments="--github.repo=owner/repo --workshop.default-pr=123"
+```
 
 ## Python Reference
 - Original Python pipeline: `~/projects/spring-ai-project-mgmt/pr-review/`
