@@ -115,7 +115,7 @@ class DomainModelTest {
 
 		@Test
 		void skippedFactoryMethod() {
-			var result = BuildResult.buildSkipped();
+			var result = BuildResult.skippedBuild();
 			assertThat(result.success()).isFalse();
 			assertThat(result.skipped()).isTrue();
 			assertThat(result.modules()).isEmpty();
@@ -191,7 +191,7 @@ class DomainModelTest {
 			var mutableJudgments = new ArrayList<>(List.of(Judgment.pass("ok")));
 
 			var report = new ReviewReport(prContext, RebaseResult.clean("b"), ConflictReport.clean(),
-					BuildResult.buildSkipped(), mutableAssessments, mutableJudgments, Instant.now());
+					BuildResult.skippedBuild(), mutableAssessments, mutableJudgments, Instant.now());
 
 			mutableAssessments.clear();
 			mutableJudgments.clear();

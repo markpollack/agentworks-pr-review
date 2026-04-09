@@ -1,0 +1,41 @@
+{
+  "number": 1175,
+  "id": 1234567890,
+  "title": "Add support for Ollama function calling",
+  "body": "This PR adds function calling support for the Ollama chat model.\n\nCloses #1100",
+  "state": "closed",
+  "created_at": "2024-06-15T10:30:00Z",
+  "updated_at": "2024-06-18T14:00:00Z",
+  "closed_at": "2024-06-18T14:00:00Z",
+  "merged_at": "2024-06-18T14:00:00Z",
+  "user": {
+    "login": "contributor-alice",
+    "type": "User"
+  },
+  "labels": [
+    {
+      "name": "type: enhancement",
+      "color": "a2eeef",
+      "description": "A new feature"
+    },
+    {
+      "name": "module: ollama",
+      "color": "e8f9de",
+      "description": "Ollama model support"
+    }
+  ],
+  "base": {
+    "ref": "main",
+    "sha": "aaa111bbb222"
+  },
+  "head": {
+    "ref": "feature/ollama-function-calling",
+    "sha": "ccc333ddd444"
+  },
+  "draft": false,
+  "additions": 450,
+  "deletions": 30,
+  "changed_files": 8,
+  "commits": 5,
+  "merge_commit_sha": "eee555fff666"
+}

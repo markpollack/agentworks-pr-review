@@ -1,0 +1,22 @@
+[
+  {
+    "id": 11111111,
+    "user": {
+      "login": "maintainer-bob",
+      "type": "User"
+    },
+    "body": "Could you add a test for the error case when the model doesn't support tools?",
+    "created_at": "2024-06-16T09:05:00Z",
+    "author_association": "MEMBER"
+  },
+  {
+    "id": 11111112,
+    "user": {
+      "login": "contributor-alice",
+      "type": "User"
+    },
+    "body": "Good point, added in the latest commit.",
+    "created_at": "2024-06-17T15:30:00Z",
+    "author_association": "CONTRIBUTOR"
+  }
+]

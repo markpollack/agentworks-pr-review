@@ -20,7 +20,7 @@ public record BuildResult(boolean success, boolean skipped, List<String> modules
 		modules = List.copyOf(modules);
 	}
 
-	public static BuildResult buildSkipped() {
+	public static BuildResult skippedBuild() {
 		return new BuildResult(false, true, List.of(), null, 0);
 	}
 

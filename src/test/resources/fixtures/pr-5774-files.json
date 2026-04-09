@@ -1,0 +1,20 @@
+[
+  {
+    "sha": "f18589dcaf372ffae450e50e4c38ca61e496499a",
+    "filename": "mcp/transport/mcp-spring-webflux/src/main/java/org/springframework/ai/mcp/client/webflux/transport/WebClientStreamableHttpTransport.java",
+    "status": "modified",
+    "additions": 17,
+    "deletions": 11,
+    "changes": 28,
+    "patch": "@@ -314,6 +314,9 @@ public Mono<Void> sendMessage(McpSchema.JSONRPCMessage message) {\n \t\t\tfinal AtomicReference<@Nullable Disposable> disposableRef = new AtomicReference<>();\n \t\t\tfinal McpTransportSession<Disposable> transportSession = this.activeSession.get();\n \n+\t\t\t// https://github.com/modelcontextprotocol/java-sdk/issues/889\n+\t\t\tObject requestId = (message instanceof McpSchema.JSONRPCRequest req) ? req.id() : null;\n+\n \t\t\tDisposable connection = Flux.deferContextual(ctx -> this.webClient.post()"
+  },
+  {
+    "sha": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0",
+    "filename": "mcp/transport/mcp-spring-webflux/src/test/java/org/springframework/ai/mcp/client/webflux/transport/WebClientStreamableHttpTransportBodyErrorIT.java",
+    "status": "added",
+    "additions": 230,
+    "deletions": 0,
+    "changes": 230,
+    "patch": "@@ -0,0 +1,230 @@\n+package org.springframework.ai.mcp.client.webflux.transport;\n+\n+import org.junit.jupiter.api.Test;\n+import reactor.test.StepVerifier;\n+\n+class WebClientStreamableHttpTransportBodyErrorIT {"
+  }
+]

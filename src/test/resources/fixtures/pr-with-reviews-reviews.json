@@ -1,0 +1,24 @@
+[
+  {
+    "id": 98765432,
+    "user": {
+      "login": "maintainer-bob",
+      "type": "User"
+    },
+    "state": "CHANGES_REQUESTED",
+    "body": "A few things to address before merging — see inline comments.",
+    "submitted_at": "2024-06-16T09:00:00Z",
+    "author_association": "MEMBER"
+  },
+  {
+    "id": 98765433,
+    "user": {
+      "login": "maintainer-bob",
+      "type": "User"
+    },
+    "state": "APPROVED",
+    "body": "Looks good now, thanks for the changes!",
+    "submitted_at": "2024-06-18T13:00:00Z",
+    "author_association": "MEMBER"
+  }
+]

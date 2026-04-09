@@ -44,10 +44,16 @@ Workshop-teachable PR review pipeline for Spring conferences.
 
 ## Domain Models
 - All in `com.tuvium.prreview.model` package, all Java records
-- Record factory method names must not clash with component accessor names (e.g., `buildSkipped()` not `skipped()`)
+- Record factory method names must not clash with component accessor names (e.g., `skippedBuild()` not `skipped()`)
 - `Judgment.pass(String reasoning)` — convenience factory, auto-sets `BooleanScore(true)`
 - `AssessmentResult` uses `JudgmentStatus` from agent-judge-core (not a local enum)
 - All list-containing records use `List.copyOf()` in compact constructors (defensive + null-rejecting)
+
+## Test Infrastructure
+- `TestPrContexts` / `TestAssessments` in test model package — factory methods for all domain models
+- JSON fixtures in `src/test/resources/fixtures/` use raw GitHub REST API format (snake_case) — NOT domain model format
+- GitHub API reference: `~/tuvium/projects/github-collector` (production DTOs, ObjectMapper with SNAKE_CASE + JavaTimeModule)
+- Fallback journal deferred to Stage 4
 
 ## Architecture
 Three-phase pipeline:

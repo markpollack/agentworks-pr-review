@@ -166,23 +166,23 @@ The judge cascade uses `CascadedJury` from agent-judge-core: **T0 (BuildJudge, d
 ### Step 1.4: Test Infrastructure
 
 **Entry criteria**:
-- [ ] Step 1.3 complete
-- [ ] Read: `plans/learnings/step-1.3-domain-models.md` — prior step learnings
+- [x] Step 1.3 complete
+- [x] Read: `plans/learnings/step-1.3-domain-models.md` — prior step learnings
 
 **Work items**:
-- [ ] CREATE test fixtures: `TestPrContexts.java` with factory methods for sample PR contexts
-- [ ] CREATE test fixtures: `TestAssessments.java` with sample judge verdicts
-- [ ] CREATE `src/test/resources/fixtures/` with sample JSON payloads (PR API responses)
-- [ ] CREATE `fallback/pr-5774-journal.jsonl` — pre-recorded journal for workshop fallback
-- [ ] VERIFY: `./mvnw test` passes
+- [x] CREATE test fixtures: `TestPrContexts.java` with factory methods for sample PR contexts
+- [x] CREATE test fixtures: `TestAssessments.java` with sample judge verdicts
+- [x] CREATE `src/test/resources/fixtures/` with sample JSON payloads (PR API responses)
+- [ ] ~~CREATE `fallback/pr-5774-journal.jsonl`~~ — **deferred to Stage 4** (can't validate format until pipeline produces real events)
+- [x] VERIFY: `./mvnw test` passes
 
 **Exit criteria**:
-- [ ] Test fixtures available for all domain models
-- [ ] Sample JSON fixtures for GitHub API responses
-- [ ] Create: `plans/learnings/step-1.4-test-infrastructure.md`
-- [ ] Update `CLAUDE.md` with distilled learnings
-- [ ] Update `ROADMAP.md` checkboxes
-- [ ] COMMIT
+- [x] Test fixtures available for all domain models
+- [x] Sample JSON fixtures for GitHub API responses
+- [x] Create: `plans/learnings/step-1.4-test-infrastructure.md`
+- [x] Update `CLAUDE.md` with distilled learnings
+- [x] Update `ROADMAP.md` checkboxes
+- [x] COMMIT
 
 **Deliverables**: Test fixtures and sample data
 
