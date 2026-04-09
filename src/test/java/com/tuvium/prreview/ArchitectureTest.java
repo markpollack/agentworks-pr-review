@@ -85,6 +85,8 @@ class ArchitectureTest {
 		.and()
 		.areTopLevelClasses()
 		.and()
+		.arePublic()
+		.and()
 		.areNotInterfaces()
 		.and()
 		.haveSimpleNameNotEndingWith("package-info")

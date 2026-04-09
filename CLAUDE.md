@@ -63,6 +63,13 @@ Workshop-teachable PR review pipeline for Spring conferences.
 - GitHub API reference: `~/tuvium/projects/github-collector` (production DTOs, ObjectMapper with SNAKE_CASE + JavaTimeModule)
 - Fallback journal deferred to Stage 4
 
+## Steps Implementation Notes
+- **RebaseStep**: ProcessBuilder-based git operations, configurable `workingDirectory(Path)`, inner `ProcessResult` record
+- **ConflictDetectionStep**: Classifies by filename pattern (not conflict markers). Five compiled `Pattern`s for SIMPLE (pom.xml, build.gradle, .properties, package-info.java); everything else COMPLEX
+- **RunTestsStep**: Gets PrContext from AgentContext via `ctx.require(FetchPrContextStep.PR_CONTEXT)` for module discovery. Output truncated to 10K chars (tail)
+- **ModuleDiscovery**: Package-private utility in steps/. Extracts module from `/src/` marker in file path. Root files map to `.`
+- ArchUnit naming rules only apply to public classes (`.arePublic()`) — package-private utilities exempt
+
 ## Architecture
 Three-phase pipeline:
 1. **Deterministic Context Gathering** — GitHub API, git rebase, conflict detection, tests

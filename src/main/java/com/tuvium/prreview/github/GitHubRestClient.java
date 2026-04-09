@@ -96,7 +96,9 @@ public class GitHubRestClient {
 	}
 
 	/**
-	 * Fetches issue-level comments (not inline review comments).
+	 * Fetches issue-level comments (not inline review comments). Line-level review
+	 * comments live at {@code /pulls/{n}/comments} and are intentionally omitted — review
+	 * summaries from {@link #fetchReviews} capture the review state and body.
 	 */
 	public List<Comment> fetchComments(int prNumber) {
 		JsonNode nodes = get("/repos/{owner}/{repo}/issues/{number}/comments?per_page=100", prNumber);
