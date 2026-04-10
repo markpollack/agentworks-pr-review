@@ -10,3 +10,4 @@ workshop:
   default-pr: 5774
   skip-ai: false
   journal-dir: ./journal
+  repo-dir: ${SPRING_AI_REPO_DIR:../spring-ai}

@@ -36,8 +36,9 @@ public class GitHubRestClient {
 
 	private final GitHubProperties properties;
 
-	public GitHubRestClient(GitHubProperties properties, RestClient.Builder builder) {
-		RestClient.Builder clientBuilder = builder.baseUrl(properties.baseUrl())
+	public GitHubRestClient(GitHubProperties properties) {
+		RestClient.Builder clientBuilder = RestClient.builder()
+			.baseUrl(properties.baseUrl())
 			.defaultHeader(HttpHeaders.ACCEPT, "application/vnd.github.v3+json");
 
 		if (properties.token() != null && !properties.token().isBlank()) {

@@ -2,6 +2,7 @@ package io.github.markpollack.prreview.steps;
 
 import java.util.List;
 
+import io.github.markpollack.prreview.config.WorkshopProperties;
 import io.github.markpollack.prreview.model.BuildResult;
 import io.github.markpollack.prreview.model.ConflictReport;
 import io.github.markpollack.prreview.model.FileChange;
@@ -15,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class RunTestsStepTest {
 
-	private final RunTestsStep step = new RunTestsStep();
+	private final RunTestsStep step = new RunTestsStep(new WorkshopProperties(5774, false, ".", "."));
 
 	@Test
 	void shouldHaveCorrectName() {

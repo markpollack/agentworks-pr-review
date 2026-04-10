@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import io.github.markpollack.prreview.config.WorkshopProperties;
 import io.github.markpollack.prreview.model.BuildResult;
 import io.github.markpollack.prreview.model.ConflictReport;
 import io.github.markpollack.prreview.model.PrContext;
@@ -34,8 +35,8 @@ public class RunTestsStep implements Step<ConflictReport, BuildResult> {
 
 	private Path workingDirectory;
 
-	public RunTestsStep() {
-		this.workingDirectory = Path.of(".");
+	public RunTestsStep(WorkshopProperties workshopProperties) {
+		this.workingDirectory = Path.of(workshopProperties.repoDir());
 	}
 
 	public RunTestsStep workingDirectory(Path workingDirectory) {

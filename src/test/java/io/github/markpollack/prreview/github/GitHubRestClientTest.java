@@ -35,7 +35,7 @@ class GitHubRestClientTest {
 	void setUp(WireMockRuntimeInfo wmRuntimeInfo) {
 		GitHubProperties props = new GitHubProperties("spring-projects/spring-ai", wmRuntimeInfo.getHttpBaseUrl(),
 				null);
-		this.client = new GitHubRestClient(props, RestClient.builder());
+		this.client = new GitHubRestClient(props);
 	}
 
 	@Nested

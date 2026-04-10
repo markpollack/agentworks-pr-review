@@ -1,11 +1,14 @@
 package io.github.markpollack.prreview;
 
 import io.github.markpollack.prreview.config.GitHubProperties;
+import io.github.markpollack.prreview.config.WorkshopProperties;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class PreflightCheckTest {
+
+	private static final WorkshopProperties WORKSHOP_PROPS = new WorkshopProperties(5774, false, ".", ".");
 
 	@Test
 	void extractJsonInt_findsRemainingInCoreSection() {
@@ -55,7 +58,7 @@ class PreflightCheckTest {
 	void javaVersionCheck_passes() {
 		// We're running on Java 21+, so this should always pass in our test env
 		GitHubProperties props = new GitHubProperties("spring-projects/spring-ai", "https://api.github.com", null);
-		PreflightCheck check = new PreflightCheck(props);
+		PreflightCheck check = new PreflightCheck(props, WORKSHOP_PROPS);
 		var results = check.run();
 
 		PreflightCheck.CheckResult javaResult = results.stream()
@@ -68,7 +71,7 @@ class PreflightCheckTest {
 	@Test
 	void gitCheck_passes() {
 		GitHubProperties props = new GitHubProperties("spring-projects/spring-ai", "https://api.github.com", null);
-		PreflightCheck check = new PreflightCheck(props);
+		PreflightCheck check = new PreflightCheck(props, WORKSHOP_PROPS);
 		var results = check.run();
 
 		PreflightCheck.CheckResult gitResult = results.stream()

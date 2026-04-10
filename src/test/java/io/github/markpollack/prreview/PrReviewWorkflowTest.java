@@ -4,6 +4,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+import io.github.markpollack.journal.Journal;
+import io.github.markpollack.journal.event.CustomEvent;
+import io.github.markpollack.journal.event.JournalEvent;
+import io.github.markpollack.journal.event.LLMCallEvent;
+import io.github.markpollack.journal.event.StateChangeEvent;
+import io.github.markpollack.journal.storage.InMemoryStorage;
 import io.github.markpollack.prreview.config.WorkshopProperties;
 import io.github.markpollack.prreview.github.GitHubRestClient;
 import io.github.markpollack.prreview.judges.BuildJudge;
@@ -23,6 +29,7 @@ import io.github.markpollack.prreview.steps.GenerateReportStep;
 import io.github.markpollack.prreview.steps.RebaseStep;
 import io.github.markpollack.prreview.steps.RunTestsStep;
 import io.github.markpollack.workflow.flows.AgentContext;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -59,11 +66,16 @@ class PrReviewWorkflowTest {
 
 	private AgentClient agentClient;
 
+	private InMemoryStorage journalStorage;
+
 	@TempDir
 	Path tempDir;
 
 	@BeforeEach
 	void setUp() {
+		this.journalStorage = new InMemoryStorage();
+		Journal.configure(this.journalStorage);
+
 		GitHubRestClient gitHub = mock(GitHubRestClient.class);
 		given(gitHub.fetchPrContext(anyInt())).willReturn(TestPrContexts.pr5774());
 
@@ -75,6 +87,11 @@ class PrReviewWorkflowTest {
 		this.assessCodeQuality = new AssessCodeQualityStep(this.agentClient);
 		this.assessBackport = new AssessBackportStep(this.agentClient);
 		this.generateReport = new GenerateReportStep().outputDirectory(this.tempDir);
+	}
+
+	@AfterEach
+	void tearDown() {
+		Journal.reset();
 	}
 
 	@Test
@@ -98,6 +115,37 @@ class PrReviewWorkflowTest {
 		assertThat(report).exists();
 		String content = readFile(report);
 		assertThat(content).contains("PR Review Report: #5774").contains("PASS — All judges approved");
+
+		// Journal assertions
+		String runId = workflow.lastRunId();
+		assertThat(runId).isNotNull();
+		List<JournalEvent> events = this.journalStorage.loadEvents("pr-review", runId);
+		assertThat(events).isNotEmpty();
+
+		// Phase 1 steps
+		assertStepPair(events, "fetch-pr-context");
+		assertStepPair(events, "rebase");
+		assertStepPair(events, "conflict-detection");
+		assertStepPair(events, "run-tests");
+
+		// Phase transitions
+		assertThat(stateChanges(events, "context-gathering", "judge-cascade")).hasSize(1);
+
+		// T0 and T1 judge events
+		assertJudgePair(events, "T0");
+		assertJudgePair(events, "T1");
+
+		// Phase 2 AI steps with LLMCallEvents
+		assertStepPair(events, "assess-code-quality");
+		assertStepPair(events, "assess-backport");
+		assertThat(stateChanges(events, "judge-cascade", "ai-assessment")).hasSize(1);
+
+		// T2 judge
+		assertJudgePair(events, "T2");
+
+		// Phase 3 report generation
+		assertStepPair(events, "generate-report");
+		assertThat(stateChanges(events, "ai-assessment", "report-generation")).hasSize(1);
 	}
 
 	@Test
@@ -114,6 +162,16 @@ class PrReviewWorkflowTest {
 		verify(this.agentClient, never()).run(anyString());
 		String content = readFile(report);
 		assertThat(content).contains("FAIL — One or more judges flagged issues");
+
+		// Journal: T0 FAIL means no T1, no AI steps
+		String runId = workflow.lastRunId();
+		List<JournalEvent> events = this.journalStorage.loadEvents("pr-review", runId);
+		assertJudgePair(events, "T0");
+		assertThat(judgeVerdictStatus(events, "T0")).isEqualTo("FAIL");
+		assertThat(events.stream()
+			.filter(e -> e instanceof CustomEvent ce && "judge-started".equals(ce.name())
+					&& "T1".equals(ce.attributes().get("tier")))
+			.count()).isZero();
 	}
 
 	@Test
@@ -128,6 +186,16 @@ class PrReviewWorkflowTest {
 
 		assertThat(report).exists();
 		verify(this.agentClient, never()).run(anyString());
+
+		// Journal: T0 and T1 pass, but no AI step events
+		String runId = workflow.lastRunId();
+		List<JournalEvent> events = this.journalStorage.loadEvents("pr-review", runId);
+		assertJudgePair(events, "T0");
+		assertJudgePair(events, "T1");
+		assertThat(events.stream()
+			.filter(e -> e instanceof CustomEvent ce && "step-started".equals(ce.name())
+					&& "assess-code-quality".equals(ce.attributes().get("step")))
+			.count()).isZero();
 	}
 
 	@Test
@@ -150,20 +218,31 @@ class PrReviewWorkflowTest {
 		PrReviewWorkflow workflow = new PrReviewWorkflow(fetchStep, this.rebaseStep, this.conflictDetection,
 				this.runTests, new BuildJudge(), new VersionPatternJudge(), this.assessCodeQuality, this.assessBackport,
 				new QualityJudge(this.agentClient), this.generateReport,
-				new WorkshopProperties(5774, false, this.tempDir.toString()));
+				new WorkshopProperties(5774, false, this.tempDir.toString(), "."));
 		Path report = workflow.execute(5774);
 
 		assertThat(report).exists();
 		verify(this.agentClient, never()).run(anyString());
 		String content = readFile(report);
 		assertThat(content).contains("FAIL");
+
+		// Journal: T1 FAIL with version-pattern-finding events
+		String runId = workflow.lastRunId();
+		List<JournalEvent> events = this.journalStorage.loadEvents("pr-review", runId);
+		assertJudgePair(events, "T1");
+		assertThat(judgeVerdictStatus(events, "T1")).isEqualTo("FAIL");
+		assertThat(events.stream()
+			.filter(e -> e instanceof CustomEvent ce && "version-pattern-finding".equals(ce.name()))
+			.count()).isGreaterThan(0);
 	}
+
+	// ── Helpers ──────────────────────────────────────────────────────────
 
 	private PrReviewWorkflow createWorkflow(boolean skipAi) {
 		return new PrReviewWorkflow(this.fetchPrContext, this.rebaseStep, this.conflictDetection, this.runTests,
 				new BuildJudge(), new VersionPatternJudge(), this.assessCodeQuality, this.assessBackport,
 				new QualityJudge(this.agentClient), this.generateReport,
-				new WorkshopProperties(5774, skipAi, this.tempDir.toString()));
+				new WorkshopProperties(5774, skipAi, this.tempDir.toString(), "."));
 	}
 
 	private static AgentClientResponse agentResponse(String text) {
@@ -178,6 +257,48 @@ class PrReviewWorkflowTest {
 		catch (Exception ex) {
 			throw new RuntimeException(ex);
 		}
+	}
+
+	private static void assertStepPair(List<JournalEvent> events, String stepName) {
+		long started = events.stream()
+			.filter(e -> e instanceof CustomEvent ce && "step-started".equals(ce.name())
+					&& stepName.equals(ce.attributes().get("step")))
+			.count();
+		long completed = events.stream()
+			.filter(e -> e instanceof CustomEvent ce && "step-completed".equals(ce.name())
+					&& stepName.equals(ce.attributes().get("step")))
+			.count();
+		assertThat(started).as("step-started for %s", stepName).isEqualTo(1);
+		assertThat(completed).as("step-completed for %s", stepName).isEqualTo(1);
+	}
+
+	private static void assertJudgePair(List<JournalEvent> events, String tier) {
+		long started = events.stream()
+			.filter(e -> e instanceof CustomEvent ce && "judge-started".equals(ce.name())
+					&& tier.equals(ce.attributes().get("tier")))
+			.count();
+		long verdict = events.stream()
+			.filter(e -> e instanceof CustomEvent ce && "judge-verdict".equals(ce.name())
+					&& tier.equals(ce.attributes().get("tier")))
+			.count();
+		assertThat(started).as("judge-started for %s", tier).isEqualTo(1);
+		assertThat(verdict).as("judge-verdict for %s", tier).isEqualTo(1);
+	}
+
+	private static String judgeVerdictStatus(List<JournalEvent> events, String tier) {
+		return events.stream()
+			.filter(e -> e instanceof CustomEvent ce && "judge-verdict".equals(ce.name())
+					&& tier.equals(ce.attributes().get("tier")))
+			.map(e -> (String) ((CustomEvent) e).attributes().get("status"))
+			.findFirst()
+			.orElse("");
+	}
+
+	private static List<StateChangeEvent> stateChanges(List<JournalEvent> events, String from, String to) {
+		return events.stream()
+			.filter(e -> e instanceof StateChangeEvent sce && from.equals(sce.fromState()) && to.equals(sce.toState()))
+			.map(e -> (StateChangeEvent) e)
+			.toList();
 	}
 
 }

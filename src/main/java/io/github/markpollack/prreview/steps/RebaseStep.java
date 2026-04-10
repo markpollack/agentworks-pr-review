@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import io.github.markpollack.prreview.config.WorkshopProperties;
 import io.github.markpollack.prreview.model.PrContext;
 import io.github.markpollack.prreview.model.RebaseResult;
 import io.github.markpollack.workflow.flows.AgentContext;
@@ -31,8 +32,8 @@ public class RebaseStep implements Step<PrContext, RebaseResult> {
 
 	private Path workingDirectory;
 
-	public RebaseStep() {
-		this.workingDirectory = Path.of(".");
+	public RebaseStep(WorkshopProperties workshopProperties) {
+		this.workingDirectory = Path.of(workshopProperties.repoDir());
 	}
 
 	public RebaseStep workingDirectory(Path workingDirectory) {
@@ -48,22 +49,30 @@ public class RebaseStep implements Step<PrContext, RebaseResult> {
 	@Override
 	public RebaseResult execute(AgentContext ctx, PrContext input) {
 		String branch = input.headBranch();
+		String reviewBranch = "review/pr-" + input.number();
 		int prNumber = input.number();
 		logger.info("Rebasing PR #{} branch '{}' onto '{}'", prNumber, branch, input.baseBranch());
 
 		try {
-			// Fetch the PR branch
-			exec("git", "fetch", "origin", "pull/" + prNumber + "/head:" + branch);
+			// Ensure we're on the base branch before fetching
+			exec("git", "checkout", input.baseBranch());
+			exec("git", "pull", "--ff-only", "origin", input.baseBranch());
 
-			// Checkout the PR branch
-			exec("git", "checkout", branch);
+			// Delete any stale review branch from a previous run
+			run("git", "branch", "-D", reviewBranch);
+
+			// Fetch the PR into a review-specific local branch
+			exec("git", "fetch", "origin", "pull/" + prNumber + "/head:" + reviewBranch);
+
+			// Checkout the review branch
+			exec("git", "checkout", reviewBranch);
 
 			// Attempt rebase onto base branch
 			ProcessResult rebaseResult = run("git", "rebase", input.baseBranch());
 
 			if (rebaseResult.exitCode() == 0) {
 				logger.info("Rebase clean for PR #{}", prNumber);
-				return RebaseResult.clean(branch);
+				return RebaseResult.clean(reviewBranch);
 			}
 
 			// Rebase failed — collect conflicted files
@@ -73,12 +82,28 @@ public class RebaseStep implements Step<PrContext, RebaseResult> {
 			// Abort the failed rebase to leave repo clean
 			run("git", "rebase", "--abort");
 
-			return RebaseResult.conflict(branch, conflictFiles);
+			return RebaseResult.conflict(reviewBranch, conflictFiles);
 		}
 		catch (IOException | InterruptedException ex) {
 			Thread.currentThread().interrupt();
 			logger.error("Rebase failed for PR #{}: {}", prNumber, ex.getMessage());
-			return new RebaseResult(false, branch, List.of(), "Rebase error: " + ex.getMessage());
+			return new RebaseResult(false, reviewBranch, List.of(), "Rebase error: " + ex.getMessage());
+		}
+	}
+
+	/**
+	 * Cleans up the review branch and restores the base branch. Call this after tests
+	 * complete.
+	 */
+	public void cleanup(PrContext input) {
+		String reviewBranch = "review/pr-" + input.number();
+		try {
+			run("git", "checkout", input.baseBranch());
+			run("git", "branch", "-D", reviewBranch);
+			logger.info("Cleaned up review branch {}", reviewBranch);
+		}
+		catch (IOException | InterruptedException ex) {
+			logger.warn("Failed to clean up review branch: {}", ex.getMessage());
 		}
 	}
 

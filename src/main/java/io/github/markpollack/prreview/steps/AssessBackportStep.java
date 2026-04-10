@@ -38,8 +38,14 @@ public class AssessBackportStep implements Step<PrContext, AssessmentResult> {
 
 	private final AgentClient agentClient;
 
+	private AgentClientResponse lastResponse;
+
 	public AssessBackportStep(AgentClient agentClient) {
 		this.agentClient = agentClient;
+	}
+
+	public AgentClientResponse lastResponse() {
+		return this.lastResponse;
 	}
 
 	@Override
@@ -54,6 +60,7 @@ public class AssessBackportStep implements Step<PrContext, AssessmentResult> {
 		String prompt = renderPrompt(input);
 		try {
 			AgentClientResponse response = this.agentClient.run(prompt);
+			this.lastResponse = response;
 			String result = response.getResult();
 			logger.info("Backport assessment complete for PR #{}", input.number());
 			return AssessmentParser.parse("backport", result);

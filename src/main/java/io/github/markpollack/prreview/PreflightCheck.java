@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.github.markpollack.prreview.config.GitHubProperties;
+import io.github.markpollack.prreview.config.WorkshopProperties;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,8 +22,8 @@ import org.springframework.stereotype.Component;
  * Validates that all prerequisites are met before running the PR review pipeline.
  *
  * <p>
- * Checks: Java version, Git availability, GitHub API access, rate limit headroom, and
- * optionally Claude Code CLI presence.
+ * Checks: Java version, Git availability, GitHub API access, rate limit headroom, target
+ * repo clone, and optionally Claude Code CLI presence.
  */
 @Component
 public class PreflightCheck {
@@ -33,8 +34,11 @@ public class PreflightCheck {
 
 	private final GitHubProperties gitHubProperties;
 
-	public PreflightCheck(GitHubProperties gitHubProperties) {
+	private final WorkshopProperties workshopProperties;
+
+	public PreflightCheck(GitHubProperties gitHubProperties, WorkshopProperties workshopProperties) {
 		this.gitHubProperties = gitHubProperties;
+		this.workshopProperties = workshopProperties;
 	}
 
 	/**
@@ -46,6 +50,7 @@ public class PreflightCheck {
 
 		results.add(checkJavaVersion());
 		results.add(checkGit());
+		results.add(checkRepoDir());
 		results.add(checkGitHubApi());
 		results.add(checkRateLimit());
 		results.add(checkClaudeCodeCli());
@@ -101,6 +106,33 @@ public class PreflightCheck {
 		}
 		catch (Exception ex) {
 			return CheckResult.criticalFail("Git", "git not found: " + ex.getMessage());
+		}
+	}
+
+	private CheckResult checkRepoDir() {
+		Path repoDir = Path.of(this.workshopProperties.repoDir());
+		if (!Files.isDirectory(repoDir)) {
+			return CheckResult.criticalFail("Repo Clone",
+					"workshop.repo-dir=" + repoDir + " does not exist. Clone the target repo first.");
+		}
+		Path gitDir = repoDir.resolve(".git");
+		if (!Files.isDirectory(gitDir)) {
+			return CheckResult.criticalFail("Repo Clone", repoDir + " is not a git repository (no .git directory).");
+		}
+		try {
+			Process process = new ProcessBuilder("git", "remote", "get-url", "origin").directory(repoDir.toFile())
+				.redirectErrorStream(true)
+				.start();
+			String output = new String(process.getInputStream().readAllBytes()).trim();
+			int exitCode = process.waitFor();
+			if (exitCode == 0 && output.contains(this.gitHubProperties.repoName())) {
+				return CheckResult.pass("Repo Clone", repoDir + " — origin: " + output);
+			}
+			return CheckResult.criticalFail("Repo Clone",
+					repoDir + " origin (" + output + ") does not match " + this.gitHubProperties.repo());
+		}
+		catch (Exception ex) {
+			return CheckResult.criticalFail("Repo Clone", "Could not verify git remote: " + ex.getMessage());
 		}
 	}
 

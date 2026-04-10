@@ -38,8 +38,14 @@ public class AssessCodeQualityStep implements Step<PrContext, AssessmentResult> 
 
 	private final AgentClient agentClient;
 
+	private AgentClientResponse lastResponse;
+
 	public AssessCodeQualityStep(AgentClient agentClient) {
 		this.agentClient = agentClient;
+	}
+
+	public AgentClientResponse lastResponse() {
+		return this.lastResponse;
 	}
 
 	@Override
@@ -54,6 +60,7 @@ public class AssessCodeQualityStep implements Step<PrContext, AssessmentResult> 
 		String prompt = renderPrompt(input);
 		try {
 			AgentClientResponse response = this.agentClient.run(prompt);
+			this.lastResponse = response;
 			String result = response.getResult();
 			logger.info("Quality assessment complete for PR #{}", input.number());
 			return AssessmentParser.parse("code-quality", result);
