@@ -26,7 +26,7 @@
             <dependency>
                 <groupId>io.github.markpollack</groupId>
                 <artifactId>agentworks-bom</artifactId>
-                <version>1.0.4</version>
+                <version>1.0.10</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -38,14 +38,12 @@
         <dependency>
             <groupId>io.github.markpollack</groupId>
             <artifactId>workflow-api</artifactId>
-            <version>0.4.0</version>
         </dependency>
 
         <!-- AgentWorks: Workflow DSL -->
         <dependency>
             <groupId>io.github.markpollack</groupId>
             <artifactId>workflow-flows</artifactId>
-            <version>0.4.0</version>
         </dependency>
 
         <!-- AgentWorks: Journal -->
