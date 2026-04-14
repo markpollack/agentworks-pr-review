@@ -12,7 +12,7 @@ import io.github.markpollack.prreview.config.WorkshopProperties;
 import io.github.markpollack.prreview.model.BuildResult;
 import io.github.markpollack.prreview.model.ConflictReport;
 import io.github.markpollack.prreview.model.PrContext;
-import io.github.markpollack.workflow.flows.AgentContext;
+import io.github.markpollack.workflow.core.AgentContext;
 import io.github.markpollack.workflow.flows.Step;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,8 +110,11 @@ public class RunTestsStep implements Step<ConflictReport, BuildResult> {
 	static List<String> buildMavenCommand(List<String> modules) {
 		List<String> command = new ArrayList<>();
 		command.add("./mvnw");
+		command.add("clean");
 		command.add("test");
 		command.add("-B");
+		command.add("-Ddisable.checks=true");
+		command.add("-Dmaven.build.cache.enabled=false");
 
 		if (modules.size() == 1 && ".".equals(modules.get(0))) {
 			return command;

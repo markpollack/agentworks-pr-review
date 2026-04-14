@@ -25,14 +25,16 @@ import io.github.markpollack.prreview.model.ConflictReport;
 import io.github.markpollack.prreview.model.PrContext;
 import io.github.markpollack.prreview.model.RebaseResult;
 import io.github.markpollack.prreview.model.ReviewReport;
+import io.github.markpollack.prreview.model.FixResult;
 import io.github.markpollack.prreview.steps.AssessBackportStep;
 import io.github.markpollack.prreview.steps.AssessCodeQualityStep;
 import io.github.markpollack.prreview.steps.ConflictDetectionStep;
 import io.github.markpollack.prreview.steps.FetchPrContextStep;
+import io.github.markpollack.prreview.steps.FixTestsStep;
 import io.github.markpollack.prreview.steps.GenerateReportStep;
 import io.github.markpollack.prreview.steps.RebaseStep;
 import io.github.markpollack.prreview.steps.RunTestsStep;
-import io.github.markpollack.workflow.flows.AgentContext;
+import io.github.markpollack.workflow.core.AgentContext;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,6 +78,8 @@ public class PrReviewWorkflow {
 
 	private final RunTestsStep runTests;
 
+	private final FixTestsStep fixTests;
+
 	private final BuildJudge buildJudge;
 
 	private final VersionPatternJudge versionPatternJudge;
@@ -93,14 +97,15 @@ public class PrReviewWorkflow {
 	private String lastRunId;
 
 	public PrReviewWorkflow(FetchPrContextStep fetchPrContext, RebaseStep rebaseStep,
-			ConflictDetectionStep conflictDetection, RunTestsStep runTests, BuildJudge buildJudge,
-			VersionPatternJudge versionPatternJudge, AssessCodeQualityStep assessCodeQuality,
+			ConflictDetectionStep conflictDetection, RunTestsStep runTests, FixTestsStep fixTests,
+			BuildJudge buildJudge, VersionPatternJudge versionPatternJudge, AssessCodeQualityStep assessCodeQuality,
 			AssessBackportStep assessBackport, QualityJudge qualityJudge, GenerateReportStep generateReport,
 			WorkshopProperties workshopProperties) {
 		this.fetchPrContext = fetchPrContext;
 		this.rebaseStep = rebaseStep;
 		this.conflictDetection = conflictDetection;
 		this.runTests = runTests;
+		this.fixTests = fixTests;
 		this.buildJudge = buildJudge;
 		this.versionPatternJudge = versionPatternJudge;
 		this.assessCodeQuality = assessCodeQuality;
@@ -142,7 +147,25 @@ public class PrReviewWorkflow {
 					() -> this.conflictDetection.execute(ctx2, rebase));
 			BuildResult build = executeStep(run, "run-tests", () -> this.runTests.execute(ctx2, conflicts));
 
-			// Clean up review branch now that tests are done
+			// ── Fix-Tests: AI attempts to fix failing tests ──────────────
+			if (shouldAttemptFix(rebase, conflicts, build)) {
+				logger.info("── Fix-Tests: AI attempting to fix test failures ──");
+				run.logEvent(CustomEvent.of("step-started", Map.of("step", "fix-tests")));
+				Instant fixStart = Instant.now();
+				FixResult fixResult = this.fixTests.execute(ctx2, build);
+				long fixMs = Duration.between(fixStart, Instant.now()).toMillis();
+				emitLlmCallEvent(run, this.fixTests.lastResponse(), "fix-tests");
+				run.logEvent(CustomEvent.of("step-completed", Map.of("step", "fix-tests", "durationMs", fixMs,
+						"attempted", fixResult.attempted(), "fixed", fixResult.fixed())));
+				logger.info("Fix-tests result: attempted={}, fixed={}, summary={}", fixResult.attempted(),
+						fixResult.fixed(), fixResult.summary());
+
+				// Re-run tests after AI fix attempt
+				logger.info("── Re-running tests after AI fix ──");
+				build = executeStep(run, "run-tests-post-fix", () -> this.runTests.execute(ctx2, conflicts));
+			}
+
+			// Clean up review branch now that tests (and any fix attempts) are done
 			this.rebaseStep.cleanup(prContext);
 
 			run.logEvent(StateChangeEvent.of("context-gathering", "judge-cascade", "Phase 1 complete"));
@@ -288,7 +311,7 @@ public class PrReviewWorkflow {
 		putIfNotNull(builder, BuildJudge.REBASE_RESULT, rebase);
 		putIfNotNull(builder, BuildJudge.CONFLICT_REPORT, conflicts);
 		putIfNotNull(builder, BuildJudge.BUILD_RESULT, build);
-		return this.buildJudge.judge(builder.build());
+		return withJudgeMeta(this.buildJudge.judge(builder.build()), "Build Judge", "T0");
 	}
 
 	private Judgment evaluateVersionPatternJudge(PrContext prContext) {
@@ -298,7 +321,7 @@ public class PrReviewWorkflow {
 			.executionTime(Duration.ZERO)
 			.startedAt(Instant.now());
 		putIfNotNull(builder, VersionPatternJudge.PR_CONTEXT, prContext);
-		return this.versionPatternJudge.judge(builder.build());
+		return withJudgeMeta(this.versionPatternJudge.judge(builder.build()), "Version Pattern Judge", "T1");
 	}
 
 	private Judgment evaluateQualityJudge(@Nullable AssessmentResult quality, @Nullable AssessmentResult backport) {
@@ -309,7 +332,18 @@ public class PrReviewWorkflow {
 			.startedAt(Instant.now());
 		putIfNotNull(builder, QualityJudge.QUALITY_ASSESSMENT, quality);
 		putIfNotNull(builder, QualityJudge.BACKPORT_ASSESSMENT, backport);
-		return this.qualityJudge.judge(builder.build());
+		return withJudgeMeta(this.qualityJudge.judge(builder.build()), "Quality Judge", "T2");
+	}
+
+	private static Judgment withJudgeMeta(Judgment judgment, String judgeName, String tier) {
+		return Judgment.builder()
+			.score(judgment.score())
+			.status(judgment.status())
+			.reasoning(judgment.reasoning())
+			.checks(judgment.checks())
+			.metadata("judge_name", judgeName)
+			.metadata("tier", tier)
+			.build();
 	}
 
 	private Path generateFinalReport(Run run, AgentContext ctx, PrContext prContext, RebaseResult rebase,
@@ -323,6 +357,11 @@ public class PrReviewWorkflow {
 		long elapsed = Duration.between(start, Instant.now()).toMillis();
 		run.logEvent(CustomEvent.of("step-completed", Map.of("step", "generate-report", "durationMs", elapsed)));
 		return path;
+	}
+
+	private boolean shouldAttemptFix(RebaseResult rebase, ConflictReport conflicts, BuildResult build) {
+		return this.workshopProperties.fixTests() && rebase.success() && !conflicts.hasComplexConflicts()
+				&& !build.skipped() && !build.success();
 	}
 
 	private static void putIfNotNull(JudgmentContext.Builder builder, String key, @Nullable Object value) {

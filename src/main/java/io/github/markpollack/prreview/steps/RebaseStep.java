@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 import io.github.markpollack.prreview.config.WorkshopProperties;
 import io.github.markpollack.prreview.model.PrContext;
 import io.github.markpollack.prreview.model.RebaseResult;
-import io.github.markpollack.workflow.flows.AgentContext;
+import io.github.markpollack.workflow.core.AgentContext;
 import io.github.markpollack.workflow.flows.Step;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,10 +59,11 @@ public class RebaseStep implements Step<PrContext, RebaseResult> {
 			exec("git", "pull", "--ff-only", "origin", input.baseBranch());
 
 			// Delete any stale review branch from a previous run
-			run("git", "branch", "-D", reviewBranch);
+			run("git", "update-ref", "-d", "refs/heads/" + reviewBranch);
 
-			// Fetch the PR into a review-specific local branch
-			exec("git", "fetch", "origin", "pull/" + prNumber + "/head:" + reviewBranch);
+			// Fetch the PR head, then create a local branch from it
+			exec("git", "fetch", "origin", "pull/" + prNumber + "/head");
+			exec("git", "branch", reviewBranch, "FETCH_HEAD");
 
 			// Checkout the review branch
 			exec("git", "checkout", reviewBranch);
@@ -77,7 +78,8 @@ public class RebaseStep implements Step<PrContext, RebaseResult> {
 
 			// Rebase failed — collect conflicted files
 			List<String> conflictFiles = getConflictedFiles();
-			logger.warn("Rebase conflict in PR #{}: {} files", prNumber, conflictFiles.size());
+			logger.warn("Rebase conflict in PR #{}: {} files. Exit={}, stderr={}", prNumber, conflictFiles.size(),
+					rebaseResult.exitCode(), rebaseResult.stderr());
 
 			// Abort the failed rebase to leave repo clean
 			run("git", "rebase", "--abort");
@@ -99,7 +101,7 @@ public class RebaseStep implements Step<PrContext, RebaseResult> {
 		String reviewBranch = "review/pr-" + input.number();
 		try {
 			run("git", "checkout", input.baseBranch());
-			run("git", "branch", "-D", reviewBranch);
+			run("git", "update-ref", "-d", "refs/heads/" + reviewBranch);
 			logger.info("Cleaned up review branch {}", reviewBranch);
 		}
 		catch (IOException | InterruptedException ex) {

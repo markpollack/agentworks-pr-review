@@ -8,7 +8,7 @@ import io.github.markpollack.prreview.model.ConflictReport;
 import io.github.markpollack.prreview.model.FileChange;
 import io.github.markpollack.prreview.model.PrContext;
 import io.github.markpollack.prreview.model.TestPrContexts;
-import io.github.markpollack.workflow.flows.AgentContext;
+import io.github.markpollack.workflow.core.AgentContext;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -85,14 +85,14 @@ class RunTestsStepTest {
 		@Test
 		void shouldBuildFullTestCommand() {
 			List<String> command = RunTestsStep.buildMavenCommand(List.of("."));
-			assertThat(command).containsExactly("./mvnw", "test", "-B");
+			assertThat(command).containsExactly("./mvnw", "test", "-B", "-Ddisable.checks=true");
 		}
 
 		@Test
 		void shouldBuildTargetedTestCommand() {
 			List<String> command = RunTestsStep.buildMavenCommand(List.of("models/spring-ai-ollama", "spring-ai-core"));
-			assertThat(command).containsExactly("./mvnw", "test", "-B", "-pl", "models/spring-ai-ollama,spring-ai-core",
-					"-am");
+			assertThat(command).containsExactly("./mvnw", "test", "-B", "-Ddisable.checks=true", "-pl",
+					"models/spring-ai-ollama,spring-ai-core", "-am");
 		}
 
 	}

@@ -3,8 +3,11 @@ package io.github.markpollack.prreview.model;
 import java.time.Instant;
 import java.util.List;
 
+import org.springaicommunity.judge.result.Check;
 import org.springaicommunity.judge.result.Judgment;
 import org.springaicommunity.judge.result.JudgmentStatus;
+import org.springaicommunity.judge.score.BooleanScore;
+import org.springaicommunity.judge.score.NumericalScore;
 
 /**
  * Factory methods for sample assessment results and judgments used in tests.
@@ -55,14 +58,71 @@ public final class TestAssessments {
 
 	// -- Judgment factories (from agent-judge-core) --
 
-	/** Passing judgment from CascadedJury. */
-	public static Judgment passingJudgment() {
-		return Judgment.pass("All checks passed — build green, no version issues, quality acceptable");
+	/** T0 passing judgment with metadata. */
+	public static Judgment buildPassJudgment() {
+		return Judgment.builder()
+			.score(new BooleanScore(true))
+			.status(JudgmentStatus.PASS)
+			.reasoning("Build judge: 4/4 checks passed")
+			.check(Check.pass("rebase-clean"))
+			.check(Check.pass("no-complex-conflicts"))
+			.check(Check.pass("build-executed"))
+			.check(Check.pass("tests-passed"))
+			.metadata("judge_name", "Build Judge")
+			.metadata("tier", "T0")
+			.build();
 	}
 
-	/** Failing judgment from CascadedJury. */
+	/** T1 passing judgment with metadata. */
+	public static Judgment versionPatternPassJudgment() {
+		return Judgment.builder()
+			.score(new BooleanScore(true))
+			.status(JudgmentStatus.PASS)
+			.reasoning("Version pattern judge: no migration anti-patterns detected")
+			.metadata("judge_name", "Version Pattern Judge")
+			.metadata("tier", "T1")
+			.build();
+	}
+
+	/** T2 passing judgment with metadata. */
+	public static Judgment qualityPassJudgment() {
+		return Judgment.builder()
+			.score(NumericalScore.normalized(0.895))
+			.status(JudgmentStatus.PASS)
+			.reasoning("Quality judge: 5/5 checks passed, composite score 0.90")
+			.check(Check.pass("quality-present"))
+			.check(Check.pass("backport-present"))
+			.check(Check.pass("quality-no-error"))
+			.check(Check.pass("backport-no-error"))
+			.check(Check.pass("consistency"))
+			.metadata("judge_name", "Quality Judge")
+			.metadata("tier", "T2")
+			.build();
+	}
+
+	/** T0 failing judgment with metadata. */
+	public static Judgment buildFailJudgment() {
+		return Judgment.builder()
+			.score(new BooleanScore(false))
+			.status(JudgmentStatus.FAIL)
+			.reasoning("Build judge: 3/4 checks passed. Failures: tests-passed (Tests failed)")
+			.check(Check.pass("rebase-clean"))
+			.check(Check.pass("no-complex-conflicts"))
+			.check(Check.pass("build-executed"))
+			.check(Check.fail("tests-passed", "Tests failed (exit code non-zero)"))
+			.metadata("judge_name", "Build Judge")
+			.metadata("tier", "T0")
+			.build();
+	}
+
+	/** Passing judgment (legacy — delegates to buildPassJudgment). */
+	public static Judgment passingJudgment() {
+		return buildPassJudgment();
+	}
+
+	/** Failing judgment (legacy — delegates to buildFailJudgment). */
 	public static Judgment failingJudgment() {
-		return Judgment.fail("Build failed: 2 test failures in spring-ai-ollama module");
+		return buildFailJudgment();
 	}
 
 	// -- BuildResult factories --
@@ -91,17 +151,28 @@ public final class TestAssessments {
 
 	// -- ReviewReport factories --
 
-	/** Complete passing report — all phases succeeded. */
+	/** Complete passing report — all phases succeeded, all three tiers. */
 	public static ReviewReport passingReport() {
 		return new ReviewReport(TestPrContexts.pr5774(), RebaseResult.clean("fix/889-body-error-propagation"),
 				ConflictReport.clean(), buildSuccess(), List.of(buildPass(), versionPatternPass(), qualityPass()),
-				List.of(passingJudgment()), Instant.parse("2026-04-08T20:00:00Z"));
+				List.of(buildPassJudgment(), versionPatternPassJudgment(), qualityPassJudgment()),
+				Instant.parse("2026-04-08T20:00:00Z"));
 	}
 
-	/** Report where build failed — AI assessments absent. */
+	/**
+	 * Complete passing report with reviews and comments — exercises discussion section.
+	 */
+	public static ReviewReport passingReportWithReviews() {
+		return new ReviewReport(TestPrContexts.prWithReviews(), RebaseResult.clean("feature/ollama-function-calling"),
+				ConflictReport.clean(), buildSuccess(), List.of(buildPass(), versionPatternPass(), qualityPass()),
+				List.of(buildPassJudgment(), versionPatternPassJudgment(), qualityPassJudgment()),
+				Instant.parse("2026-04-08T20:00:00Z"));
+	}
+
+	/** Report where build failed — only T0 judgment, AI assessments absent. */
 	public static ReviewReport failedBuildReport() {
 		return new ReviewReport(TestPrContexts.pr5774(), RebaseResult.clean("fix/889-body-error-propagation"),
-				ConflictReport.clean(), buildFailure(), List.of(buildFail()), List.of(failingJudgment()),
+				ConflictReport.clean(), buildFailure(), List.of(buildFail()), List.of(buildFailJudgment()),
 				Instant.parse("2026-04-08T20:00:00Z"));
 	}
 

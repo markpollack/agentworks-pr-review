@@ -7,9 +7,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *
  * @param defaultPr default PR number for workshop demo
  * @param skipAi skip AI assessment steps (for testing deterministic pipeline)
+ * @param fixTests enable AI fix-tests step when tests fail after rebase
  * @param journalDir directory for journal output files
  * @param repoDir local clone of the target repository for rebase and test execution
  */
 @ConfigurationProperties(prefix = "workshop")
-public record WorkshopProperties(int defaultPr, boolean skipAi, String journalDir, String repoDir) {
+public record WorkshopProperties(int defaultPr, boolean skipAi, boolean fixTests, String journalDir, String repoDir) {
 }

@@ -19,7 +19,7 @@ import io.github.markpollack.prreview.model.FileChange;
 import io.github.markpollack.prreview.model.PrContext;
 import io.github.markpollack.prreview.model.RebaseResult;
 import io.github.markpollack.prreview.model.ReviewReport;
-import io.github.markpollack.workflow.flows.AgentContext;
+import io.github.markpollack.workflow.core.AgentContext;
 import io.github.markpollack.workflow.flows.Step;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,18 +59,22 @@ public class GenerateReportStep implements Step<ReviewReport, Path> {
 		logger.info("Generating review report for PR #{}", report.prContext().number());
 
 		String markdown = renderMarkdown(report);
+		String html = renderHtml(report);
 
-		Path outputPath = this.outputDirectory.resolve("review-pr-" + report.prContext().number() + ".md");
+		String baseName = "review-pr-" + report.prContext().number();
+		Path mdPath = this.outputDirectory.resolve(baseName + ".md");
+		Path htmlPath = this.outputDirectory.resolve(baseName + ".html");
 		try {
-			Files.createDirectories(outputPath.getParent());
-			Files.writeString(outputPath, markdown);
+			Files.createDirectories(mdPath.getParent());
+			Files.writeString(mdPath, markdown);
+			Files.writeString(htmlPath, html);
 		}
 		catch (IOException ex) {
-			throw new UncheckedIOException("Failed to write report to " + outputPath, ex);
+			throw new UncheckedIOException("Failed to write report to " + this.outputDirectory, ex);
 		}
 
-		logger.info("Report written to {}", outputPath);
-		return outputPath;
+		logger.info("Reports written to {} and {}", mdPath, htmlPath);
+		return mdPath;
 	}
 
 	@Override
@@ -81,6 +85,10 @@ public class GenerateReportStep implements Step<ReviewReport, Path> {
 	@Override
 	public Class<?> outputType() {
 		return Path.class;
+	}
+
+	String renderHtml(ReviewReport report) {
+		return HtmlReportRenderer.render(report);
 	}
 
 	String renderMarkdown(ReviewReport report) {
