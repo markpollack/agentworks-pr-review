@@ -25,10 +25,11 @@ import io.github.markpollack.prreview.steps.AssessBackportStep;
 import io.github.markpollack.prreview.steps.AssessCodeQualityStep;
 import io.github.markpollack.prreview.steps.ConflictDetectionStep;
 import io.github.markpollack.prreview.steps.FetchPrContextStep;
+import io.github.markpollack.prreview.steps.FixTestsStep;
 import io.github.markpollack.prreview.steps.GenerateReportStep;
 import io.github.markpollack.prreview.steps.RebaseStep;
 import io.github.markpollack.prreview.steps.RunTestsStep;
-import io.github.markpollack.workflow.flows.AgentContext;
+import io.github.markpollack.workflow.core.AgentContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,6 +59,8 @@ class PrReviewWorkflowTest {
 
 	private RunTestsStep runTests;
 
+	private FixTestsStep fixTests;
+
 	private AssessCodeQualityStep assessCodeQuality;
 
 	private AssessBackportStep assessBackport;
@@ -83,6 +86,7 @@ class PrReviewWorkflowTest {
 		this.rebaseStep = mock(RebaseStep.class);
 		this.conflictDetection = new ConflictDetectionStep();
 		this.runTests = mock(RunTestsStep.class);
+		this.fixTests = mock(FixTestsStep.class);
 		this.agentClient = mock(AgentClient.class);
 		this.assessCodeQuality = new AssessCodeQualityStep(this.agentClient);
 		this.assessBackport = new AssessBackportStep(this.agentClient);
@@ -110,7 +114,7 @@ class PrReviewWorkflowTest {
 				"""));
 
 		PrReviewWorkflow workflow = createWorkflow(false);
-		Path report = workflow.execute(5774);
+		Path report = workflow.handle(AgentContext.create(), 5774);
 
 		assertThat(report).exists();
 		String content = readFile(report);
@@ -156,7 +160,7 @@ class PrReviewWorkflowTest {
 			.willReturn(BuildResult.skippedBuild());
 
 		PrReviewWorkflow workflow = createWorkflow(false);
-		Path report = workflow.execute(5774);
+		Path report = workflow.handle(AgentContext.create(), 5774);
 
 		assertThat(report).exists();
 		verify(this.agentClient, never()).run(anyString());
@@ -182,7 +186,7 @@ class PrReviewWorkflowTest {
 			.willReturn(new BuildResult(true, false, List.of("mcp-spring-webflux"), "BUILD SUCCESS", 5000));
 
 		PrReviewWorkflow workflow = createWorkflow(true);
-		Path report = workflow.execute(5774);
+		Path report = workflow.handle(AgentContext.create(), 5774);
 
 		assertThat(report).exists();
 		verify(this.agentClient, never()).run(anyString());
@@ -216,10 +220,10 @@ class PrReviewWorkflowTest {
 			.willReturn(new BuildResult(true, false, List.of("module"), "BUILD SUCCESS", 3000));
 
 		PrReviewWorkflow workflow = new PrReviewWorkflow(fetchStep, this.rebaseStep, this.conflictDetection,
-				this.runTests, new BuildJudge(), new VersionPatternJudge(), this.assessCodeQuality, this.assessBackport,
-				new QualityJudge(this.agentClient), this.generateReport,
-				new WorkshopProperties(5774, false, this.tempDir.toString(), "."));
-		Path report = workflow.execute(5774);
+				this.runTests, this.fixTests, new BuildJudge(), new VersionPatternJudge(), this.assessCodeQuality,
+				this.assessBackport, new QualityJudge(this.agentClient), this.generateReport,
+				new WorkshopProperties(5774, false, false, this.tempDir.toString(), "."));
+		Path report = workflow.handle(AgentContext.create(), 5774);
 
 		assertThat(report).exists();
 		verify(this.agentClient, never()).run(anyString());
@@ -240,9 +244,9 @@ class PrReviewWorkflowTest {
 
 	private PrReviewWorkflow createWorkflow(boolean skipAi) {
 		return new PrReviewWorkflow(this.fetchPrContext, this.rebaseStep, this.conflictDetection, this.runTests,
-				new BuildJudge(), new VersionPatternJudge(), this.assessCodeQuality, this.assessBackport,
+				this.fixTests, new BuildJudge(), new VersionPatternJudge(), this.assessCodeQuality, this.assessBackport,
 				new QualityJudge(this.agentClient), this.generateReport,
-				new WorkshopProperties(5774, skipAi, this.tempDir.toString(), "."));
+				new WorkshopProperties(5774, skipAi, false, this.tempDir.toString(), "."));
 	}
 
 	private static AgentClientResponse agentResponse(String text) {

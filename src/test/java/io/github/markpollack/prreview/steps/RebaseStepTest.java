@@ -4,14 +4,14 @@ import io.github.markpollack.prreview.config.WorkshopProperties;
 import io.github.markpollack.prreview.model.PrContext;
 import io.github.markpollack.prreview.model.RebaseResult;
 import io.github.markpollack.prreview.model.TestPrContexts;
-import io.github.markpollack.workflow.flows.AgentContext;
+import io.github.markpollack.workflow.core.AgentContext;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class RebaseStepTest {
 
-	private static final WorkshopProperties TEST_PROPS = new WorkshopProperties(5774, false, ".", ".");
+	private static final WorkshopProperties TEST_PROPS = new WorkshopProperties(5774, false, false, ".", ".");
 
 	@Test
 	void shouldHaveCorrectName() {

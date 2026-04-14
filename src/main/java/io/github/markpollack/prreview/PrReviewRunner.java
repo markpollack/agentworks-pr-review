@@ -3,6 +3,8 @@ package io.github.markpollack.prreview;
 import java.nio.file.Path;
 
 import io.github.markpollack.prreview.config.WorkshopProperties;
+import io.github.markpollack.workflow.core.AgentContext;
+import io.github.markpollack.workflow.flows.agent.AgentExceptionHandlerResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,11 +34,14 @@ public class PrReviewRunner implements CommandLineRunner {
 
 	private final WorkshopProperties workshopProperties;
 
+	private final AgentExceptionHandlerResolver exceptionResolver;
+
 	public PrReviewRunner(PrReviewWorkflow workflow, PreflightCheck preflightCheck,
-			WorkshopProperties workshopProperties) {
+			WorkshopProperties workshopProperties, AgentExceptionHandlerResolver exceptionResolver) {
 		this.workflow = workflow;
 		this.preflightCheck = preflightCheck;
 		this.workshopProperties = workshopProperties;
+		this.exceptionResolver = exceptionResolver;
 	}
 
 	@Override
@@ -57,8 +62,21 @@ public class PrReviewRunner implements CommandLineRunner {
 		}
 
 		logger.info("Starting PR review for PR #{}", prNumber);
-		Path report = this.workflow.execute(prNumber);
-		logger.info("Review complete. Report: {}", report.toAbsolutePath());
+		AgentContext ctx = AgentContext.create();
+		try {
+			Path report = this.workflow.handle(ctx, prNumber);
+			logger.info("Review complete. Report: {}", report.toAbsolutePath());
+		}
+		catch (Exception ex) {
+			logger.error("Pipeline failed: {}", ex.getMessage());
+			var result = this.exceptionResolver.resolve(this.workflow, ex, ctx);
+			if (result.isPresent()) {
+				logger.info("Exception handler produced: {}", result.get());
+			}
+			else {
+				throw ex;
+			}
+		}
 	}
 
 	private static boolean hasFlag(String[] args, String flag) {

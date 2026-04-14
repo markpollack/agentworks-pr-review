@@ -817,6 +817,52 @@ First step of Stage N (N > 1) gates on Stage N-1 consolidation and reads `LEARNI
 
 ---
 
+---
+
+## Stage 5: Annotation Model Migration (COMPLETE)
+
+**Goal**: Make `PrReviewWorkflow` a composable `@Agent("pr-review")` with pluggable steps — "replace the step you want to customize, keep the rest."
+
+### Step 5.0: Dependency Upgrade + Import Migration ✅
+- Overrode `workflow-flows` and `workflow-api` to 0.4.0-SNAPSHOT
+- Migrated `AgentContext` and `ContextKey` imports from `workflow.flows` → `workflow.core` (17 files)
+- Fixed pre-existing test issues (WorkshopProperties 5-param constructor, FixTestsStep missing from test, RunTestsStep command assertions)
+
+### Step 5.1: Annotate Steps with @StepName + @Description ✅
+- Added `@StepName` and `@Description` to all 8 step classes
+- Purely additive, no behavior change
+
+### Step 5.2: PrReviewWorkflow → @Agent + AgentHandler ✅
+- Replaced `@Component` with `@Agent("pr-review")` + `@Description`
+- Implemented `AgentHandler<Integer, Path>`
+- Renamed `execute(int)` → `handle(AgentContext, Integer)`
+- Updated `PrReviewRunner` to create `AgentContext` and call `handle(ctx, prNumber)`
+
+### Step 5.3: Interface Injection — Pluggable Steps ✅
+- Constructor now accepts `Step<I,O>` interfaces instead of concrete types
+- `RebaseStep` stays concrete (has `cleanup()` beyond Step interface)
+- Added `@Qualifier("assess-code-quality")` and `@Qualifier("assess-backport")` for ambiguous `Step<PrContext, AssessmentResult>` types
+- Eliminated `lastResponse()` coupling: AI steps store `AgentClientResponse` in `AgentContext` via `ContextKey`, workflow reads from context
+
+### Step 5.4: @ExceptionHandler — Centralized Error Recovery ✅
+- Added `@ExceptionHandler(RuntimeException.class)` to `PrReviewWorkflow` — generates error report
+- Created `config/PrReviewConfig.java` with `AgentExceptionHandlerResolver` bean
+- Updated `PrReviewRunner` to wrap `handle()` in try/catch using resolver
+- Added `ReviewReport.error()` factory method
+
+### Step 5.5: @AgentAdvice + AgentRegistry ✅
+- Created `config/PrReviewErrorAdvice.java` with `@AgentAdvice` — cross-cutting fallback error handler
+- Added `AgentRegistry` bean with `Map.of("pr-review", prReviewWorkflow)`
+- Wired advice into resolver
+
+### Key Learnings
+- BOM version pinning requires explicit `<version>` on both `workflow-api` and `workflow-flows` to override
+- `@Agent` is meta-annotated with `@Component`, so it replaces (not supplements) `@Component`
+- Interface injection works because concrete types implement the interfaces — test constructors pass concrete instances unchanged
+- `ContextKey` pattern eliminates concrete-type coupling for `lastResponse()` — the workflow reads `AgentClientResponse` from context via static ContextKey constants
+
+---
+
 ## Revision History
 
 | Timestamp | Change | Trigger |

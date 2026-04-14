@@ -13,6 +13,8 @@ import io.github.markpollack.prreview.model.BuildResult;
 import io.github.markpollack.prreview.model.ConflictReport;
 import io.github.markpollack.prreview.model.PrContext;
 import io.github.markpollack.workflow.core.AgentContext;
+import io.github.markpollack.workflow.core.Description;
+import io.github.markpollack.workflow.core.StepName;
 import io.github.markpollack.workflow.flows.Step;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +29,8 @@ import org.springframework.stereotype.Component;
  * the PR's changed files and runs {@code ./mvnw test -pl {modules} -am}.
  */
 @Component
+@StepName("run-tests")
+@Description("Runs targeted Maven tests on affected modules")
 public class RunTestsStep implements Step<ConflictReport, BuildResult> {
 
 	private static final Logger logger = LoggerFactory.getLogger(RunTestsStep.class);

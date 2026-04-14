@@ -3,7 +3,7 @@ package io.github.markpollack.prreview.steps;
 import io.github.markpollack.prreview.github.GitHubRestClient;
 import io.github.markpollack.prreview.model.PrContext;
 import io.github.markpollack.prreview.model.TestPrContexts;
-import io.github.markpollack.workflow.flows.AgentContext;
+import io.github.markpollack.workflow.core.AgentContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

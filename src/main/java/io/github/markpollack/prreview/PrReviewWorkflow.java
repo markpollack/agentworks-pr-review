@@ -28,14 +28,17 @@ import io.github.markpollack.prreview.model.ReviewReport;
 import io.github.markpollack.prreview.model.FixResult;
 import io.github.markpollack.prreview.steps.AssessBackportStep;
 import io.github.markpollack.prreview.steps.AssessCodeQualityStep;
-import io.github.markpollack.prreview.steps.ConflictDetectionStep;
 import io.github.markpollack.prreview.steps.FetchPrContextStep;
 import io.github.markpollack.prreview.steps.FixTestsStep;
-import io.github.markpollack.prreview.steps.GenerateReportStep;
 import io.github.markpollack.prreview.steps.RebaseStep;
-import io.github.markpollack.prreview.steps.RunTestsStep;
 import io.github.markpollack.workflow.core.AgentContext;
+import io.github.markpollack.workflow.core.AgentHandler;
+import io.github.markpollack.workflow.core.Description;
+import io.github.markpollack.workflow.core.ExceptionHandler;
+import io.github.markpollack.workflow.flows.Step;
+import io.github.markpollack.workflow.flows.agent.Agent;
 import org.jspecify.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springaicommunity.agents.client.AgentClientResponse;
@@ -44,8 +47,6 @@ import org.springaicommunity.judge.context.JudgmentContext;
 import org.springaicommunity.judge.result.Check;
 import org.springaicommunity.judge.result.Judgment;
 import org.springaicommunity.judge.result.JudgmentStatus;
-
-import org.springframework.stereotype.Component;
 
 /**
  * Orchestrates the complete PR review pipeline.
@@ -65,42 +66,44 @@ import org.springframework.stereotype.Component;
  * readability for workshop participants. Each step call and gate evaluation is visible
  * and debuggable.
  */
-@Component
-public class PrReviewWorkflow {
+@Agent("pr-review")
+@Description("Orchestrates the complete PR review pipeline: context gathering, judge cascade, and report generation")
+public class PrReviewWorkflow implements AgentHandler<Integer, Path> {
 
 	private static final Logger logger = LoggerFactory.getLogger(PrReviewWorkflow.class);
 
-	private final FetchPrContextStep fetchPrContext;
+	private final Step<Integer, PrContext> fetchPrContext;
 
 	private final RebaseStep rebaseStep;
 
-	private final ConflictDetectionStep conflictDetection;
+	private final Step<RebaseResult, ConflictReport> conflictDetection;
 
-	private final RunTestsStep runTests;
+	private final Step<ConflictReport, BuildResult> runTests;
 
-	private final FixTestsStep fixTests;
+	private final Step<BuildResult, FixResult> fixTests;
 
 	private final BuildJudge buildJudge;
 
 	private final VersionPatternJudge versionPatternJudge;
 
-	private final AssessCodeQualityStep assessCodeQuality;
+	private final Step<PrContext, AssessmentResult> assessCodeQuality;
 
-	private final AssessBackportStep assessBackport;
+	private final Step<PrContext, AssessmentResult> assessBackport;
 
 	private final QualityJudge qualityJudge;
 
-	private final GenerateReportStep generateReport;
+	private final Step<ReviewReport, Path> generateReport;
 
 	private final WorkshopProperties workshopProperties;
 
 	private String lastRunId;
 
-	public PrReviewWorkflow(FetchPrContextStep fetchPrContext, RebaseStep rebaseStep,
-			ConflictDetectionStep conflictDetection, RunTestsStep runTests, FixTestsStep fixTests,
-			BuildJudge buildJudge, VersionPatternJudge versionPatternJudge, AssessCodeQualityStep assessCodeQuality,
-			AssessBackportStep assessBackport, QualityJudge qualityJudge, GenerateReportStep generateReport,
-			WorkshopProperties workshopProperties) {
+	public PrReviewWorkflow(Step<Integer, PrContext> fetchPrContext, RebaseStep rebaseStep,
+			Step<RebaseResult, ConflictReport> conflictDetection, Step<ConflictReport, BuildResult> runTests,
+			Step<BuildResult, FixResult> fixTests, BuildJudge buildJudge, VersionPatternJudge versionPatternJudge,
+			@Qualifier("assess-code-quality") Step<PrContext, AssessmentResult> assessCodeQuality,
+			@Qualifier("assess-backport") Step<PrContext, AssessmentResult> assessBackport, QualityJudge qualityJudge,
+			Step<ReviewReport, Path> generateReport, WorkshopProperties workshopProperties) {
 		this.fetchPrContext = fetchPrContext;
 		this.rebaseStep = rebaseStep;
 		this.conflictDetection = conflictDetection;
@@ -115,12 +118,8 @@ public class PrReviewWorkflow {
 		this.workshopProperties = workshopProperties;
 	}
 
-	/**
-	 * Executes the full PR review pipeline for the given PR number.
-	 * @param prNumber the GitHub PR number to review
-	 * @return path to the generated report
-	 */
-	public Path execute(int prNumber) {
+	@Override
+	public Path handle(AgentContext ctx, Integer prNumber) {
 		logger.info("=== PR Review Pipeline: PR #{} ===", prNumber);
 
 		try (Run run = Journal.run("pr-review")
@@ -130,7 +129,6 @@ public class PrReviewWorkflow {
 			.start()) {
 
 			this.lastRunId = run.id();
-			AgentContext ctx = AgentContext.create();
 			List<Judgment> judgments = new ArrayList<>();
 			List<AssessmentResult> assessments = new ArrayList<>();
 			String overallVerdict = "PASS";
@@ -154,7 +152,8 @@ public class PrReviewWorkflow {
 				Instant fixStart = Instant.now();
 				FixResult fixResult = this.fixTests.execute(ctx2, build);
 				long fixMs = Duration.between(fixStart, Instant.now()).toMillis();
-				emitLlmCallEvent(run, this.fixTests.lastResponse(), "fix-tests");
+				AgentContext fixCtx = this.fixTests.updateContext(ctx2, fixResult);
+				fixCtx.get(FixTestsStep.FIX_TESTS_RESPONSE).ifPresent(r -> emitLlmCallEvent(run, r, "fix-tests"));
 				run.logEvent(CustomEvent.of("step-completed", Map.of("step", "fix-tests", "durationMs", fixMs,
 						"attempted", fixResult.attempted(), "fixed", fixResult.fixed())));
 				logger.info("Fix-tests result: attempted={}, fixed={}, summary={}", fixResult.attempted(),
@@ -227,20 +226,22 @@ public class PrReviewWorkflow {
 				Instant qualityStart = Instant.now();
 				AssessmentResult quality = this.assessCodeQuality.execute(ctx3, prContext);
 				long qualityMs = Duration.between(qualityStart, Instant.now()).toMillis();
-				emitLlmCallEvent(run, this.assessCodeQuality.lastResponse(), "assess-code-quality");
+				ctx3 = this.assessCodeQuality.updateContext(ctx3, quality);
+				ctx3.get(AssessCodeQualityStep.QUALITY_RESPONSE)
+					.ifPresent(r -> emitLlmCallEvent(run, r, "assess-code-quality"));
 				run.logEvent(CustomEvent.of("step-completed", Map.of("step", "assess-code-quality", "durationMs",
 						qualityMs, "status", quality.status().name())));
-				ctx3 = this.assessCodeQuality.updateContext(ctx3, quality);
 				assessments.add(quality);
 
 				run.logEvent(CustomEvent.of("step-started", Map.of("step", "assess-backport")));
 				Instant backportStart = Instant.now();
 				AssessmentResult backport = this.assessBackport.execute(ctx3, prContext);
 				long backportMs = Duration.between(backportStart, Instant.now()).toMillis();
-				emitLlmCallEvent(run, this.assessBackport.lastResponse(), "assess-backport");
+				ctx3 = this.assessBackport.updateContext(ctx3, backport);
+				ctx3.get(AssessBackportStep.BACKPORT_RESPONSE)
+					.ifPresent(r -> emitLlmCallEvent(run, r, "assess-backport"));
 				run.logEvent(CustomEvent.of("step-completed", Map.of("step", "assess-backport", "durationMs",
 						backportMs, "status", backport.status().name())));
-				ctx3 = this.assessBackport.updateContext(ctx3, backport);
 				assessments.add(backport);
 
 				// ── T2 Gate: Quality Judge (LLM meta-judge) ──────────────
@@ -362,6 +363,13 @@ public class PrReviewWorkflow {
 	private boolean shouldAttemptFix(RebaseResult rebase, ConflictReport conflicts, BuildResult build) {
 		return this.workshopProperties.fixTests() && rebase.success() && !conflicts.hasComplexConflicts()
 				&& !build.skipped() && !build.success();
+	}
+
+	@ExceptionHandler(RuntimeException.class)
+	Path handleRuntimeError(RuntimeException ex, AgentContext ctx) {
+		logger.error("Pipeline failed with RuntimeException: {}", ex.getMessage(), ex);
+		ReviewReport errorReport = ReviewReport.error(ex.getMessage());
+		return this.generateReport.execute(ctx, errorReport);
 	}
 
 	private static void putIfNotNull(JudgmentContext.Builder builder, String key, @Nullable Object value) {

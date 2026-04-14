@@ -7,8 +7,10 @@ import java.util.List;
 
 import io.github.markpollack.prreview.model.AssessmentResult;
 import io.github.markpollack.prreview.model.PrContext;
-import io.github.markpollack.workflow.flows.AgentContext;
-import io.github.markpollack.workflow.flows.ContextKey;
+import io.github.markpollack.workflow.core.AgentContext;
+import io.github.markpollack.workflow.core.ContextKey;
+import io.github.markpollack.workflow.core.Description;
+import io.github.markpollack.workflow.core.StepName;
 import io.github.markpollack.workflow.flows.Step;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +18,7 @@ import org.springaicommunity.agents.client.AgentClient;
 import org.springaicommunity.agents.client.AgentClientResponse;
 import org.springaicommunity.judge.result.JudgmentStatus;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
@@ -27,10 +30,16 @@ import org.springframework.stereotype.Component;
  * score poorly.
  */
 @Component
+@Qualifier("assess-backport")
+@StepName("assess-backport")
+@Description("AI-powered backport candidacy assessment")
 public class AssessBackportStep implements Step<PrContext, AssessmentResult> {
 
 	public static final ContextKey<AssessmentResult> BACKPORT_ASSESSMENT = ContextKey.of("backportAssessment",
 			AssessmentResult.class);
+
+	public static final ContextKey<AgentClientResponse> BACKPORT_RESPONSE = ContextKey.of("backportResponse",
+			AgentClientResponse.class);
 
 	private static final Logger logger = LoggerFactory.getLogger(AssessBackportStep.class);
 
@@ -74,7 +83,11 @@ public class AssessBackportStep implements Step<PrContext, AssessmentResult> {
 
 	@Override
 	public AgentContext updateContext(AgentContext ctx, AssessmentResult output) {
-		return ctx.mutate().with(BACKPORT_ASSESSMENT, output).build();
+		AgentContext.Builder builder = ctx.mutate().with(BACKPORT_ASSESSMENT, output);
+		if (this.lastResponse != null) {
+			builder.with(BACKPORT_RESPONSE, this.lastResponse);
+		}
+		return builder.build();
 	}
 
 	static String renderPrompt(PrContext pr) {

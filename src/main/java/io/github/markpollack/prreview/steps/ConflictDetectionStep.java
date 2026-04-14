@@ -8,7 +8,9 @@ import io.github.markpollack.prreview.model.Classification;
 import io.github.markpollack.prreview.model.ConflictFile;
 import io.github.markpollack.prreview.model.ConflictReport;
 import io.github.markpollack.prreview.model.RebaseResult;
-import io.github.markpollack.workflow.flows.AgentContext;
+import io.github.markpollack.workflow.core.AgentContext;
+import io.github.markpollack.workflow.core.Description;
+import io.github.markpollack.workflow.core.StepName;
 import io.github.markpollack.workflow.flows.Step;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +26,8 @@ import org.springframework.stereotype.Component;
  * refactors) need human review.
  */
 @Component
+@StepName("detect-conflicts")
+@Description("Classifies rebase conflicts as SIMPLE or COMPLEX")
 public class ConflictDetectionStep implements Step<RebaseResult, ConflictReport> {
 
 	private static final Logger logger = LoggerFactory.getLogger(ConflictDetectionStep.class);

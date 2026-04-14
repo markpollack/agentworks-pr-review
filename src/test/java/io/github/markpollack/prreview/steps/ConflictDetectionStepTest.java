@@ -5,7 +5,7 @@ import java.util.List;
 import io.github.markpollack.prreview.model.Classification;
 import io.github.markpollack.prreview.model.ConflictReport;
 import io.github.markpollack.prreview.model.RebaseResult;
-import io.github.markpollack.workflow.flows.AgentContext;
+import io.github.markpollack.workflow.core.AgentContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Nested;
 

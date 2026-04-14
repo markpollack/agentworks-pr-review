@@ -8,7 +8,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class PreflightCheckTest {
 
-	private static final WorkshopProperties WORKSHOP_PROPS = new WorkshopProperties(5774, false, ".", ".");
+	private static final WorkshopProperties WORKSHOP_PROPS = new WorkshopProperties(5774, false, false, ".", ".");
 
 	@Test
 	void extractJsonInt_findsRemainingInCoreSection() {

@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class RunTestsStepTest {
 
-	private final RunTestsStep step = new RunTestsStep(new WorkshopProperties(5774, false, ".", "."));
+	private final RunTestsStep step = new RunTestsStep(new WorkshopProperties(5774, false, false, ".", "."));
 
 	@Test
 	void shouldHaveCorrectName() {
@@ -85,14 +85,15 @@ class RunTestsStepTest {
 		@Test
 		void shouldBuildFullTestCommand() {
 			List<String> command = RunTestsStep.buildMavenCommand(List.of("."));
-			assertThat(command).containsExactly("./mvnw", "test", "-B", "-Ddisable.checks=true");
+			assertThat(command).containsExactly("./mvnw", "clean", "test", "-B", "-Ddisable.checks=true",
+					"-Dmaven.build.cache.enabled=false");
 		}
 
 		@Test
 		void shouldBuildTargetedTestCommand() {
 			List<String> command = RunTestsStep.buildMavenCommand(List.of("models/spring-ai-ollama", "spring-ai-core"));
-			assertThat(command).containsExactly("./mvnw", "test", "-B", "-Ddisable.checks=true", "-pl",
-					"models/spring-ai-ollama,spring-ai-core", "-am");
+			assertThat(command).containsExactly("./mvnw", "clean", "test", "-B", "-Ddisable.checks=true",
+					"-Dmaven.build.cache.enabled=false", "-pl", "models/spring-ai-ollama,spring-ai-core", "-am");
 		}
 
 	}

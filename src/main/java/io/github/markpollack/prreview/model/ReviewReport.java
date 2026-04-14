@@ -24,4 +24,11 @@ public record ReviewReport(PrContext prContext, RebaseResult rebaseResult, Confl
 		judgments = List.copyOf(judgments);
 	}
 
+	public static ReviewReport error(String message) {
+		PrContext emptyContext = new PrContext(0, "Pipeline Error", message, "unknown", List.of(), "error", "main",
+				"unknown", List.of(), List.of(), List.of(), List.of());
+		return new ReviewReport(emptyContext, new RebaseResult(false, "unknown", List.of(), message),
+				ConflictReport.clean(), BuildResult.skippedBuild(), List.of(), List.of(), Instant.now());
+	}
+
 }

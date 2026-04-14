@@ -2,8 +2,10 @@ package io.github.markpollack.prreview.steps;
 
 import io.github.markpollack.prreview.github.GitHubRestClient;
 import io.github.markpollack.prreview.model.PrContext;
-import io.github.markpollack.workflow.flows.AgentContext;
-import io.github.markpollack.workflow.flows.ContextKey;
+import io.github.markpollack.workflow.core.AgentContext;
+import io.github.markpollack.workflow.core.ContextKey;
+import io.github.markpollack.workflow.core.Description;
+import io.github.markpollack.workflow.core.StepName;
 import io.github.markpollack.workflow.flows.Step;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +21,8 @@ import org.springframework.stereotype.Component;
  * independently of the I→O chain.
  */
 @Component
+@StepName("fetch-pr-context")
+@Description("Fetches complete PR context from GitHub REST API")
 public class FetchPrContextStep implements Step<Integer, PrContext> {
 
 	private static final Logger logger = LoggerFactory.getLogger(FetchPrContextStep.class);

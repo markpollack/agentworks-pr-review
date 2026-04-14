@@ -11,6 +11,9 @@ import io.github.markpollack.prreview.model.BuildResult;
 import io.github.markpollack.prreview.model.FixResult;
 import io.github.markpollack.prreview.model.PrContext;
 import io.github.markpollack.workflow.core.AgentContext;
+import io.github.markpollack.workflow.core.ContextKey;
+import io.github.markpollack.workflow.core.Description;
+import io.github.markpollack.workflow.core.StepName;
 import io.github.markpollack.workflow.flows.Step;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +32,12 @@ import org.springframework.stereotype.Component;
  * directly.
  */
 @Component
+@StepName("fix-tests")
+@Description("AI-powered step that attempts to fix failing tests")
 public class FixTestsStep implements Step<BuildResult, FixResult> {
+
+	public static final ContextKey<AgentClientResponse> FIX_TESTS_RESPONSE = ContextKey.of("fixTestsResponse",
+			AgentClientResponse.class);
 
 	private static final Logger logger = LoggerFactory.getLogger(FixTestsStep.class);
 
@@ -76,6 +84,14 @@ public class FixTestsStep implements Step<BuildResult, FixResult> {
 			logger.error("AI fix-tests failed for PR #{}: {}", prContext.number(), ex.getMessage());
 			return new FixResult(false, false, List.of(), "Fix failed: " + ex.getMessage());
 		}
+	}
+
+	@Override
+	public AgentContext updateContext(AgentContext ctx, FixResult output) {
+		if (this.lastResponse != null) {
+			return ctx.mutate().with(FIX_TESTS_RESPONSE, this.lastResponse).build();
+		}
+		return ctx;
 	}
 
 	static String renderPrompt(PrContext pr, BuildResult build) {

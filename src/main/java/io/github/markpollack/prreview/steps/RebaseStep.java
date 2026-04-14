@@ -12,6 +12,8 @@ import io.github.markpollack.prreview.config.WorkshopProperties;
 import io.github.markpollack.prreview.model.PrContext;
 import io.github.markpollack.prreview.model.RebaseResult;
 import io.github.markpollack.workflow.core.AgentContext;
+import io.github.markpollack.workflow.core.Description;
+import io.github.markpollack.workflow.core.StepName;
 import io.github.markpollack.workflow.flows.Step;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +28,8 @@ import org.springframework.stereotype.Component;
  * Returns a {@link RebaseResult} indicating success or listing conflicted files.
  */
 @Component
+@StepName("rebase-on-main")
+@Description("Rebases the PR branch onto main to check for conflicts")
 public class RebaseStep implements Step<PrContext, RebaseResult> {
 
 	private static final Logger logger = LoggerFactory.getLogger(RebaseStep.class);

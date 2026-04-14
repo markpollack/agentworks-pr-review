@@ -4,7 +4,7 @@ import java.util.List;
 
 import io.github.markpollack.prreview.model.AssessmentResult;
 import io.github.markpollack.prreview.model.TestPrContexts;
-import io.github.markpollack.workflow.flows.AgentContext;
+import io.github.markpollack.workflow.core.AgentContext;
 import org.junit.jupiter.api.Test;
 import org.springaicommunity.agents.client.AgentClient;
 import org.springaicommunity.agents.client.AgentClientResponse;

@@ -20,6 +20,8 @@ import io.github.markpollack.prreview.model.PrContext;
 import io.github.markpollack.prreview.model.RebaseResult;
 import io.github.markpollack.prreview.model.ReviewReport;
 import io.github.markpollack.workflow.core.AgentContext;
+import io.github.markpollack.workflow.core.Description;
+import io.github.markpollack.workflow.core.StepName;
 import io.github.markpollack.workflow.flows.Step;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +37,8 @@ import org.springframework.stereotype.Component;
  * using the report template. Returns the path to the generated file.
  */
 @Component
+@StepName("generate-report")
+@Description("Assembles pipeline outputs into markdown and HTML report")
 public class GenerateReportStep implements Step<ReviewReport, Path> {
 
 	private static final Logger logger = LoggerFactory.getLogger(GenerateReportStep.class);

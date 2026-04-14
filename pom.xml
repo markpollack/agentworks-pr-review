@@ -34,10 +34,18 @@
     </dependencyManagement>
 
     <dependencies>
+        <!-- AgentWorks: Workflow API (annotation model, AgentContext, ContextKey) -->
+        <dependency>
+            <groupId>io.github.markpollack</groupId>
+            <artifactId>workflow-api</artifactId>
+            <version>0.4.0-SNAPSHOT</version>
+        </dependency>
+
         <!-- AgentWorks: Workflow DSL -->
         <dependency>
             <groupId>io.github.markpollack</groupId>
             <artifactId>workflow-flows</artifactId>
+            <version>0.4.0-SNAPSHOT</version>
         </dependency>
 
         <!-- AgentWorks: Journal -->
