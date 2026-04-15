@@ -70,10 +70,17 @@ public class BuildJudge implements Judge {
 		}
 		if (rebase.success()) {
 			checks.add(Check.pass("rebase-clean"));
+			return;
 		}
-		else {
+		if (!rebase.conflictFiles().isEmpty()) {
 			checks
 				.add(Check.fail("rebase-clean", "Rebase had conflicts in " + rebase.conflictFiles().size() + " files"));
+		}
+		else if (rebase.errorMessage() != null && !rebase.errorMessage().isEmpty()) {
+			checks.add(Check.fail("rebase-clean", rebase.errorMessage()));
+		}
+		else {
+			checks.add(Check.fail("rebase-clean", "Rebase failed (no conflict details available)"));
 		}
 	}
 
