@@ -12,6 +12,7 @@ import io.github.markpollack.prreview.config.WorkshopProperties;
 import io.github.markpollack.prreview.model.PrContext;
 import io.github.markpollack.prreview.model.RebaseResult;
 import io.github.markpollack.workflow.core.AgentContext;
+import io.github.markpollack.workflow.core.ContextKey;
 import io.github.markpollack.workflow.core.Description;
 import io.github.markpollack.workflow.core.StepName;
 import io.github.markpollack.workflow.flows.Step;
@@ -31,6 +32,8 @@ import org.springframework.stereotype.Component;
 @StepName("rebase-on-main")
 @Description("Rebases the PR branch onto main to check for conflicts")
 public class RebaseStep implements Step<PrContext, RebaseResult> {
+
+	public static final ContextKey<RebaseResult> REBASE_RESULT = ContextKey.of("rebase-result", RebaseResult.class);
 
 	private static final Logger logger = LoggerFactory.getLogger(RebaseStep.class);
 
@@ -58,6 +61,10 @@ public class RebaseStep implements Step<PrContext, RebaseResult> {
 		logger.info("Rebasing PR #{} branch '{}' onto '{}'", prNumber, branch, input.baseBranch());
 
 		try {
+			// Discard any leftover changes from a previous run (e.g. AI fix edits)
+			run("git", "checkout", "-f");
+			run("git", "clean", "-fd");
+
 			// Ensure we're on the base branch before fetching
 			exec("git", "checkout", input.baseBranch());
 			exec("git", "pull", "--ff-only", "origin", input.baseBranch());
@@ -104,6 +111,8 @@ public class RebaseStep implements Step<PrContext, RebaseResult> {
 	public void cleanup(PrContext input) {
 		String reviewBranch = "review/pr-" + input.number();
 		try {
+			run("git", "checkout", "-f");
+			run("git", "clean", "-fd");
 			run("git", "checkout", input.baseBranch());
 			run("git", "update-ref", "-d", "refs/heads/" + reviewBranch);
 			logger.info("Cleaned up review branch {}", reviewBranch);
@@ -147,6 +156,11 @@ public class RebaseStep implements Step<PrContext, RebaseResult> {
 	}
 
 	record ProcessResult(int exitCode, String stdout, String stderr) {
+	}
+
+	@Override
+	public AgentContext updateContext(AgentContext ctx, RebaseResult output) {
+		return ctx.mutate().with(REBASE_RESULT, output).build();
 	}
 
 	@Override

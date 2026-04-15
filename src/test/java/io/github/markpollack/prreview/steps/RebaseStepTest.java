@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class RebaseStepTest {
 
-	private static final WorkshopProperties TEST_PROPS = new WorkshopProperties(5774, false, false, ".", ".");
+	private static final WorkshopProperties TEST_PROPS = new WorkshopProperties(5774, false, false, ".", ".", false);
 
 	@Test
 	void shouldHaveCorrectName() {

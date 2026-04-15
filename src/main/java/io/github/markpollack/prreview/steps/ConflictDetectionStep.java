@@ -9,6 +9,7 @@ import io.github.markpollack.prreview.model.ConflictFile;
 import io.github.markpollack.prreview.model.ConflictReport;
 import io.github.markpollack.prreview.model.RebaseResult;
 import io.github.markpollack.workflow.core.AgentContext;
+import io.github.markpollack.workflow.core.ContextKey;
 import io.github.markpollack.workflow.core.Description;
 import io.github.markpollack.workflow.core.StepName;
 import io.github.markpollack.workflow.flows.Step;
@@ -29,6 +30,9 @@ import org.springframework.stereotype.Component;
 @StepName("detect-conflicts")
 @Description("Classifies rebase conflicts as SIMPLE or COMPLEX")
 public class ConflictDetectionStep implements Step<RebaseResult, ConflictReport> {
+
+	public static final ContextKey<ConflictReport> CONFLICT_REPORT = ContextKey.of("conflict-report",
+			ConflictReport.class);
 
 	private static final Logger logger = LoggerFactory.getLogger(ConflictDetectionStep.class);
 
@@ -121,6 +125,11 @@ public class ConflictDetectionStep implements Step<RebaseResult, ConflictReport>
 		sb.append(String.join(", ", parts));
 
 		return sb.toString();
+	}
+
+	@Override
+	public AgentContext updateContext(AgentContext ctx, ConflictReport output) {
+		return ctx.mutate().with(CONFLICT_REPORT, output).build();
 	}
 
 	@Override

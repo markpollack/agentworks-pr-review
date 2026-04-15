@@ -1,8 +1,10 @@
 package io.github.markpollack.prreview;
 
 import java.nio.file.Path;
+import java.util.Optional;
 
 import io.github.markpollack.prreview.config.WorkshopProperties;
+import io.github.markpollack.prreview.dsl.PrReviewDslWorkflow;
 import io.github.markpollack.workflow.core.AgentContext;
 import io.github.markpollack.workflow.flows.agent.AgentExceptionHandlerResolver;
 import org.slf4j.Logger;
@@ -30,15 +32,19 @@ public class PrReviewRunner implements CommandLineRunner {
 
 	private final PrReviewWorkflow workflow;
 
+	private final Optional<PrReviewDslWorkflow> dslWorkflow;
+
 	private final PreflightCheck preflightCheck;
 
 	private final WorkshopProperties workshopProperties;
 
 	private final AgentExceptionHandlerResolver exceptionResolver;
 
-	public PrReviewRunner(PrReviewWorkflow workflow, PreflightCheck preflightCheck,
-			WorkshopProperties workshopProperties, AgentExceptionHandlerResolver exceptionResolver) {
+	public PrReviewRunner(PrReviewWorkflow workflow, Optional<PrReviewDslWorkflow> dslWorkflow,
+			PreflightCheck preflightCheck, WorkshopProperties workshopProperties,
+			AgentExceptionHandlerResolver exceptionResolver) {
 		this.workflow = workflow;
+		this.dslWorkflow = dslWorkflow;
 		this.preflightCheck = preflightCheck;
 		this.workshopProperties = workshopProperties;
 		this.exceptionResolver = exceptionResolver;
@@ -61,10 +67,11 @@ public class PrReviewRunner implements CommandLineRunner {
 			prNumber = this.workshopProperties.defaultPr();
 		}
 
-		logger.info("Starting PR review for PR #{}", prNumber);
+		boolean useDsl = this.workshopProperties.useDsl() && this.dslWorkflow.isPresent();
+		logger.info("Starting PR review for PR #{} ({})", prNumber, useDsl ? "DSL" : "manual");
 		AgentContext ctx = AgentContext.create();
 		try {
-			Path report = this.workflow.handle(ctx, prNumber);
+			Path report = useDsl ? this.dslWorkflow.get().handle(ctx, prNumber) : this.workflow.handle(ctx, prNumber);
 			logger.info("Review complete. Report: {}", report.toAbsolutePath());
 		}
 		catch (Exception ex) {

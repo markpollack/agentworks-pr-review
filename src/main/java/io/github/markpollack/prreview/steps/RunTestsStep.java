@@ -13,6 +13,7 @@ import io.github.markpollack.prreview.model.BuildResult;
 import io.github.markpollack.prreview.model.ConflictReport;
 import io.github.markpollack.prreview.model.PrContext;
 import io.github.markpollack.workflow.core.AgentContext;
+import io.github.markpollack.workflow.core.ContextKey;
 import io.github.markpollack.workflow.core.Description;
 import io.github.markpollack.workflow.core.StepName;
 import io.github.markpollack.workflow.flows.Step;
@@ -32,6 +33,8 @@ import org.springframework.stereotype.Component;
 @StepName("run-tests")
 @Description("Runs targeted Maven tests on affected modules")
 public class RunTestsStep implements Step<ConflictReport, BuildResult> {
+
+	public static final ContextKey<BuildResult> BUILD_RESULT = ContextKey.of("build-result", BuildResult.class);
 
 	private static final Logger logger = LoggerFactory.getLogger(RunTestsStep.class);
 
@@ -136,6 +139,11 @@ public class RunTestsStep implements Step<ConflictReport, BuildResult> {
 			return output;
 		}
 		return output.substring(output.length() - MAX_OUTPUT_LENGTH);
+	}
+
+	@Override
+	public AgentContext updateContext(AgentContext ctx, BuildResult output) {
+		return ctx.mutate().with(BUILD_RESULT, output).build();
 	}
 
 	@Override
