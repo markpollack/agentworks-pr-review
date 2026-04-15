@@ -36,3 +36,7 @@ build/
 
 ### Logs ###
 *.log
+
+### Claude Code ###
+CLAUDE.md
+plans/
