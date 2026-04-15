@@ -39,6 +39,7 @@ import io.github.markpollack.workflow.flows.Step;
 import io.github.markpollack.workflow.flows.agent.Agent;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springaicommunity.agents.client.AgentClientResponse;
@@ -66,6 +67,7 @@ import org.springaicommunity.judge.result.JudgmentStatus;
  * readability for workshop participants. Each step call and gate evaluation is visible
  * and debuggable.
  */
+@Component
 @Agent("pr-review")
 @Description("Orchestrates the complete PR review pipeline: context gathering, judge cascade, and report generation")
 public class PrReviewWorkflow implements AgentHandler<Integer, Path> {
