@@ -146,11 +146,12 @@ public class PrReviewWorkflow implements AgentHandler<Integer, Path> {
 			BuildResult build = executeStep(run, "run-tests", () -> this.runTests.execute(ctx2, conflicts));
 
 			// ── Fix-Tests: AI attempts to fix failing tests ──────────────
+			FixResult fixResult = null;
 			if (shouldAttemptFix(rebase, conflicts, build)) {
 				logger.info("── Fix-Tests: AI attempting to fix test failures ──");
 				run.logEvent(CustomEvent.of("step-started", Map.of("step", "fix-tests")));
 				Instant fixStart = Instant.now();
-				FixResult fixResult = this.fixTests.execute(ctx2, build);
+				fixResult = this.fixTests.execute(ctx2, build);
 				long fixMs = Duration.between(fixStart, Instant.now()).toMillis();
 				AgentContext fixCtx = this.fixTests.updateContext(ctx2, fixResult);
 				fixCtx.get(FixTestsStep.FIX_TESTS_RESPONSE).ifPresent(r -> emitLlmCallEvent(run, r, "fix-tests"));
@@ -181,8 +182,8 @@ public class PrReviewWorkflow implements AgentHandler<Integer, Path> {
 			if (t0.status() == JudgmentStatus.FAIL) {
 				logger.warn("T0 FAIL — skipping T1, AI assessment, and T2");
 				overallVerdict = "FAIL";
-				Path report = generateFinalReport(run, ctx2, prContext, rebase, conflicts, build, assessments,
-						judgments);
+				Path report = generateFinalReport(run, ctx2, prContext, rebase, conflicts, build, fixResult,
+						assessments, judgments);
 				run.setSummary("verdict", overallVerdict);
 				run.setSummary("prNumber", prNumber);
 				return report;
@@ -204,13 +205,8 @@ public class PrReviewWorkflow implements AgentHandler<Integer, Path> {
 			logger.info("T1 verdict: {} — {}", t1.status(), t1.reasoning());
 
 			if (t1.status() == JudgmentStatus.FAIL) {
-				logger.warn("T1 FAIL — skipping AI assessment and T2");
+				logger.info("T1 FAIL — continuing to AI assessment for advisory review");
 				overallVerdict = "FAIL";
-				Path report = generateFinalReport(run, ctx2, prContext, rebase, conflicts, build, assessments,
-						judgments);
-				run.setSummary("verdict", overallVerdict);
-				run.setSummary("prNumber", prNumber);
-				return report;
 			}
 
 			// ── Phase 2: AI Assessment ───────────────────────────────────
@@ -219,7 +215,7 @@ public class PrReviewWorkflow implements AgentHandler<Integer, Path> {
 				logger.info("── Phase 2: AI Assessment SKIPPED (skip-ai=true) ──");
 			}
 			else {
-				run.logEvent(StateChangeEvent.of("judge-cascade", "ai-assessment", "T0 and T1 passed"));
+				run.logEvent(StateChangeEvent.of("judge-cascade", "ai-assessment", "Proceeding to AI assessment"));
 				logger.info("── Phase 2: AI Assessment ──");
 
 				run.logEvent(CustomEvent.of("step-started", Map.of("step", "assess-code-quality")));
@@ -261,7 +257,8 @@ public class PrReviewWorkflow implements AgentHandler<Integer, Path> {
 			// ── Phase 3: Report Generation ───────────────────────────────
 			run.logEvent(StateChangeEvent.of(this.workshopProperties.skipAi() ? "judge-cascade" : "ai-assessment",
 					"report-generation", "Generating final report"));
-			Path report = generateFinalReport(run, ctx3, prContext, rebase, conflicts, build, assessments, judgments);
+			Path report = generateFinalReport(run, ctx3, prContext, rebase, conflicts, build, fixResult, assessments,
+					judgments);
 			run.setSummary("verdict", overallVerdict);
 			run.setSummary("prNumber", prNumber);
 			return report;
@@ -348,11 +345,12 @@ public class PrReviewWorkflow implements AgentHandler<Integer, Path> {
 	}
 
 	private Path generateFinalReport(Run run, AgentContext ctx, PrContext prContext, RebaseResult rebase,
-			ConflictReport conflicts, BuildResult build, List<AssessmentResult> assessments, List<Judgment> judgments) {
+			ConflictReport conflicts, BuildResult build, @Nullable FixResult fixResult,
+			List<AssessmentResult> assessments, List<Judgment> judgments) {
 		logger.info("── Phase 3: Report Generation ──");
 		run.logEvent(CustomEvent.of("step-started", Map.of("step", "generate-report")));
 		Instant start = Instant.now();
-		ReviewReport report = new ReviewReport(prContext, rebase, conflicts, build, assessments, judgments,
+		ReviewReport report = new ReviewReport(prContext, rebase, conflicts, build, fixResult, assessments, judgments,
 				Instant.now());
 		Path path = this.generateReport.execute(ctx, report);
 		long elapsed = Duration.between(start, Instant.now()).toMillis();

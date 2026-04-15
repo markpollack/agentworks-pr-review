@@ -203,7 +203,7 @@ class PrReviewWorkflowTest {
 	}
 
 	@Test
-	void pipeline_versionPatternFails_skipsAiAssessment() {
+	void pipeline_versionPatternFails_stillRunsAiAssessment() {
 		PrContext prWithJavax = new PrContext(
 				5774, "Add javax import", "This PR adds javax.servlet import", "author", List.of(), "open", "main",
 				"fix/javax", List.of(new io.github.markpollack.prreview.model.FileChange("src/main/java/App.java",
@@ -218,6 +218,14 @@ class PrReviewWorkflowTest {
 			.willReturn(RebaseResult.clean("fix/javax"));
 		given(this.runTests.execute(any(AgentContext.class), any(ConflictReport.class)))
 			.willReturn(new BuildResult(true, false, List.of("module"), "BUILD SUCCESS", 3000));
+		given(this.agentClient.run(anyString())).willReturn(agentResponse("""
+				{
+				  "score": 0.7,
+				  "status": "PASS",
+				  "rationale": "Advisory review despite deprecated APIs",
+				  "findings": ["Uses javax imports"]
+				}
+				"""));
 
 		PrReviewWorkflow workflow = new PrReviewWorkflow(fetchStep, this.rebaseStep, this.conflictDetection,
 				this.runTests, this.fixTests, new BuildJudge(), new VersionPatternJudge(), this.assessCodeQuality,
@@ -226,11 +234,10 @@ class PrReviewWorkflowTest {
 		Path report = workflow.handle(AgentContext.create(), 5774);
 
 		assertThat(report).exists();
-		verify(this.agentClient, never()).run(anyString());
 		String content = readFile(report);
 		assertThat(content).contains("FAIL");
 
-		// Journal: T1 FAIL with version-pattern-finding events
+		// Journal: T1 FAIL with version-pattern-finding events, but AI steps still run
 		String runId = workflow.lastRunId();
 		List<JournalEvent> events = this.journalStorage.loadEvents("pr-review", runId);
 		assertJudgePair(events, "T1");
@@ -238,6 +245,8 @@ class PrReviewWorkflowTest {
 		assertThat(events.stream()
 			.filter(e -> e instanceof CustomEvent ce && "version-pattern-finding".equals(ce.name()))
 			.count()).isGreaterThan(0);
+		assertStepPair(events, "assess-code-quality");
+		assertStepPair(events, "assess-backport");
 	}
 
 	// ── Helpers ──────────────────────────────────────────────────────────
