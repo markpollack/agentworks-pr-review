@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PR Review: #5659 — Allow custom StructuredOutputConverter(s) to participate in Native Structured Output</title>
+<style>
+:root {
+  --spring-green: #6db33f;
+  --spring-dark: #34302d;
+  --pass: #28a745;
+  --fail: #dc3545;
+  --warn: #f0ad4e;
+  --info: #17a2b8;
+  --bg: #f8f9fa;
+  --card-bg: #ffffff;
+  --text: #212529;
+  --text-muted: #6c757d;
+  --border: #dee2e6;
+  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 1100px; margin: 0 auto; padding: 0 24px 48px; }
+
+/* Banner */
+.banner { background: linear-gradient(135deg, var(--spring-dark) 0%, #4a453f 100%); color: #fff; padding: 40px 0 32px; }
+.banner .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+.banner h1 { font-size: 1.8em; font-weight: 700; margin-bottom: 12px; }
+.banner .pr-description { font-size: 0.95em; opacity: 0.85; margin-bottom: 16px; max-width: 800px; line-height: 1.5; }
+.banner .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+.badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; font-weight: 600; }
+.badge-author { background: rgba(255,255,255,0.15); color: #fff; }
+.badge-state { background: var(--spring-green); color: #fff; }
+.badge-branch { background: rgba(255,255,255,0.1); color: #ddd; font-family: monospace; font-size: 0.8em; }
+.badge-label { background: var(--info); color: #fff; }
+.badge-issue { background: var(--warn); color: #333; }
+
+/* Metric cards */
+.metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.metric-card { background: rgba(255,255,255,0.12); border-radius: 8px; padding: 16px; text-align: center; }
+.metric-card .label { font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.8; margin-bottom: 4px; }
+.metric-card .value { font-size: 2em; font-weight: 700; }
+.metric-card .value.pass { color: var(--pass); }
+.metric-card .value.fail { color: var(--fail); }
+.metric-card .value.skipped { color: var(--info); }
+
+/* Sections */
+section { margin-top: 32px; }
+section h2 { font-size: 1.4em; font-weight: 700; color: var(--spring-dark); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--spring-green); }
+
+/* Executive summary */
+.summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.summary-card { background: var(--card-bg); border-radius: 10px; padding: 20px; box-shadow: var(--shadow); border-top: 3px solid var(--spring-green); }
+.summary-card h3 { font-size: 1em; font-weight: 700; color: var(--spring-dark); margin-bottom: 8px; }
+.summary-card p { font-size: 0.9em; color: var(--text-muted); line-height: 1.5; }
+
+/* Judge cascade */
+.cascade { display: flex; align-items: center; gap: 0; flex-wrap: wrap; margin-bottom: 8px; }
+.judge-node { background: var(--card-bg); border: 2px solid var(--border); border-radius: 10px; padding: 16px 20px; min-width: 200px; box-shadow: var(--shadow); }
+.judge-node.pass { border-color: var(--pass); }
+.judge-node.fail { border-color: var(--fail); }
+.judge-node .tier { font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); }
+.judge-node .name { font-size: 1.1em; font-weight: 600; margin: 4px 0; }
+.judge-node .status-badge { display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 0.85em; font-weight: 700; color: #fff; }
+.status-pass { background: var(--pass); }
+.status-fail { background: var(--fail); }
+.status-abstain { background: var(--warn); }
+.status-error { background: var(--fail); }
+.cascade-arrow { font-size: 1.5em; color: var(--text-muted); padding: 0 12px; }
+
+/* Cards */
+.card { background: var(--card-bg); border-radius: 10px; padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); border-left: 4px solid var(--border); }
+.card.pass { border-left-color: var(--pass); }
+.card.fail { border-left-color: var(--fail); }
+.card.skipped { border-left-color: var(--info); }
+.card h3 { font-size: 1.1em; margin-bottom: 8px; }
+.card .detail { color: var(--text-muted); font-size: 0.9em; margin: 4px 0; }
+
+/* Assessment cards */
+.assessment-card { background: var(--card-bg); border-radius: 10px; padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); }
+.assessment-card h3 { font-size: 1.1em; margin-bottom: 8px; }
+.score-bar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; margin: 8px 0; }
+.score-fill { height: 100%; border-radius: 4px; }
+.findings-list { list-style: none; padding: 0; margin-top: 8px; }
+.findings-list li { padding: 4px 0 4px 20px; position: relative; font-size: 0.9em; }
+.findings-list li::before { content: "\2022"; position: absolute; left: 4px; color: var(--text-muted); }
+
+/* Details/summary */
+details { margin-top: 8px; }
+summary { cursor: pointer; font-size: 0.9em; color: var(--text-muted); }
+summary:hover { color: var(--text); }
+details .checks-list { list-style: none; padding: 8px 0 0 16px; }
+details .checks-list li { padding: 2px 0; font-size: 0.85em; }
+.check-pass::before { content: "\2713 "; color: var(--pass); font-weight: bold; }
+.check-fail::before { content: "\2717 "; color: var(--fail); font-weight: bold; }
+
+/* Detailed analysis */
+.analysis-details { background: var(--card-bg); border-radius: 10px; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 12px; }
+.analysis-details > summary { padding: 16px 20px; font-size: 1em; font-weight: 600; color: var(--text); background: var(--card-bg); list-style: none; }
+.analysis-details > summary::-webkit-details-marker { display: none; }
+.analysis-details > summary::before { content: "\25B6 "; font-size: 0.7em; margin-right: 8px; display: inline-block; transition: transform 0.2s; }
+.analysis-details[open] > summary::before { transform: rotate(90deg); }
+.analysis-details .analysis-body { padding: 0 20px 16px; }
+
+/* Code changes grouped */
+.file-group { margin-bottom: 20px; }
+.file-group-header { font-size: 1em; font-weight: 600; color: var(--spring-dark); margin-bottom: 8px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.file-group-header .file-count { font-weight: 400; color: var(--text-muted); font-size: 0.85em; margin-left: 8px; }
+
+/* Files table */
+.files-table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+.files-table th { text-align: left; padding: 10px 12px; background: var(--spring-dark); color: #fff; }
+.files-table th:first-child { border-radius: 8px 0 0 0; }
+.files-table th:last-child { border-radius: 0 8px 0 0; }
+.files-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+.files-table tr:hover td { background: #f1f3f5; }
+.file-path { font-family: monospace; font-size: 0.85em; word-break: break-all; }
+.change-bar { display: inline-flex; height: 10px; border-radius: 3px; overflow: hidden; min-width: 60px; }
+.change-add { background: var(--pass); height: 100%; }
+.change-del { background: var(--fail); height: 100%; }
+.change-nums { font-family: monospace; font-size: 0.85em; white-space: nowrap; }
+.add-num { color: var(--pass); }
+.del-num { color: var(--fail); }
+
+/* Test results */
+.test-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; }
+.test-metric { background: var(--card-bg); border-radius: 10px; padding: 16px; text-align: center; box-shadow: var(--shadow); }
+.test-metric .tm-label { font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 4px; }
+.test-metric .tm-value { font-size: 1.8em; font-weight: 700; }
+.test-metric .tm-value.pass { color: var(--pass); }
+.test-metric .tm-value.fail { color: var(--fail); }
+.test-metric .tm-value.skipped { color: var(--info); }
+
+/* Additional info grid */
+.info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.info-card { background: var(--card-bg); border-radius: 10px; padding: 20px; box-shadow: var(--shadow); }
+.info-card h3 { font-size: 1.1em; font-weight: 700; color: var(--spring-dark); margin-bottom: 12px; }
+.info-card .info-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 0.9em; }
+.info-card .info-row:last-child { border-bottom: none; }
+.info-card .info-label { color: var(--text-muted); }
+.info-card .info-value { font-weight: 600; }
+
+/* Discussion */
+.discussion-item { background: var(--card-bg); border-radius: 10px; padding: 16px 20px; margin-bottom: 12px; box-shadow: var(--shadow); border-left: 4px solid var(--border); }
+.discussion-item.review { border-left-color: var(--info); }
+.discussion-item.review-approved { border-left-color: var(--pass); }
+.discussion-item.review-changes-requested { border-left-color: var(--fail); }
+.discussion-item .di-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.discussion-item .di-author { font-weight: 600; }
+.discussion-item .di-time { color: var(--text-muted); font-size: 0.8em; }
+.discussion-item .di-body { font-size: 0.9em; color: var(--text); line-height: 1.5; }
+.review-badge { display: inline-block; padding: 2px 8px; border-radius: 8px; font-size: 0.75em; font-weight: 700; color: #fff; }
+.review-badge.approved { background: var(--pass); }
+.review-badge.changes-requested { background: var(--fail); }
+.review-badge.commented { background: var(--text-muted); }
+.review-badge.dismissed { background: var(--warn); }
+
+/* Not-run message */
+.not-run { background: #e9ecef; border-radius: 10px; padding: 24px; text-align: center; color: var(--text-muted); font-size: 1.1em; }
+
+/* Footer */
+.footer { text-align: center; padding: 32px 0; color: var(--text-muted); font-size: 0.85em; border-top: 1px solid var(--border); margin-top: 48px; }
+
+@media (max-width: 768px) {
+  .metrics { grid-template-columns: repeat(2, 1fr); }
+  .cascade { flex-direction: column; }
+  .cascade-arrow { transform: rotate(90deg); }
+  .summary-grid { grid-template-columns: 1fr; }
+  .info-grid { grid-template-columns: 1fr; }
+  .test-metrics { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<header class="banner">
+<div class="container">
+<h1>PR #5659 — Allow custom StructuredOutputConverter(s) to participate in Native Structured Output</h1>
+<p class="pr-description">This builds a bit on top of #5412.
+
+The purpose of this is the fact that we extensively use the structured output with our own `StructuredOutputConverter`(s), which do not extend from `BeanOutputCon...</p>
+<div class="badges">
+<span class="badge badge-author">filiphr</span>
+<span class="badge badge-state">open</span>
+<span class="badge badge-branch">support-structured-output-with-custom-converter &rarr; main</span>
+</div>
+<div class="metrics">
+<div class="metric-card"><div class="label">Verdict</div><div class="value pass">PASS</div></div>
+<div class="metric-card"><div class="label">Files Changed</div><div class="value">5</div></div>
+<div class="metric-card"><div class="label">Code Changes</div><div class="value">+244 / -14</div></div>
+<div class="metric-card"><div class="label">Build</div><div class="value pass">PASS</div></div>
+</div>
+</div>
+</header>
+<main class="container">
+<section class="executive-summary">
+<h2>Executive Summary</h2>
+<div class="summary-grid">
+<div class="summary-card">
+<h3>Problem</h3>
+<p>This builds a bit on top of #5412.
+
+The purpose of this is the fact that we extensively use the structured output with our own `StructuredOutputConverter`(s), which do not extend from `BeanOutputConverter`.  Unfortunately, we now need to do something like
+
+```
+if (StringUtils.isNotEmpty(outputS...</p>
+</div>
+<div class="summary-card">
+<h3>Quality Assessment</h3>
+<p>The PR successfully generalizes native structured output support from BeanOutputConverter to any StructuredOutputConverter, which is a sensible API improvement. The implementation is clean with good test coverage for the happy path. However, there are edge case concerns: the default getJsonSchema() returns null, which could cause issues if native output is enabled without overriding this method; the change from immutable Map.copyOf() to mutable HashMap() lacks clear justification and could affect concurrent access patterns; and test coverage misses negative cases like null schema handling and backwards compatibility verification with existing BeanOutputConverter usage.</p>
+</div>
+<div class="summary-card">
+<h3>Backport Assessment</h3>
+<p>This PR adds a new method (getJsonSchema) to the StructuredOutputConverter interface, which is a breaking API change. Any existing custom implementations of this interface in maintenance branches would fail to compile after backporting. Additionally, this is a feature enhancement that enables a new use case rather than a bug fix—the author describes using a workaround, indicating the original functionality was working as designed. The changes also modify core client behavior and advisor patterns, increasing integration risk.</p>
+</div>
+</div>
+</section>
+<section class="judge-cascade">
+<h2>Judge Cascade</h2>
+<div class="cascade">
+<div class="judge-node pass">
+<div class="tier">T0</div>
+<div class="name">Build Judge</div>
+<span class="status-badge status-pass">PASS</span>
+<details open>
+<summary>4 checks</summary>
+<ul class="checks-list">
+<li class="check-pass">rebase-clean</li>
+<li class="check-pass">no-complex-conflicts</li>
+<li class="check-pass">build-executed</li>
+<li class="check-pass">tests-passed</li>
+</ul>
+</details>
+<details>
+<summary>Reasoning</summary>
+<p style="font-size:0.85em;margin-top:4px;">Build judge: 4/4 checks passed</p>
+</details>
+</div>
+<span class="cascade-arrow">&rarr;</span>
+<div class="judge-node pass">
+<div class="tier">T1</div>
+<div class="name">Version Pattern Judge</div>
+<span class="status-badge status-pass">PASS</span>
+<details>
+<summary>Reasoning</summary>
+<p style="font-size:0.85em;margin-top:4px;">Version pattern judge: no migration anti-patterns detected</p>
+</details>
+</div>
+<span class="cascade-arrow">&rarr;</span>
+<div class="judge-node pass">
+<div class="tier">T2</div>
+<div class="name">Quality Judge</div>
+<span class="status-badge status-pass">PASS</span>
+<details open>
+<summary>5 checks</summary>
+<ul class="checks-list">
+<li class="check-pass">quality-present</li>
+<li class="check-pass">backport-present</li>
+<li class="check-pass">quality-no-error</li>
+<li class="check-pass">backport-no-error</li>
+<li class="check-pass">consistency</li>
+</ul>
+</details>
+<details>
+<summary>Reasoning</summary>
+<p style="font-size:0.85em;margin-top:4px;">Quality judge: 5/5 checks passed, composite score 0.61</p>
+</details>
+</div>
+</div>
+</section>
+<section class="detailed-analysis">
+<h2>Detailed Analysis</h2>
+<details class="analysis-details" open>
+<summary>Rebase — Clean</summary>
+<div class="analysis-body">
+<p class="detail">Branch: <code>review/pr-5659</code></p>
+<p class="detail">Status: Clean</p>
+</div>
+</details>
+<details class="analysis-details">
+<summary>Conflict Detection</summary>
+<div class="analysis-body">
+<p class="detail">Clean rebase, no conflicts</p>
+</div>
+</details>
+<details class="analysis-details">
+<summary>Build — PASS</summary>
+<div class="analysis-body">
+<p class="detail">Status: PASS</p>
+<p class="detail">Modules: spring-ai-client-chat, spring-ai-model</p>
+<p class="detail">Duration: 32s</p>
+</div>
+</details>
+<details class="analysis-details" open>
+<summary>AI Fix-Tests — PASS</summary>
+<div class="analysis-body">
+<p class="detail">Status: PASS</p>
+<p class="detail">Updated four test methods to use ChatOptions.Builder instead of StructuredOutputChatOptions object for .options() calls, matching the new API that expects builders rather than concrete options instances.</p>
+</div>
+</details>
+<details class="analysis-details">
+<summary>Quality Findings</summary>
+<div class="analysis-body">
+<p class="detail">The PR successfully generalizes native structured output support from BeanOutputConverter to any StructuredOutputConverter, which is a sensible API improvement. The implementation is clean with good test coverage for the happy path. However, there are edge case concerns: the default getJsonSchema() returns null, which could cause issues if native output is enabled without overriding this method; the change from immutable Map.copyOf() to mutable HashMap() lacks clear justification and could affect concurrent access patterns; and test coverage misses negative cases like null schema handling and backwards compatibility verification with existing BeanOutputConverter usage.</p>
+<ul class="findings-list">
+<li>Missing guard or validation when getJsonSchema() returns null with native structured output enabled - could set null schema in context</li>
+<li>Context mutability change (Map.copyOf to HashMap) alters immutability contract without clear rationale in PR description</li>
+<li>Test coverage gaps: no negative test for null schema case, no explicit backwards compatibility test for BeanOutputConverter</li>
+<li>Consider adding @Nullable annotation validation or warning log when schema is null to prevent silent failures</li>
+</ul>
+</div>
+</details>
+<details class="analysis-details">
+<summary>Backport / Version Findings</summary>
+<div class="analysis-body">
+<p class="detail">This PR adds a new method (getJsonSchema) to the StructuredOutputConverter interface, which is a breaking API change. Any existing custom implementations of this interface in maintenance branches would fail to compile after backporting. Additionally, this is a feature enhancement that enables a new use case rather than a bug fix—the author describes using a workaround, indicating the original functionality was working as designed. The changes also modify core client behavior and advisor patterns, increasing integration risk.</p>
+<ul class="findings-list">
+<li>Breaking change: adds getJsonSchema() method to StructuredOutputConverter interface</li>
+<li>Feature enhancement, not a bug fix—enables custom converters for native structured output</li>
+<li>Modifies core DefaultChatClient behavior by removing instanceof BeanOutputConverter checks</li>
+<li>Changes ChatModelCallAdvisor context handling (HashMap vs Map.copyOf, introduces mutate pattern)</li>
+<li>Extensive test additions (+220 lines) indicate significant functional scope</li>
+<li>Would break compilation for any existing custom StructuredOutputConverter implementations</li>
+<li>Builds on top of PR #5412, suggesting progressive feature development unsuitable for stable branches</li>
+</ul>
+</div>
+</details>
+</section>
+<section class="code-changes">
+<h2>Code Changes</h2>
+<div class="file-group">
+<div class="file-group-header">Source<span class="file-count">(4)</span></div>
+<table class="files-table">
+<tr><th>File</th><th>Status</th><th>Changes</th><th></th></tr>
+<tr><td class="file-path">spring-ai-client-chat/src/main/java/org/springframework/ai/chat/client/DefaultChatClient.java</td><td>modified</td><td class="change-nums"><span class="add-num">+6</span> <span class="del-num">-6</span></td><td><div class="change-bar" style="width:5px"><div class="change-add" style="width:50%"></div><div class="change-del" style="width:50%"></div></div></td></tr>
+<tr><td class="file-path">spring-ai-client-chat/src/main/java/org/springframework/ai/chat/client/advisor/ChatModelCallAdvisor.java</td><td>modified</td><td class="change-nums"><span class="add-num">+3</span> <span class="del-num">-6</span></td><td><div class="change-bar" style="width:4px"><div class="change-add" style="width:33%"></div><div class="change-del" style="width:67%"></div></div></td></tr>
+<tr><td class="file-path">spring-ai-model/src/main/java/org/springframework/ai/converter/BeanOutputConverter.java</td><td>modified</td><td class="change-nums"><span class="add-num">+1</span> <span class="del-num">-0</span></td><td><div class="change-bar" style="width:1px"><div class="change-add" style="width:100%"></div><div class="change-del" style="width:0%"></div></div></td></tr>
+<tr><td class="file-path">spring-ai-model/src/main/java/org/springframework/ai/converter/StructuredOutputConverter.java</td><td>modified</td><td class="change-nums"><span class="add-num">+12</span> <span class="del-num">-0</span></td><td><div class="change-bar" style="width:5px"><div class="change-add" style="width:100%"></div><div class="change-del" style="width:0%"></div></div></td></tr>
+</table>
+</div>
+<div class="file-group">
+<div class="file-group-header">Test<span class="file-count">(1)</span></div>
+<table class="files-table">
+<tr><th>File</th><th>Status</th><th>Changes</th><th></th></tr>
+<tr><td class="file-path">spring-ai-client-chat/src/test/java/org/springframework/ai/chat/client/ChatClientNativeStructuredResponseTests.java</td><td>modified</td><td class="change-nums"><span class="add-num">+222</span> <span class="del-num">-2</span></td><td><div class="change-bar" style="width:100px"><div class="change-add" style="width:99%"></div><div class="change-del" style="width:1%"></div></div></td></tr>
+</table>
+</div>
+</section>
+<section class="test-results">
+<h2>Test Results</h2>
+<div class="test-metrics">
+<div class="test-metric"><div class="tm-label">Status</div><div class="tm-value pass">PASS</div></div>
+<div class="test-metric"><div class="tm-label">Duration</div><div class="tm-value">32s</div></div>
+<div class="test-metric"><div class="tm-label">Modules</div><div class="tm-value">2</div></div>
+</div>
+<p class="detail" style="margin-bottom:8px;">Modules tested: <code>spring-ai-client-chat, spring-ai-model</code></p>
+<details>
+<summary>Build output</summary>
+<pre style="font-size:0.8em;overflow-x:auto;padding:8px;background:#f1f3f5;border-radius:4px;margin-top:4px;"> c.g.v.j.g.i.SchemaGenerationContextImpl -- directly applying configured custom inline type for java.lang.String
+18:46:52.228 [main] DEBUG c.g.v.j.g.i.SchemaGenerationContextImpl -- generating array definition for java.util.List&lt;org.springframework.ai.chat.client.ChatClientResponseEntityTests$MyBean&gt;
+18:46:52.228 [main] DEBUG c.g.v.j.g.i.SchemaGenerationContextImpl -- generating definition for org.springframework.ai.chat.client.ChatClientResponseEntityTests$MyBean
+18:46:52.228 [main] DEBUG c.g.v.j.g.i.MemberCollectionContextImpl -- collecting non-static fields and methods from org.springframework.ai.chat.client.ChatClientResponseEntityTests$MyBean
+18:46:52.229 [main] DEBUG c.g.v.j.g.i.SchemaGenerationContextImpl -- directly applying configured custom inline type for int
+18:46:52.230 [main] DEBUG c.g.v.j.g.i.SchemaGenerationContextImpl -- directly applying configured custom inline type for java.lang.String
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.082 s -- in org.springframework.ai.chat.client.ChatClientResponseEntityTests
+[INFO] org.springframework.ai.chat.client.ChatClientResponseEntityTests.customSoCResponseEntityTest -- Time elapsed: 0.018 s
+[INFO] org.springframework.ai.chat.client.ChatClientResponseEntityTests.whenIntegerResponseThenParseCorrectly -- Time elapsed: 0.006 s
+[INFO] org.springframework.ai.chat.client.ChatClientResponseEntityTests.whenParameterizedTypeWithMapThenParseCorrectly -- Time elapsed: 0.007 s
+[INFO] org.springframework.ai.chat.client.ChatClientResponseEntityTests.responseEntityTest -- Time elapsed: 0.011 s
+[INFO] org.springframework.ai.chat.client.ChatClientResponseEntityTests.whenInvalidJsonResponseThenThrows -- Time elapsed: 0.007 s
+[INFO] org.springframework.ai.chat.client.ChatClientResponseEntityTests.whenEmptyResponseContentThenHandleGracefully -- Time elapsed: 0.007 s
+[INFO] org.springframework.ai.chat.client.ChatClientResponseEntityTests.whenBooleanPrimitiveResponseThenParseCorrectly -- Time elapsed: 0.005 s
+[INFO] org.springframework.ai.chat.client.ChatClientResponseEntityTests.parametrizedResponseEntityTest -- Time elapsed: 0.009 s
+[INFO] org.springframework.ai.chat.client.ChatClientResponseEntityTests.whenEmptyArrayResponseThenReturnEmptyList -- Time elapsed: 0.009 s
+[INFO] Running org.springframework.ai.chat.client.DefaultChatClientUtilsTests
+[INFO] Tests run: 21, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.039 s -- in org.springframework.ai.chat.client.DefaultChatClientUtilsTests
+[INFO] org.springframework.ai.chat.client.DefaultChatClientUtilsTests.whenToolCallingChatOptionsIsProvidedThenToolContextIsSet -- Time elapsed: 0.002 s
+[INFO] org.springframework.ai.chat.client.DefaultChatClientUtilsTests.whenToolCallingChatOptionsIsProvidedThenToolCallbacksAreSet -- Time elapsed: 0.001 s
+[INFO] org.springframework.ai.chat.client.DefaultChatClientUtilsTests.whenUserTextWithMediaIsProvidedThenUserMessageWithMediaIsAddedToPrompt -- Time elapsed: 0.002 s
+[INFO] org.springframework.ai.chat.client.DefaultChatClientUtilsTests.whenToolCallbacksAndChatOptionsAreProvidedThenTheToolCallbacksOverride -- Time elapsed: 0.005 s
+[INFO] org.springframework.ai.chat.client.DefaultChatClientUtilsTests.whenCustomTemplateRendererIsProvidedThenItIsUsedForRendering -- Time elapsed: 0.002 s
+[INFO] org.springframework.ai.chat.client.DefaultChatClientUtilsTests.whenSystemTextAndSystemMessageAreProvidedThenSystemTextIsFirst -- Time elapsed: 0.001 s
+[INFO] org.springframework.ai.chat.client.DefaultChatClientUtilsTests.whenAdvisorParamsAreProvidedThenTheyAreAddedToContext -- Time elapsed: 0.001 s
+[INFO] org.springframework.ai.chat.client.DefaultChatClientUtilsTests.whenToolNamesAndChatOptionsAreProvidedThenTheToolNamesOverride -- Time elapsed: 0 s
+[INFO] org.springframework.ai.chat.client.DefaultChatClientUtilsTests.whenInputRequestIsNullThenThrows -- Time elapsed: 0.001 s
+[INFO] org.springframework.ai.chat.client.DefaultChatClientUtilsTests.whenUserTextAndUserMessageAreProvidedThenUserTextIsLast -- Time elapsed: 0.002 s
+[INFO] org.springframework.ai.chat.client.DefaultChatClientUtilsTests.whenAllComponentsAreProvidedThenCompleteRequestIsCreated -- Time elapsed: 0.003 s
+[INFO] org.springframework.ai.chat.client.DefaultChatClientUtilsTests.whenToolContextAndChatOptionsAreProvidedThenTheValuesAreMerged -- Time elapsed: 0.001 s
+[INFO] org.springframework.ai.chat.client.DefaultChatClientUtilsTests.whenSystemTextWithParamsIsProvidedThenSystemMessageIsRenderedAndAddedToPrompt -- Time elapsed: 0.002 s
+[INFO] org.springframework.ai.chat.client.DefaultChatClientUtilsTests.whenToolNamesAndChatOptionsAreDefaultChatOptions -- Time elapsed: 0.001 s
+[INFO] org.springframework.ai.chat.client.DefaultChatClientUtilsTests.whenUserTextWithParamsIsProvidedThenUserMessageIsRenderedAndAddedToPrompt -- Time elapsed: 0.002 s
+[INFO] org.springframework.ai.chat.client.DefaultChatClientUtilsTests.whenToolContextAndChatOptionsAreDefaultChatOptions -- Time elapsed: 0.001 s
+[INFO] org.springframework.ai.chat.client.DefaultChatClientUtilsTests.whenUserTextIsProvidedThenUserMessageIsAddedToPrompt -- Time elapsed: 0.001 s
+[INFO] org.springframework.ai.chat.client.DefaultChatClientUtilsTests.whenToolCallbacksAndChatOptionsAreDefaultChatOptions -- Time elapsed: 0.001 s
+[INFO] org.springframework.ai.chat.client.DefaultChatClientUtilsTests.whenSystemTextIsProvidedThenSystemMessageIsAddedToPrompt -- Time elapsed: 0 s
+[INFO] org.springframework.ai.chat.client.DefaultChatClientUtilsTests.whenToolCallingChatOptionsIsProvidedThenToolNamesAreSet -- Time elapsed: 0 s
+[INFO] org.springframework.ai.chat.client.DefaultChatClientUtilsTests.whenMessagesAreProvidedThenTheyAreAddedToPrompt -- Time elapsed: 0.003 s
+[INFO] Running org.springframework.ai.metadata.PromptMetadataTests
+[INFO] Tests run: 13, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.080 s -- in org.springframework.ai.metadata.PromptMetadataTests
+[INFO] org.springframework.ai.metadata.PromptMetadataTests.findByPromptIndexWithNoFilters -- Time elapsed: 0.002 s
+[INFO] org.springframework.ai.metadata.PromptMetadataTests.promptMetadataImmutability -- Time elapsed: 0.057 s
+[INFO] org.springframework.ai.metadata.PromptMetadataTests.promptMetadataWithTwoFilters -- Time elapsed: 0.001 s
+[INFO] org.springframework.ai.metadata.PromptMetadataTests.promptMetadataWithDuplicateIndices -- Time elapsed: 0.003 s
+[INFO] org.springframework.ai.metadata.PromptMetadataTests.promptMetadataWithOneFilter -- Time elapsed: 0.002 s
+[INFO] org.springframework.ai.metadata.PromptMetadataTests.promptMetadataWithMultipleFilters -- Time elapsed: 0.003 s
+[INFO] org.springframework.ai.metadata.PromptMetadataTests.fromPromptIndexAndContentFilterMetadata -- Time elapsed: 0.001 s
+[INFO] org.springframework.ai.metadata.PromptMetadataTests.promptFilterMetadataWithEmptyContentFilter -- Time elapsed: 0 s
+[INFO] org.springframework.ai.metadata.PromptMetadataTests.findByInvalidPromptIndex -- Time elapsed: 0.003 s
+[INFO] org.springframework.ai.metadata.PromptMetadataTests.promptMetadataSize -- Time elapsed: 0.001 s
+[INFO] org.springframework.ai.metadata.PromptMetadataTests.promptMetadataWithEmptyFiltersArray -- Time elapsed: 0.001 s
+[INFO] org.springframework.ai.metadata.PromptMetadataTests.emptyPromptMetadata -- Time elapsed: 0 s
+[INFO] org.springframework.ai.metadata.PromptMetadataTests.findByPromptIndex -- Time elapsed: 0.001 s
+[INFO] Running org.springframework.ai.prompt.PromptTests
+Hello &#39;Nick&#39; &#39;Park&#39; from Unix
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in org.springframework.ai.prompt.PromptTests
+[INFO] org.springframework.ai.prompt.PromptTests.mutatePrompt -- Time elapsed: 0.002 s
+[INFO] org.springframework.ai.prompt.PromptTests.testPromptCopy -- Time elapsed: 0.001 s
+[INFO] org.springframework.ai.prompt.PromptTests.newApiPlaygroundTests -- Time elapsed: 0.003 s
+[INFO] Running org.springframework.ai.prompt.PromptTemplateTest
+[WARNING] Tests run: 9, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 0.027 s -- in org.springframework.ai.prompt.PromptTemplateTest
+[WARNING] org.springframework.ai.prompt.PromptTemplateTest.testCreateWithOverriddenModelAndChatOptions -- Time elapsed: 0.001 s
+[WARNING] org.springframework.ai.prompt.PromptTemplateTest.testRenderFailure -- Time elapsed: 0.004 s
+[WARNING] org.springframework.ai.prompt.PromptTemplateTest.testRenderWithList -- Time elapsed: 0.011 s
+[WARNING] org.springframework.ai.prompt.PromptTemplateTest.testRenderWithHyphen -- Time elapsed: 0.001 s
+[WARNING] org.springframework.ai.prompt.PromptTemplateTest.testRenderResource -- Time elapsed: 0.003 s
+[WARNING] org.springframework.ai.prompt.PromptTemplateTest skipped
+[WARNING] org.springframework.ai.prompt.PromptTemplateTest.testCreateWithModelAndChatOptions -- Time elapsed: 0.001 s
+[WARNING] org.springframework.ai.prompt.PromptTemplateTest.testCreateWithEmptyModelAndChatOptions -- Time elapsed: 0.002 s
+[WARNING] org.springframework.ai.prompt.PromptTemplateTest.testRender -- Time elapsed: 0.001 s
+[INFO] 
+[INFO] Results:
+[INFO] 
+[WARNING] Tests run: 502, Failures: 0, Errors: 0, Skipped: 9
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for Spring AI Parent 2.0.0-SNAPSHOT:
+[INFO] 
+[INFO] Spring AI Parent ................................... SUCCESS [  0.645 s]
+[INFO] Spring AI Commons .................................. SUCCESS [  8.128 s]
+[INFO] Spring AI Template StringTemplate .................. SUCCESS [  1.914 s]
+[INFO] Spring AI Model .................................... SUCCESS [ 11.534 s]
+[INFO] Spring AI Chat Client .............................. SUCCESS [  8.695 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  31.653 s
+[INFO] Finished at: 2026-04-14T18:46:52+02:00
+[INFO] ------------------------------------------------------------------------</pre>
+</details>
+</section>
+<section class="additional-info">
+<h2>Additional Information</h2>
+<div class="info-grid">
+<div class="info-card">
+<h3>PR Metadata</h3>
+<div class="info-row"><span class="info-label">Number</span><span class="info-value">#5659</span></div>
+<div class="info-row"><span class="info-label">Author</span><span class="info-value">filiphr</span></div>
+<div class="info-row"><span class="info-label">State</span><span class="info-value">open</span></div>
+<div class="info-row"><span class="info-label">Branch</span><span class="info-value">support-structured-output-with-custom-converter → main</span></div>
+<div class="info-row"><span class="info-label">Files</span><span class="info-value">5</span></div>
+<div class="info-row"><span class="info-label">Lines</span><span class="info-value">+244 / -14</span></div>
+</div>
+<div class="info-card">
+<h3>Assessment Summary</h3>
+<div class="info-row"><span class="info-label">code-quality</span><span class="info-value">PASS (75%)</span></div>
+<div class="info-row"><span class="info-label">backport</span><span class="info-value">FAIL (30%)</span></div>
+<div class="info-row"><span class="info-label">Build</span><span class="info-value">PASS</span></div>
+<div class="info-row"><span class="info-label">Overall</span><span class="info-value">PASS</span></div>
+</div>
+</div>
+</section>
+<section class="discussion">
+<h2>Discussion</h2>
+<div class="discussion-item review ">
+<div class="di-header">
+<span class="di-author">filiphr</span>
+<span class="review-badge commented">COMMENTED</span>
+<span class="di-time">Mar 23, 2026 at 00:30</span>
+</div>
+<div class="di-body">Adding some explanation for some changes that are not entirely related to the initial request. In theory this could lead to some problems outside of the proposed changes here since the contract between the context and the underlying implementations differs.
+
+If you prefer I can split this PR into 2 to handle the contract difference.</div>
+</div>
+<div class="discussion-item">
+<div class="di-header">
+<span class="di-author">filiphr</span>
+<span class="di-time">Mar 26, 2026 at 23:25</span>
+</div>
+<div class="di-body">Hey @ilayaperumalg, @tzolov, sorry for the ping, but I wanted to check if this PR is something that you would consider for Spring AI. I personally think that it&#39;s a good improvement of the API.
+
+Thanks for looking into it.</div>
+</div>
+<div class="discussion-item">
+<div class="di-header">
+<span class="di-author">filiphr</span>
+<span class="di-time">Apr 14, 2026 at 17:43</span>
+</div>
+<div class="di-body">Hey @ilayaperumalg, have you had the chance to have a look at this one perhaps? If this something that is interesting for Spring AI. Currently, we have to fiddle with some of the lower level flags to trigger the structured output.</div>
+</div>
+</section>
+</main>
+<div class="footer">
+Generated by <strong>AgentWorks PR Review Pipeline</strong> &mdash; 2026-04-14 18:48:43 CEST
+</div>
+</body>
+</html>

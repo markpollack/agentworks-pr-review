@@ -6,6 +6,8 @@ import io.github.markpollack.workflow.flows.agent.AgentAdvice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.stereotype.Component;
+
 /**
  * Cross-cutting fallback error handler for all agents in the PR review pipeline.
  *
@@ -14,6 +16,7 @@ import org.slf4j.LoggerFactory;
  * {@link ExceptionHandler} methods. Logs the error and returns a descriptive message
  * rather than propagating the exception.
  */
+@Component
 @AgentAdvice
 public class PrReviewErrorAdvice {
 

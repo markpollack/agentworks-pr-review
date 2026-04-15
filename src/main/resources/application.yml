@@ -12,3 +12,4 @@ workshop:
   fix-tests: false
   journal-dir: ./journal
   repo-dir: ${SPRING_AI_REPO_DIR:../spring-ai}
+  use-dsl: true

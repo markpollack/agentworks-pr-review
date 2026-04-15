@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PR Review: #5774 — Propagate body-level errors in WebClientStreamableHttpTransport</title>
+<style>
+:root {
+  --spring-green: #6db33f;
+  --spring-dark: #34302d;
+  --pass: #28a745;
+  --fail: #dc3545;
+  --warn: #f0ad4e;
+  --info: #17a2b8;
+  --bg: #f8f9fa;
+  --card-bg: #ffffff;
+  --text: #212529;
+  --text-muted: #6c757d;
+  --border: #dee2e6;
+  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 1100px; margin: 0 auto; padding: 0 24px 48px; }
+
+/* Banner */
+.banner { background: linear-gradient(135deg, var(--spring-dark) 0%, #4a453f 100%); color: #fff; padding: 40px 0 32px; }
+.banner .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+.banner h1 { font-size: 1.8em; font-weight: 700; margin-bottom: 12px; }
+.banner .pr-description { font-size: 0.95em; opacity: 0.85; margin-bottom: 16px; max-width: 800px; line-height: 1.5; }
+.banner .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+.badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; font-weight: 600; }
+.badge-author { background: rgba(255,255,255,0.15); color: #fff; }
+.badge-state { background: var(--spring-green); color: #fff; }
+.badge-branch { background: rgba(255,255,255,0.1); color: #ddd; font-family: monospace; font-size: 0.8em; }
+.badge-label { background: var(--info); color: #fff; }
+.badge-issue { background: var(--warn); color: #333; }
+
+/* Metric cards */
+.metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.metric-card { background: rgba(255,255,255,0.12); border-radius: 8px; padding: 16px; text-align: center; }
+.metric-card .label { font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.8; margin-bottom: 4px; }
+.metric-card .value { font-size: 2em; font-weight: 700; }
+.metric-card .value.pass { color: var(--pass); }
+.metric-card .value.fail { color: var(--fail); }
+.metric-card .value.skipped { color: var(--info); }
+
+/* Sections */
+section { margin-top: 32px; }
+section h2 { font-size: 1.4em; font-weight: 700; color: var(--spring-dark); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--spring-green); }
+
+/* Executive summary */
+.summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.summary-card { background: var(--card-bg); border-radius: 10px; padding: 20px; box-shadow: var(--shadow); border-top: 3px solid var(--spring-green); }
+.summary-card h3 { font-size: 1em; font-weight: 700; color: var(--spring-dark); margin-bottom: 8px; }
+.summary-card p { font-size: 0.9em; color: var(--text-muted); line-height: 1.5; }
+
+/* Judge cascade */
+.cascade { display: flex; align-items: center; gap: 0; flex-wrap: wrap; margin-bottom: 8px; }
+.judge-node { background: var(--card-bg); border: 2px solid var(--border); border-radius: 10px; padding: 16px 20px; min-width: 200px; box-shadow: var(--shadow); }
+.judge-node.pass { border-color: var(--pass); }
+.judge-node.fail { border-color: var(--fail); }
+.judge-node .tier { font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); }
+.judge-node .name { font-size: 1.1em; font-weight: 600; margin: 4px 0; }
+.judge-node .status-badge { display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 0.85em; font-weight: 700; color: #fff; }
+.status-pass { background: var(--pass); }
+.status-fail { background: var(--fail); }
+.status-abstain { background: var(--warn); }
+.status-error { background: var(--fail); }
+.cascade-arrow { font-size: 1.5em; color: var(--text-muted); padding: 0 12px; }
+
+/* Cards */
+.card { background: var(--card-bg); border-radius: 10px; padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); border-left: 4px solid var(--border); }
+.card.pass { border-left-color: var(--pass); }
+.card.fail { border-left-color: var(--fail); }
+.card.skipped { border-left-color: var(--info); }
+.card h3 { font-size: 1.1em; margin-bottom: 8px; }
+.card .detail { color: var(--text-muted); font-size: 0.9em; margin: 4px 0; }
+
+/* Assessment cards */
+.assessment-card { background: var(--card-bg); border-radius: 10px; padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); }
+.assessment-card h3 { font-size: 1.1em; margin-bottom: 8px; }
+.score-bar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; margin: 8px 0; }
+.score-fill { height: 100%; border-radius: 4px; }
+.findings-list { list-style: none; padding: 0; margin-top: 8px; }
+.findings-list li { padding: 4px 0 4px 20px; position: relative; font-size: 0.9em; }
+.findings-list li::before { content: "\2022"; position: absolute; left: 4px; color: var(--text-muted); }
+
+/* Details/summary */
+details { margin-top: 8px; }
+summary { cursor: pointer; font-size: 0.9em; color: var(--text-muted); }
+summary:hover { color: var(--text); }
+details .checks-list { list-style: none; padding: 8px 0 0 16px; }
+details .checks-list li { padding: 2px 0; font-size: 0.85em; }
+.check-pass::before { content: "\2713 "; color: var(--pass); font-weight: bold; }
+.check-fail::before { content: "\2717 "; color: var(--fail); font-weight: bold; }
+
+/* Detailed analysis */
+.analysis-details { background: var(--card-bg); border-radius: 10px; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 12px; }
+.analysis-details > summary { padding: 16px 20px; font-size: 1em; font-weight: 600; color: var(--text); background: var(--card-bg); list-style: none; }
+.analysis-details > summary::-webkit-details-marker { display: none; }
+.analysis-details > summary::before { content: "\25B6 "; font-size: 0.7em; margin-right: 8px; display: inline-block; transition: transform 0.2s; }
+.analysis-details[open] > summary::before { transform: rotate(90deg); }
+.analysis-details .analysis-body { padding: 0 20px 16px; }
+
+/* Code changes grouped */
+.file-group { margin-bottom: 20px; }
+.file-group-header { font-size: 1em; font-weight: 600; color: var(--spring-dark); margin-bottom: 8px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.file-group-header .file-count { font-weight: 400; color: var(--text-muted); font-size: 0.85em; margin-left: 8px; }
+
+/* Files table */
+.files-table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+.files-table th { text-align: left; padding: 10px 12px; background: var(--spring-dark); color: #fff; }
+.files-table th:first-child { border-radius: 8px 0 0 0; }
+.files-table th:last-child { border-radius: 0 8px 0 0; }
+.files-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+.files-table tr:hover td { background: #f1f3f5; }
+.file-path { font-family: monospace; font-size: 0.85em; word-break: break-all; }
+.change-bar { display: inline-flex; height: 10px; border-radius: 3px; overflow: hidden; min-width: 60px; }
+.change-add { background: var(--pass); height: 100%; }
+.change-del { background: var(--fail); height: 100%; }
+.change-nums { font-family: monospace; font-size: 0.85em; white-space: nowrap; }
+.add-num { color: var(--pass); }
+.del-num { color: var(--fail); }
+
+/* Test results */
+.test-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; }
+.test-metric { background: var(--card-bg); border-radius: 10px; padding: 16px; text-align: center; box-shadow: var(--shadow); }
+.test-metric .tm-label { font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 4px; }
+.test-metric .tm-value { font-size: 1.8em; font-weight: 700; }
+.test-metric .tm-value.pass { color: var(--pass); }
+.test-metric .tm-value.fail { color: var(--fail); }
+.test-metric .tm-value.skipped { color: var(--info); }
+
+/* Additional info grid */
+.info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.info-card { background: var(--card-bg); border-radius: 10px; padding: 20px; box-shadow: var(--shadow); }
+.info-card h3 { font-size: 1.1em; font-weight: 700; color: var(--spring-dark); margin-bottom: 12px; }
+.info-card .info-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 0.9em; }
+.info-card .info-row:last-child { border-bottom: none; }
+.info-card .info-label { color: var(--text-muted); }
+.info-card .info-value { font-weight: 600; }
+
+/* Discussion */
+.discussion-item { background: var(--card-bg); border-radius: 10px; padding: 16px 20px; margin-bottom: 12px; box-shadow: var(--shadow); border-left: 4px solid var(--border); }
+.discussion-item.review { border-left-color: var(--info); }
+.discussion-item.review-approved { border-left-color: var(--pass); }
+.discussion-item.review-changes-requested { border-left-color: var(--fail); }
+.discussion-item .di-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.discussion-item .di-author { font-weight: 600; }
+.discussion-item .di-time { color: var(--text-muted); font-size: 0.8em; }
+.discussion-item .di-body { font-size: 0.9em; color: var(--text); line-height: 1.5; }
+.review-badge { display: inline-block; padding: 2px 8px; border-radius: 8px; font-size: 0.75em; font-weight: 700; color: #fff; }
+.review-badge.approved { background: var(--pass); }
+.review-badge.changes-requested { background: var(--fail); }
+.review-badge.commented { background: var(--text-muted); }
+.review-badge.dismissed { background: var(--warn); }
+
+/* Not-run message */
+.not-run { background: #e9ecef; border-radius: 10px; padding: 24px; text-align: center; color: var(--text-muted); font-size: 1.1em; }
+
+/* Footer */
+.footer { text-align: center; padding: 32px 0; color: var(--text-muted); font-size: 0.85em; border-top: 1px solid var(--border); margin-top: 48px; }
+
+@media (max-width: 768px) {
+  .metrics { grid-template-columns: repeat(2, 1fr); }
+  .cascade { flex-direction: column; }
+  .cascade-arrow { transform: rotate(90deg); }
+  .summary-grid { grid-template-columns: 1fr; }
+  .info-grid { grid-template-columns: 1fr; }
+  .test-metrics { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<header class="banner">
+<div class="container">
+<h1>PR #5774 — Propagate body-level errors in WebClientStreamableHttpTransport</h1>
+<p class="pr-description">## Summary
+
+When `WebClientStreamableHttpTransport.sendMessage()` encounters a body-level error (e.g. `DataBufferLimitException`, malformed JSON), the `onErrorComplete` operator silently swallows the ...</p>
+<div class="badges">
+<span class="badge badge-author">Planview-JamesK</span>
+<span class="badge badge-state">open</span>
+<span class="badge badge-branch">fix/889-body-error-propagation &rarr; main</span>
+<span class="badge badge-issue">#5775 </span>
+</div>
+<div class="metrics">
+<div class="metric-card"><div class="label">Verdict</div><div class="value pass">PASS</div></div>
+<div class="metric-card"><div class="label">Files Changed</div><div class="value">2</div></div>
+<div class="metric-card"><div class="label">Code Changes</div><div class="value">+247 / -11</div></div>
+<div class="metric-card"><div class="label">Build</div><div class="value pass">PASS</div></div>
+</div>
+</div>
+</header>
+<main class="container">
+<section class="executive-summary">
+<h2>Executive Summary</h2>
+<div class="summary-grid">
+<div class="summary-card">
+<h3>Problem</h3>
+<p>## Summary
+
+When `WebClientStreamableHttpTransport.sendMessage()` encounters a body-level error (e.g. `DataBufferLimitException`, malformed JSON), the `onErrorComplete` operator silently swallows the error. This leaves the pending `McpClientSession` response unresolved, causing a hang until `request...</p>
+</div>
+<div class="summary-card">
+<h3>Quality Assessment</h3>
+<p>This is a well-implemented bug fix that addresses a real issue where body-level errors caused request timeouts due to unresolved responses. The solution correctly changes from onErrorComplete to onErrorResume, emitting synthetic JSON-RPC error responses for requests while preserving existing error handling. The implementation is sound with proper request ID extraction, conditional logic for notifications vs requests, and comprehensive integration testing covering malformed SSE streams, malformed JSON, and notification edge cases. The code follows reactive best practices and maintains backward compatibility while fixing the hanging behavior.</p>
+</div>
+<div class="summary-card">
+<h3>Backport Assessment</h3>
+<p>Excellent backport candidate. This is a small, focused bug fix addressing a production issue (300-second hangs on body-level errors) with minimal code changes, no API modifications, no new dependencies, and comprehensive test coverage. The change is already validated as a forward-port from the upstream MCP Java SDK, reducing risk further.</p>
+</div>
+</div>
+</section>
+<section class="judge-cascade">
+<h2>Judge Cascade</h2>
+<div class="cascade">
+<div class="judge-node pass">
+<div class="tier">T0</div>
+<div class="name">Build Judge</div>
+<span class="status-badge status-pass">PASS</span>
+<details open>
+<summary>4 checks</summary>
+<ul class="checks-list">
+<li class="check-pass">rebase-clean</li>
+<li class="check-pass">no-complex-conflicts</li>
+<li class="check-pass">build-executed</li>
+<li class="check-pass">tests-passed</li>
+</ul>
+</details>
+<details>
+<summary>Reasoning</summary>
+<p style="font-size:0.85em;margin-top:4px;">Build judge: 4/4 checks passed</p>
+</details>
+</div>
+<span class="cascade-arrow">&rarr;</span>
+<div class="judge-node pass">
+<div class="tier">T1</div>
+<div class="name">Version Pattern Judge</div>
+<span class="status-badge status-pass">PASS</span>
+<details>
+<summary>Reasoning</summary>
+<p style="font-size:0.85em;margin-top:4px;">Version pattern judge: no migration anti-patterns detected</p>
+</details>
+</div>
+<span class="cascade-arrow">&rarr;</span>
+<div class="judge-node pass">
+<div class="tier">T2</div>
+<div class="name">Quality Judge</div>
+<span class="status-badge status-pass">PASS</span>
+<details open>
+<summary>5 checks</summary>
+<ul class="checks-list">
+<li class="check-pass">quality-present</li>
+<li class="check-pass">backport-present</li>
+<li class="check-pass">quality-no-error</li>
+<li class="check-pass">backport-no-error</li>
+<li class="check-pass">consistency</li>
+</ul>
+</details>
+<details>
+<summary>Reasoning</summary>
+<p style="font-size:0.85em;margin-top:4px;">Quality judge: 5/5 checks passed, composite score 0.86</p>
+</details>
+</div>
+</div>
+</section>
+<section class="detailed-analysis">
+<h2>Detailed Analysis</h2>
+<details class="analysis-details" open>
+<summary>Rebase — Clean</summary>
+<div class="analysis-body">
+<p class="detail">Branch: <code>review/pr-5774</code></p>
+<p class="detail">Status: Clean</p>
+</div>
+</details>
+<details class="analysis-details">
+<summary>Conflict Detection</summary>
+<div class="analysis-body">
+<p class="detail">Clean rebase, no conflicts</p>
+</div>
+</details>
+<details class="analysis-details">
+<summary>Build — PASS</summary>
+<div class="analysis-body">
+<p class="detail">Status: PASS</p>
+<p class="detail">Modules: mcp/transport/mcp-spring-webflux</p>
+<p class="detail">Duration: 2s</p>
+</div>
+</details>
+<details class="analysis-details">
+<summary>Quality Findings</summary>
+<div class="analysis-body">
+<p class="detail">This is a well-implemented bug fix that addresses a real issue where body-level errors caused request timeouts due to unresolved responses. The solution correctly changes from onErrorComplete to onErrorResume, emitting synthetic JSON-RPC error responses for requests while preserving existing error handling. The implementation is sound with proper request ID extraction, conditional logic for notifications vs requests, and comprehensive integration testing covering malformed SSE streams, malformed JSON, and notification edge cases. The code follows reactive best practices and maintains backward compatibility while fixing the hanging behavior.</p>
+<ul class="findings-list">
+<li>The extensive whitespace reformatting makes the actual logic changes harder to review in the diff, though this doesn&#39;t affect correctness</li>
+<li>Request ID extraction occurs before the reactive pipeline begins, which is correct and necessary to capture the ID at call time</li>
+<li>The synthetic error uses INTERNAL_ERROR code appropriately and includes helpful context in the error message</li>
+<li>Integration tests properly use @Timeout(15) to prevent hanging and verify synthetic errors arrive within 5 seconds</li>
+<li>The code correctly distinguishes between requests (emit synthetic error) and notifications (return empty Flux) based on requestId presence</li>
+<li>Existing error propagation via sink.error(t) and handleException(t) is preserved, maintaining compatibility</li>
+<li>Good traceability with references to upstream java-sdk issues #889, #896, and #897</li>
+</ul>
+</div>
+</details>
+<details class="analysis-details">
+<summary>Backport / Version Findings</summary>
+<div class="analysis-body">
+<p class="detail">Excellent backport candidate. This is a small, focused bug fix addressing a production issue (300-second hangs on body-level errors) with minimal code changes, no API modifications, no new dependencies, and comprehensive test coverage. The change is already validated as a forward-port from the upstream MCP Java SDK, reducing risk further.</p>
+<ul class="findings-list">
+<li>Minimal production code change: only 17 additions and 11 deletions in a single method</li>
+<li>No public API changes - modification is internal to error handling logic only</li>
+<li>No new dependencies required - uses existing Reactor and MCP schema classes</li>
+<li>Comprehensive test coverage: 230-line integration test suite validates the fix</li>
+<li>Already validated in upstream MCP Java SDK (issues #896, #897)</li>
+<li>Fixes real production bug: eliminates 300-second timeout hangs on body errors</li>
+<li>Very low conflict risk: change is localized and in error handling paths</li>
+</ul>
+</div>
+</details>
+</section>
+<section class="code-changes">
+<h2>Code Changes</h2>
+<div class="file-group">
+<div class="file-group-header">Source<span class="file-count">(1)</span></div>
+<table class="files-table">
+<tr><th>File</th><th>Status</th><th>Changes</th><th></th></tr>
+<tr><td class="file-path">mcp/transport/mcp-spring-webflux/src/main/java/org/springframework/ai/mcp/client/webflux/transport/WebClientStreamableHttpTransport.java</td><td>modified</td><td class="change-nums"><span class="add-num">+17</span> <span class="del-num">-11</span></td><td><div class="change-bar" style="width:12px"><div class="change-add" style="width:60%"></div><div class="change-del" style="width:40%"></div></div></td></tr>
+</table>
+</div>
+<div class="file-group">
+<div class="file-group-header">Test<span class="file-count">(1)</span></div>
+<table class="files-table">
+<tr><th>File</th><th>Status</th><th>Changes</th><th></th></tr>
+<tr><td class="file-path">mcp/transport/mcp-spring-webflux/src/test/java/org/springframework/ai/mcp/client/webflux/transport/WebClientStreamableHttpTransportBodyErrorIT.java</td><td>added</td><td class="change-nums"><span class="add-num">+230</span> <span class="del-num">-0</span></td><td><div class="change-bar" style="width:100px"><div class="change-add" style="width:100%"></div><div class="change-del" style="width:0%"></div></div></td></tr>
+</table>
+</div>
+</section>
+<section class="test-results">
+<h2>Test Results</h2>
+<div class="test-metrics">
+<div class="test-metric"><div class="tm-label">Status</div><div class="tm-value pass">PASS</div></div>
+<div class="test-metric"><div class="tm-label">Duration</div><div class="tm-value">2s</div></div>
+<div class="test-metric"><div class="tm-label">Modules</div><div class="tm-value">1</div></div>
+</div>
+<p class="detail" style="margin-bottom:8px;">Modules tested: <code>mcp/transport/mcp-spring-webflux</code></p>
+<details>
+<summary>Build output</summary>
+<pre style="font-size:0.8em;overflow-x:auto;padding:8px;background:#f1f3f5;border-radius:4px;margin-top:4px;">[INFO] Loading cache configuration from /home/mark/projects/spring-ai/.mvn/maven-build-cache-config.xml
+[INFO] Using XX hash algorithm for cache
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] Spring AI Parent                                                   [pom]
+[INFO] WebFlux transports                                                 [jar]
+[INFO] 
+[INFO] --------------&lt; org.springframework.ai:spring-ai-parent &gt;---------------
+[INFO] Building Spring AI Parent 2.0.0-SNAPSHOT                           [1/2]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] Cache is INITIALIZED on project level for org.springframework.ai:spring-ai-parent
+[INFO] Going to calculate checksum for project [groupId=org.springframework.ai, artifactId=spring-ai-parent, version=2.0.0-SNAPSHOT]
+[INFO] Project inputs calculated in 10 ms. XX checksum [62b033857ef1eafe] calculated in 3 ms.
+[INFO] Attempting to restore project org.springframework.ai:spring-ai-parent from build cache
+[INFO] Local build found by checksum 62b033857ef1eafe
+[INFO] Found cached build, restoring org.springframework.ai:spring-ai-parent from cache by checksum 62b033857ef1eafe
+[INFO] Skipping plugin execution (cached): enforcer:enforce
+[INFO] Skipping plugin execution (cached): spring-javaformat:apply
+[INFO] Skipping plugin execution (cached): checkstyle:check
+[INFO] Mojo execution is forced by project property: flatten:flatten
+[INFO] 
+[INFO] --- flatten:1.5.0:flatten (flatten) @ spring-ai-parent ---
+[INFO] Generating flattened POM of project org.springframework.ai:spring-ai-parent:pom:2.0.0-SNAPSHOT...
+[INFO] Skipping plugin execution (cached): kotlin:compile
+[INFO] Skipping plugin execution (cached): compiler:compile
+[INFO] Skipping plugin execution (cached): kotlin:test-compile
+[INFO] Skipping plugin execution (cached): compiler:testCompile
+[INFO] 
+[INFO] -------------&lt; org.springframework.ai:mcp-spring-webflux &gt;--------------
+[INFO] Building WebFlux transports 2.0.0-SNAPSHOT                         [2/2]
+[INFO]   from mcp/transport/mcp-spring-webflux/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] Cache is INITIALIZED on project level for org.springframework.ai:mcp-spring-webflux
+[INFO] Going to calculate checksum for project [groupId=org.springframework.ai, artifactId=mcp-spring-webflux, version=2.0.0-SNAPSHOT]
+[INFO] Scanning plugins configurations to find input files. Probing is enabled, values will be checked for presence in file system
+[INFO] Found 33 input files. Project dir processing: 4, plugins: 4 millis
+[INFO] Project inputs calculated in 11 ms. XX checksum [a9c2432324f341ae] calculated in 34 ms.
+[INFO] Attempting to restore project org.springframework.ai:mcp-spring-webflux from build cache
+[INFO] Local build found by checksum a9c2432324f341ae
+[INFO] Found cached build, restoring org.springframework.ai:mcp-spring-webflux from cache by checksum a9c2432324f341ae
+[INFO] Skipping plugin execution (cached): enforcer:enforce
+[INFO] Skipping plugin execution (cached): spring-javaformat:apply
+[INFO] Skipping plugin execution (cached): checkstyle:check
+[INFO] Skipping plugin execution (cached): resources:resources
+[INFO] Mojo execution is forced by project property: flatten:flatten
+[INFO] 
+[INFO] --- flatten:1.5.0:flatten (flatten) @ mcp-spring-webflux ---
+[INFO] Generating flattened POM of project org.springframework.ai:mcp-spring-webflux:jar:2.0.0-SNAPSHOT...
+[INFO] Skipping plugin execution (cached): kotlin:compile
+[INFO] Skipping plugin execution (cached): compiler:compile
+[INFO] Skipping plugin execution (cached): resources:testResources
+[INFO] Skipping plugin execution (cached): kotlin:test-compile
+[INFO] Skipping plugin execution (cached): compiler:testCompile
+[INFO] Skipping plugin execution (cached): surefire:test
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for Spring AI Parent 2.0.0-SNAPSHOT:
+[INFO] 
+[INFO] Spring AI Parent ................................... SUCCESS [  0.608 s]
+[INFO] WebFlux transports ................................. SUCCESS [  0.261 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  1.625 s
+[INFO] Finished at: 2026-04-11T00:18:40-04:00
+[INFO] ------------------------------------------------------------------------</pre>
+</details>
+</section>
+<section class="additional-info">
+<h2>Additional Information</h2>
+<div class="info-grid">
+<div class="info-card">
+<h3>PR Metadata</h3>
+<div class="info-row"><span class="info-label">Number</span><span class="info-value">#5774</span></div>
+<div class="info-row"><span class="info-label">Author</span><span class="info-value">Planview-JamesK</span></div>
+<div class="info-row"><span class="info-label">State</span><span class="info-value">open</span></div>
+<div class="info-row"><span class="info-label">Branch</span><span class="info-value">fix/889-body-error-propagation → main</span></div>
+<div class="info-row"><span class="info-label">Files</span><span class="info-value">2</span></div>
+<div class="info-row"><span class="info-label">Lines</span><span class="info-value">+247 / -11</span></div>
+<div class="info-row"><span class="info-label">Issues</span><span class="info-value">#5775</span></div>
+</div>
+<div class="info-card">
+<h3>Assessment Summary</h3>
+<div class="info-row"><span class="info-label">code-quality</span><span class="info-value">PASS (85%)</span></div>
+<div class="info-row"><span class="info-label">backport</span><span class="info-value">PASS (88%)</span></div>
+<div class="info-row"><span class="info-label">Build</span><span class="info-value">PASS</span></div>
+<div class="info-row"><span class="info-label">Overall</span><span class="info-value">PASS</span></div>
+</div>
+</div>
+</section>
+</main>
+<div class="footer">
+Generated by <strong>AgentWorks PR Review Pipeline</strong> &mdash; 2026-04-11 00:20:08 EDT
+</div>
+</body>
+</html>
