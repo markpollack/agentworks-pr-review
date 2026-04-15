@@ -14,6 +14,7 @@ import io.github.markpollack.prreview.model.BuildResult;
 import io.github.markpollack.prreview.model.Comment;
 import io.github.markpollack.prreview.model.ConflictReport;
 import io.github.markpollack.prreview.model.FileChange;
+import io.github.markpollack.prreview.model.FixResult;
 import io.github.markpollack.prreview.model.Issue;
 import io.github.markpollack.prreview.model.PrContext;
 import io.github.markpollack.prreview.model.RebaseResult;
@@ -502,6 +503,28 @@ class HtmlReportRenderer {
 				sb.append("<p class=\"detail\">Duration: ").append(formatDuration(build.durationMs())).append("</p>\n");
 			}
 		});
+
+		// Fix-tests
+		FixResult fix = report.fixResult();
+		if (fix != null && fix.attempted()) {
+			String fixLabel = "AI Fix-Tests — " + (fix.fixed() ? "PASS" : "FAIL");
+			appendAnalysisDetail(sb, fixLabel, fix.fixed(), () -> {
+				sb.append("<p class=\"detail\">Status: ").append(fix.fixed() ? "PASS" : "FAIL").append("</p>\n");
+				if (fix.summary() != null) {
+					sb.append("<p class=\"detail\">").append(escapeHtml(fix.summary())).append("</p>\n");
+				}
+				if (!fix.filesChanged().isEmpty()) {
+					sb.append("<p class=\"detail\">Files modified: ")
+						.append(fix.filesChanged().size())
+						.append("</p>\n");
+					sb.append("<ul>\n");
+					for (String f : fix.filesChanged()) {
+						sb.append("<li><code>").append(escapeHtml(f)).append("</code></li>\n");
+					}
+					sb.append("</ul>\n");
+				}
+			});
+		}
 
 		// Quality findings
 		AssessmentResult quality = findAssessment(report.assessments(), "quality");

@@ -173,8 +173,8 @@ class DomainModelTest {
 			var assessment = new AssessmentResult("QualityJudge", JudgmentStatus.PASS, 0.9, "Good", List.of());
 			var judgment = Judgment.pass("All checks passed");
 
-			var report = new ReviewReport(prContext, rebase, conflicts, build, List.of(assessment), List.of(judgment),
-					Instant.now());
+			var report = new ReviewReport(prContext, rebase, conflicts, build, null, List.of(assessment),
+					List.of(judgment), Instant.now());
 
 			assertThat(report.prContext().number()).isEqualTo(5774);
 			assertThat(report.assessments()).hasSize(1);
@@ -191,7 +191,7 @@ class DomainModelTest {
 			var mutableJudgments = new ArrayList<>(List.of(Judgment.pass("ok")));
 
 			var report = new ReviewReport(prContext, RebaseResult.clean("b"), ConflictReport.clean(),
-					BuildResult.skippedBuild(), mutableAssessments, mutableJudgments, Instant.now());
+					BuildResult.skippedBuild(), null, mutableAssessments, mutableJudgments, Instant.now());
 
 			mutableAssessments.clear();
 			mutableJudgments.clear();

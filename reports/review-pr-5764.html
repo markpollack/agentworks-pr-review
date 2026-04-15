@@ -212,11 +212,11 @@ Spring AI vector stores can become unavailable independently from the applicatio
 </div>
 <div class="summary-card">
 <h3>Quality Assessment</h3>
-<p><em>Not available</em></p>
+<p>The implementation has a critical logic error in the health check. JdbcTemplate.queryForObject() throws EmptyResultDataAccessException when no rows are found, not return null, making the null check dead code. When the vector extension is missing, the exception will be caught by AbstractHealthIndicator with the generic failure message, not the detailed &#39;PgVector extension not installed&#39; reason. The tests use mocks that return null, validating behavior that never occurs in production. The UP case works correctly, and the auto-configuration follows Spring Boot patterns well.</p>
 </div>
 <div class="summary-card">
 <h3>Backport Assessment</h3>
-<p><em>Not available</em></p>
+<p>While well-implemented with good test coverage and low technical risk, this PR introduces a new feature rather than fixing existing broken behavior. Maintenance branches typically only accept bug fixes, security patches, and documentation corrections. The addition of new public API classes and an optional dependency, though minimal, represents feature growth unsuitable for stable branches. This would be excellent for the main development branch but should not be backported to maintenance releases.</p>
 </div>
 </div>
 </section>
@@ -257,6 +257,26 @@ Spring AI vector stores can become unavailable independently from the applicatio
 <p style="font-size:0.85em;margin-top:4px;">Version pattern judge: 1 anti-pattern found in PR diff</p>
 </details>
 </div>
+<span class="cascade-arrow">&rarr;</span>
+<div class="judge-node pass">
+<div class="tier">T2</div>
+<div class="name">Quality Judge</div>
+<span class="status-badge status-pass">PASS</span>
+<details open>
+<summary>5 checks</summary>
+<ul class="checks-list">
+<li class="check-pass">quality-present</li>
+<li class="check-pass">backport-present</li>
+<li class="check-pass">quality-no-error</li>
+<li class="check-pass">backport-no-error</li>
+<li class="check-pass">consistency</li>
+</ul>
+</details>
+<details>
+<summary>Reasoning</summary>
+<p style="font-size:0.85em;margin-top:4px;">Quality judge: 5/5 checks passed, composite score 0.52</p>
+</details>
+</div>
 </div>
 </section>
 <section class="detailed-analysis">
@@ -279,7 +299,34 @@ Spring AI vector stores can become unavailable independently from the applicatio
 <div class="analysis-body">
 <p class="detail">Status: PASS</p>
 <p class="detail">Modules: ., auto-configurations/vector-stores/spring-ai-autoconfigure-vector-store-pgvector</p>
-<p class="detail">Duration: 1m 12s</p>
+<p class="detail">Duration: 1m 10s</p>
+</div>
+</details>
+<details class="analysis-details">
+<summary>Quality Findings</summary>
+<div class="analysis-body">
+<p class="detail">The implementation has a critical logic error in the health check. JdbcTemplate.queryForObject() throws EmptyResultDataAccessException when no rows are found, not return null, making the null check dead code. When the vector extension is missing, the exception will be caught by AbstractHealthIndicator with the generic failure message, not the detailed &#39;PgVector extension not installed&#39; reason. The tests use mocks that return null, validating behavior that never occurs in production. The UP case works correctly, and the auto-configuration follows Spring Boot patterns well.</p>
+<ul class="findings-list">
+<li>queryForObject() throws EmptyResultDataAccessException on empty result set, never returns null — the null/blank check at line 48-50 is unreachable dead code</li>
+<li>When extension is missing, health check will report DOWN with generic &#39;PgVector health check failed&#39; instead of the intended detailed reason message</li>
+<li>Unit tests mock queryForObject to return null, testing behavior that doesn&#39;t match real JdbcTemplate — tests pass but validate incorrect logic</li>
+<li>AutoConfiguration.imports file missing trailing newline (minor style issue)</li>
+<li>Health indicator depends on any JdbcTemplate bean but PgVectorStore may use specific DataSource — could check wrong database in multi-datasource applications</li>
+</ul>
+</div>
+</details>
+<details class="analysis-details">
+<summary>Backport / Version Findings</summary>
+<div class="analysis-body">
+<p class="detail">While well-implemented with good test coverage and low technical risk, this PR introduces a new feature rather than fixing existing broken behavior. Maintenance branches typically only accept bug fixes, security patches, and documentation corrections. The addition of new public API classes and an optional dependency, though minimal, represents feature growth unsuitable for stable branches. This would be excellent for the main development branch but should not be backported to maintenance releases.</p>
+<ul class="findings-list">
+<li>New feature addition (health indicator) rather than a bug fix</li>
+<li>Adds new public API classes (PgVectorStoreHealthIndicator, PgVectorStoreHealthAutoConfiguration)</li>
+<li>Introduces optional dependency on spring-boot-health</li>
+<li>Low technical risk due to conditional auto-configuration (@ConditionalOnEnabledHealthIndicator)</li>
+<li>Potential merge conflicts in pom.xml and AutoConfiguration.imports on older branches</li>
+<li>Well-tested with 6 unit test scenarios covering all paths</li>
+</ul>
 </div>
 </details>
 </section>
@@ -319,7 +366,7 @@ Spring AI vector stores can become unavailable independently from the applicatio
 <h2>Test Results</h2>
 <div class="test-metrics">
 <div class="test-metric"><div class="tm-label">Status</div><div class="tm-value pass">PASS</div></div>
-<div class="test-metric"><div class="tm-label">Duration</div><div class="tm-value">1m 12s</div></div>
+<div class="test-metric"><div class="tm-label">Duration</div><div class="tm-value">1m 10s</div></div>
 <div class="test-metric"><div class="tm-label">Modules</div><div class="tm-value">2</div></div>
 </div>
 <p class="detail" style="margin-bottom:8px;">Modules tested: <code>., auto-configurations/vector-stores/spring-ai-autoconfigure-vector-store-pgvector</code></p>
@@ -389,13 +436,13 @@ Spring AI vector stores can become unavailable independently from the applicatio
 	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
-[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.266 s -- in org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreHealthAutoConfigurationTests
-[INFO] org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreHealthAutoConfigurationTests.healthIndicatorRegisteredWhenPgVectorStorePresent -- Time elapsed: 1.080 s
-[INFO] org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreHealthAutoConfigurationTests.healthIndicatorReportsDownWhenVectorExtensionMissing -- Time elapsed: 0.041 s
-[INFO] org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreHealthAutoConfigurationTests.healthIndicatorReportsDownOnQueryException -- Time elapsed: 0.026 s
-[INFO] org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreHealthAutoConfigurationTests.healthIndicatorBacksOffWhenCustomBeanProvided -- Time elapsed: 0.017 s
-[INFO] org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreHealthAutoConfigurationTests.healthIndicatorReportsUpWhenVectorExtensionInstalled -- Time elapsed: 0.013 s
-[INFO] org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreHealthAutoConfigurationTests.healthIndicatorNotRegisteredWhenDisabled -- Time elapsed: 0.025 s
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.344 s -- in org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreHealthAutoConfigurationTests
+[INFO] org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreHealthAutoConfigurationTests.healthIndicatorRegisteredWhenPgVectorStorePresent -- Time elapsed: 1.127 s
+[INFO] org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreHealthAutoConfigurationTests.healthIndicatorReportsDownWhenVectorExtensionMissing -- Time elapsed: 0.035 s
+[INFO] org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreHealthAutoConfigurationTests.healthIndicatorReportsDownOnQueryException -- Time elapsed: 0.030 s
+[INFO] org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreHealthAutoConfigurationTests.healthIndicatorBacksOffWhenCustomBeanProvided -- Time elapsed: 0.021 s
+[INFO] org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreHealthAutoConfigurationTests.healthIndicatorReportsUpWhenVectorExtensionInstalled -- Time elapsed: 0.012 s
+[INFO] org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreHealthAutoConfigurationTests.healthIndicatorNotRegisteredWhenDisabled -- Time elapsed: 0.042 s
 [INFO] 
 [INFO] Results:
 [INFO] 
@@ -404,28 +451,28 @@ Spring AI vector stores can become unavailable independently from the applicatio
 [INFO] ------------------------------------------------------------------------
 [INFO] Reactor Summary for Spring AI Parent 2.0.0-SNAPSHOT:
 [INFO] 
-[INFO] Spring AI Parent ................................... SUCCESS [  0.895 s]
-[INFO] Spring AI Commons .................................. SUCCESS [  8.148 s]
-[INFO] Spring AI Template StringTemplate .................. SUCCESS [  1.355 s]
-[INFO] Spring AI Model .................................... SUCCESS [ 10.558 s]
-[INFO] Spring AI Chat Client .............................. SUCCESS [  8.465 s]
-[INFO] Spring AI Vector Store ............................. SUCCESS [  4.931 s]
-[INFO] Spring AI Test ..................................... SUCCESS [  0.577 s]
-[INFO] Spring AI Advisors ................................. SUCCESS [  2.531 s]
-[INFO] Spring AI Retry .................................... SUCCESS [  3.119 s]
-[INFO] WebFlux transports ................................. SUCCESS [  1.062 s]
-[INFO] Spring Web MVC transports .......................... SUCCESS [  2.222 s]
-[INFO] Spring AI MCP Client ............................... SUCCESS [  3.597 s]
-[INFO] Spring AI Model - OpenAI ........................... SUCCESS [  4.838 s]
-[INFO] Spring AI Model - ONNX Transformers ................ SUCCESS [  8.281 s]
-[INFO] Spring AI Model - Vertex AI Embedding .............. SUCCESS [  2.934 s]
-[INFO] Spring AI Vector Store - PGVector .................. SUCCESS [  3.279 s]
-[INFO] Spring AI Auto Configuration for Postgres vector store SUCCESS [  2.311 s]
+[INFO] Spring AI Parent ................................... SUCCESS [  0.849 s]
+[INFO] Spring AI Commons .................................. SUCCESS [  8.164 s]
+[INFO] Spring AI Template StringTemplate .................. SUCCESS [  1.312 s]
+[INFO] Spring AI Model .................................... SUCCESS [ 10.687 s]
+[INFO] Spring AI Chat Client .............................. SUCCESS [  8.647 s]
+[INFO] Spring AI Vector Store ............................. SUCCESS [  4.757 s]
+[INFO] Spring AI Test ..................................... SUCCESS [  0.509 s]
+[INFO] Spring AI Advisors ................................. SUCCESS [  2.206 s]
+[INFO] Spring AI Retry .................................... SUCCESS [  3.150 s]
+[INFO] WebFlux transports ................................. SUCCESS [  1.040 s]
+[INFO] Spring Web MVC transports .......................... SUCCESS [  2.225 s]
+[INFO] Spring AI MCP Client ............................... SUCCESS [  3.324 s]
+[INFO] Spring AI Model - OpenAI ........................... SUCCESS [  4.604 s]
+[INFO] Spring AI Model - ONNX Transformers ................ SUCCESS [  8.140 s]
+[INFO] Spring AI Model - Vertex AI Embedding .............. SUCCESS [  2.828 s]
+[INFO] Spring AI Vector Store - PGVector .................. SUCCESS [  3.170 s]
+[INFO] Spring AI Auto Configuration for Postgres vector store SUCCESS [  2.335 s]
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  01:10 min
-[INFO] Finished at: 2026-04-15T10:20:20+02:00
+[INFO] Total time:  01:09 min
+[INFO] Finished at: 2026-04-15T10:41:07+02:00
 [INFO] ------------------------------------------------------------------------</pre>
 </details>
 </section>
@@ -443,7 +490,8 @@ Spring AI vector stores can become unavailable independently from the applicatio
 </div>
 <div class="info-card">
 <h3>Assessment Summary</h3>
-<div class="info-row"><span class="info-label">Status</span><span class="info-value">AI assessments not run</span></div>
+<div class="info-row"><span class="info-label">code-quality</span><span class="info-value">FAIL (55%)</span></div>
+<div class="info-row"><span class="info-label">backport</span><span class="info-value">FAIL (45%)</span></div>
 <div class="info-row"><span class="info-label">Build</span><span class="info-value">PASS</span></div>
 <div class="info-row"><span class="info-label">Overall</span><span class="info-value">FAIL</span></div>
 </div>
@@ -451,7 +499,7 @@ Spring AI vector stores can become unavailable independently from the applicatio
 </section>
 </main>
 <div class="footer">
-Generated by <strong>AgentWorks PR Review Pipeline</strong> &mdash; 2026-04-15 10:21:30 CEST
+Generated by <strong>AgentWorks PR Review Pipeline</strong> &mdash; 2026-04-15 10:42:45 CEST
 </div>
 </body>
 </html>

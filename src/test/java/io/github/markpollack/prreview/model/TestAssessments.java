@@ -154,7 +154,7 @@ public final class TestAssessments {
 	/** Complete passing report — all phases succeeded, all three tiers. */
 	public static ReviewReport passingReport() {
 		return new ReviewReport(TestPrContexts.pr5774(), RebaseResult.clean("fix/889-body-error-propagation"),
-				ConflictReport.clean(), buildSuccess(), List.of(buildPass(), versionPatternPass(), qualityPass()),
+				ConflictReport.clean(), buildSuccess(), null, List.of(buildPass(), versionPatternPass(), qualityPass()),
 				List.of(buildPassJudgment(), versionPatternPassJudgment(), qualityPassJudgment()),
 				Instant.parse("2026-04-08T20:00:00Z"));
 	}
@@ -164,7 +164,7 @@ public final class TestAssessments {
 	 */
 	public static ReviewReport passingReportWithReviews() {
 		return new ReviewReport(TestPrContexts.prWithReviews(), RebaseResult.clean("feature/ollama-function-calling"),
-				ConflictReport.clean(), buildSuccess(), List.of(buildPass(), versionPatternPass(), qualityPass()),
+				ConflictReport.clean(), buildSuccess(), null, List.of(buildPass(), versionPatternPass(), qualityPass()),
 				List.of(buildPassJudgment(), versionPatternPassJudgment(), qualityPassJudgment()),
 				Instant.parse("2026-04-08T20:00:00Z"));
 	}
@@ -172,7 +172,7 @@ public final class TestAssessments {
 	/** Report where build failed — only T0 judgment, AI assessments absent. */
 	public static ReviewReport failedBuildReport() {
 		return new ReviewReport(TestPrContexts.pr5774(), RebaseResult.clean("fix/889-body-error-propagation"),
-				ConflictReport.clean(), buildFailure(), List.of(buildFail()), List.of(buildFailJudgment()),
+				ConflictReport.clean(), buildFailure(), null, List.of(buildFail()), List.of(buildFailJudgment()),
 				Instant.parse("2026-04-08T20:00:00Z"));
 	}
 

@@ -16,6 +16,7 @@ import io.github.markpollack.prreview.model.BuildResult;
 import io.github.markpollack.prreview.model.Classification;
 import io.github.markpollack.prreview.model.ConflictReport;
 import io.github.markpollack.prreview.model.FileChange;
+import io.github.markpollack.prreview.model.FixResult;
 import io.github.markpollack.prreview.model.PrContext;
 import io.github.markpollack.prreview.model.RebaseResult;
 import io.github.markpollack.prreview.model.ReviewReport;
@@ -129,7 +130,16 @@ public class GenerateReportStep implements Step<ReviewReport, Path> {
 			.append(buildStatusEmoji(build))
 			.append(" | ")
 			.append(buildSummary(build))
-			.append(" |\n\n");
+			.append(" |\n");
+		FixResult fix = report.fixResult();
+		if (fix != null && fix.attempted()) {
+			sb.append("| AI Fix-Tests | ")
+				.append(fix.fixed() ? "PASS" : "FAIL")
+				.append(" | ")
+				.append(fix.summary() != null ? fix.summary() : "No summary")
+				.append(" |\n");
+		}
+		sb.append("\n");
 
 		// Overall verdict
 		sb.append("**Overall Verdict**: ").append(overallVerdict(report)).append("\n\n");
@@ -141,6 +151,7 @@ public class GenerateReportStep implements Step<ReviewReport, Path> {
 		appendRebaseResult(sb, rebase);
 		appendConflictReport(sb, conflicts);
 		appendBuildResult(sb, build);
+		appendFixResult(sb, report.fixResult());
 
 		// Phase 2: Judge Cascade
 		sb.append("## Phase 2: Judge Cascade\n\n");
@@ -206,6 +217,22 @@ public class GenerateReportStep implements Step<ReviewReport, Path> {
 					.append(" | ")
 					.append(c.description())
 					.append(" |\n"));
+		}
+		sb.append("\n");
+	}
+
+	private void appendFixResult(StringBuilder sb, FixResult fix) {
+		if (fix == null || !fix.attempted()) {
+			return;
+		}
+		sb.append("### AI Fix-Tests\n\n");
+		sb.append("- **Status**: ").append(fix.fixed() ? "PASS" : "FAIL").append("\n");
+		if (fix.summary() != null) {
+			sb.append("- **Summary**: ").append(fix.summary()).append("\n");
+		}
+		if (!fix.filesChanged().isEmpty()) {
+			sb.append("- **Files modified**: ").append(fix.filesChanged().size()).append("\n");
+			fix.filesChanged().forEach(f -> sb.append("  - `").append(f).append("`\n"));
 		}
 		sb.append("\n");
 	}
