@@ -5,10 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.github.markpollack.prreview.config.WorkshopProperties;
-import io.github.markpollack.prreview.model.AssessmentResult;
-import io.github.markpollack.prreview.model.PrContext;
-import io.github.markpollack.prreview.steps.AssessBackportStep;
-import io.github.markpollack.prreview.steps.AssessCodeQualityStep;
 import io.github.markpollack.prreview.steps.ConflictDetectionStep;
 import io.github.markpollack.prreview.steps.FetchPrContextStep;
 import io.github.markpollack.prreview.steps.GenerateReportStep;
@@ -52,9 +48,8 @@ public class PrReviewDslWorkflow implements AgentHandler<Integer, Path> {
 	public PrReviewDslWorkflow(FetchPrContextStep fetchPrContext, RebaseStep rebaseStep,
 			ConflictDetectionStep conflictDetection, RunTestsStep runTests, FixAndRetestStep fixAndRetestStep,
 			CleanupStep cleanupStep, BuildGate buildGate, VersionPatternStep versionPatternStep,
-			AssessCodeQualityStep assessCodeQuality, AssessBackportStep assessBackport,
-			QualityJudgeStep qualityJudgeStep, AssembleReportStep assembleReportStep, GenerateReportStep generateReport,
-			WorkshopProperties workshopProperties) {
+			AiAssessmentStep aiAssessmentStep, QualityJudgeStep qualityJudgeStep, AssembleReportStep assembleReportStep,
+			GenerateReportStep generateReport, WorkshopProperties workshopProperties) {
 
 		// Step that records the T0 judgment into context (shared by both gate paths)
 		Step<Object, Object> recordT0Judgment = new RecordJudgmentStep("record-t0-judgment", buildGate::lastJudgment);
@@ -67,21 +62,17 @@ public class PrReviewDslWorkflow implements AgentHandler<Integer, Path> {
 			.then(generateReport)
 			.build();
 
-		// AI assessment sub-workflow (runs inside the skipAi branch)
-		Workflow<Object, Object> aiAssessment = Workflow.<Object, Object>define("ai-assessment")
-			.step(Step.named("pr-context-bridge", (ctx, __) -> ctx.require(FetchPrContextStep.PR_CONTEXT)))
-			.parallel(assessCodeQuality, assessBackport)
-			.then(qualityJudgeStep)
-			.build();
-
-		// T0 pass path: T1 → AI assessment → report
-		// (inherits main workflow context, so PR_CONTEXT etc. are available)
+		// T0 pass path: T1 → AI assessment → T2 → report
+		// AI assessment is a composite step (not a sub-workflow) to avoid context
+		// isolation. QualityJudgeStep runs after the branch join so it can read
+		// assessment results from context regardless of which branch was taken.
 		Workflow<Object, Path> assessAndReport = Workflow.<Object, Path>define("assess-and-report")
 			.step(recordT0Judgment)
 			.then(versionPatternStep)
 			.branch(__ -> workshopProperties.skipAi())
 			.then(Step.named("skip-ai", (ctx, in) -> in))
-			.otherwise(aiAssessment)
+			.otherwise(aiAssessmentStep)
+			.then(qualityJudgeStep)
 			.then(assembleReportStep)
 			.then(generateReport)
 			.build();

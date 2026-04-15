@@ -52,6 +52,11 @@ public class DslWorkflowConfig {
 	}
 
 	@Bean
+	AiAssessmentStep aiAssessmentStep(AssessCodeQualityStep assessCodeQuality, AssessBackportStep assessBackport) {
+		return new AiAssessmentStep(assessCodeQuality, assessBackport);
+	}
+
+	@Bean
 	AssembleReportStep assembleReportStep() {
 		return new AssembleReportStep();
 	}
@@ -60,12 +65,11 @@ public class DslWorkflowConfig {
 	PrReviewDslWorkflow prReviewDslWorkflow(FetchPrContextStep fetchPrContext, RebaseStep rebaseStep,
 			ConflictDetectionStep conflictDetection, RunTestsStep runTests, FixAndRetestStep fixAndRetestStep,
 			CleanupStep cleanupStep, BuildGate buildGate, VersionPatternStep dslVersionPatternStep,
-			AssessCodeQualityStep assessCodeQuality, AssessBackportStep assessBackport,
-			QualityJudgeStep qualityJudgeStep, AssembleReportStep assembleReportStep, GenerateReportStep generateReport,
-			WorkshopProperties workshopProperties) {
+			AiAssessmentStep aiAssessmentStep, QualityJudgeStep qualityJudgeStep, AssembleReportStep assembleReportStep,
+			GenerateReportStep generateReport, WorkshopProperties workshopProperties) {
 		return new PrReviewDslWorkflow(fetchPrContext, rebaseStep, conflictDetection, runTests, fixAndRetestStep,
-				cleanupStep, buildGate, dslVersionPatternStep, assessCodeQuality, assessBackport, qualityJudgeStep,
-				assembleReportStep, generateReport, workshopProperties);
+				cleanupStep, buildGate, dslVersionPatternStep, aiAssessmentStep, qualityJudgeStep, assembleReportStep,
+				generateReport, workshopProperties);
 	}
 
 }

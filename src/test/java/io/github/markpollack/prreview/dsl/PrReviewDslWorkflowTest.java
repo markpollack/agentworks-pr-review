@@ -174,7 +174,8 @@ class PrReviewDslWorkflowTest {
 		PrReviewDslWorkflow workflow = new PrReviewDslWorkflow(fetchStep, this.rebaseStep, this.conflictDetection,
 				this.runTests, new FixAndRetestStep(this.fixTests, this.runTests, props),
 				new CleanupStep(this.rebaseStep), new BuildGate(new BuildJudge()),
-				new VersionPatternStep(new VersionPatternJudge()), this.assessCodeQuality, this.assessBackport,
+				new VersionPatternStep(new VersionPatternJudge()),
+				new AiAssessmentStep(this.assessCodeQuality, this.assessBackport),
 				new QualityJudgeStep(new QualityJudge(this.agentClient)), new AssembleReportStep(), this.generateReport,
 				props);
 
@@ -239,8 +240,9 @@ class PrReviewDslWorkflowTest {
 		return new PrReviewDslWorkflow(this.fetchPrContext, this.rebaseStep, this.conflictDetection, this.runTests,
 				new FixAndRetestStep(this.fixTests, this.runTests, props), new CleanupStep(this.rebaseStep),
 				new BuildGate(new BuildJudge()), new VersionPatternStep(new VersionPatternJudge()),
-				this.assessCodeQuality, this.assessBackport, new QualityJudgeStep(new QualityJudge(this.agentClient)),
-				new AssembleReportStep(), this.generateReport, props);
+				new AiAssessmentStep(this.assessCodeQuality, this.assessBackport),
+				new QualityJudgeStep(new QualityJudge(this.agentClient)), new AssembleReportStep(), this.generateReport,
+				props);
 	}
 
 	private static AgentClientResponse agentResponse(String text) {
