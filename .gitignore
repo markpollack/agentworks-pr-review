@@ -40,3 +40,7 @@ build/
 ### Claude Code ###
 CLAUDE.md
 plans/
+
+### Generated output ###
+journal/
+reports/
