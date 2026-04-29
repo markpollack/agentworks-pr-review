@@ -12,14 +12,7 @@ java -version   # must be 21 or later
 
 ### 2. Claude Code
 
-The AI assessment steps delegate to the `claude` CLI. Install it and log in:
-
-```bash
-npm install -g @anthropic-ai/claude-code
-claude login
-```
-
-A functioning `claude` CLI is required — the pipeline always runs AI assessment.
+The AI assessment steps delegate to the `claude` CLI. See the [Claude Code installation docs](https://docs.anthropic.com/en/docs/claude-code/getting-started) to get set up.
 
 ### 3. Local clone of spring-ai
 
