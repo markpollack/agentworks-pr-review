@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.github.markpollack.prreview.config.WorkshopProperties;
+import io.github.markpollack.prreview.model.PrContext;
+import io.github.markpollack.prreview.steps.AssessBackportStep;
+import io.github.markpollack.prreview.steps.AssessCodeQualityStep;
 import io.github.markpollack.prreview.steps.ConflictDetectionStep;
 import io.github.markpollack.prreview.steps.FetchPrContextStep;
 import io.github.markpollack.prreview.steps.GenerateReportStep;
@@ -27,9 +30,8 @@ import org.springaicommunity.judge.result.Judgment;
  * <p>
  * Three sub-workflows:
  * <ul>
- * <li>{@code contextGathering}: fetch → rebase → conflicts → tests → fix/retest →
- * cleanup</li>
- * <li>{@code assessAndReport}: T1 → branch(skipAi) → parallel AI → T2 → report</li>
+ * <li>{@code aiAssessment}: extract PrContext → assessCodeQuality → assessBackport</li>
+ * <li>{@code assessAndReport}: T1 → branch(skipAi) → aiAssessment → T2 → report</li>
  * <li>{@code earlyReport}: T0 failure path → report</li>
  * </ul>
  *
@@ -48,8 +50,9 @@ public class PrReviewDslWorkflow implements AgentHandler<Integer, Path> {
 	public PrReviewDslWorkflow(FetchPrContextStep fetchPrContext, RebaseStep rebaseStep,
 			ConflictDetectionStep conflictDetection, RunTestsStep runTests, FixAndRetestStep fixAndRetestStep,
 			CleanupStep cleanupStep, BuildGate buildGate, VersionPatternStep versionPatternStep,
-			AiAssessmentStep aiAssessmentStep, QualityJudgeStep qualityJudgeStep, AssembleReportStep assembleReportStep,
-			GenerateReportStep generateReport, WorkshopProperties workshopProperties) {
+			Step<PrContext, ?> assessCodeQuality, Step<PrContext, ?> assessBackport, QualityJudgeStep qualityJudgeStep,
+			AssembleReportStep assembleReportStep, GenerateReportStep generateReport,
+			WorkshopProperties workshopProperties) {
 
 		// Step that records the T0 judgment into context (shared by both gate paths)
 		Step<Object, Object> recordT0Judgment = new RecordJudgmentStep("record-t0-judgment", buildGate::lastJudgment);
@@ -62,16 +65,23 @@ public class PrReviewDslWorkflow implements AgentHandler<Integer, Path> {
 			.then(generateReport)
 			.build();
 
-		// T0 pass path: T1 → AI assessment → T2 → report
-		// AI assessment is a composite step (not a sub-workflow) to avoid context
-		// isolation. QualityJudgeStep runs after the branch join so it can read
-		// assessment results from context regardless of which branch was taken.
+		// AI assessment sub-workflow: extract PrContext from context, run both assessment
+		// steps sequentially. Each step's updateContext() writes its result to context;
+		// the sub-workflow executor merges those writes back to the parent on completion.
+		Workflow<Object, Object> aiAssessment = Workflow.<Object, Object>define("ai-assessment")
+			.step(new ExtractPrContextStep())
+			.then(assessCodeQuality)
+			.then(new ExtractPrContextStep())
+			.then(assessBackport)
+			.build();
+
+		// T0 pass path: T1 → branch(skipAi) → AI assessment sub-workflow → T2 → report
 		Workflow<Object, Path> assessAndReport = Workflow.<Object, Path>define("assess-and-report")
 			.step(recordT0Judgment)
 			.then(versionPatternStep)
 			.branch(__ -> workshopProperties.skipAi())
 			.then(Step.named("skip-ai", (ctx, in) -> in))
-			.otherwise(aiAssessmentStep)
+			.otherwise(aiAssessment)
 			.then(qualityJudgeStep)
 			.then(assembleReportStep)
 			.then(generateReport)

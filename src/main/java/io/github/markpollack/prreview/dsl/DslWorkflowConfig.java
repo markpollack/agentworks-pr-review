@@ -4,15 +4,16 @@ import io.github.markpollack.prreview.config.WorkshopProperties;
 import io.github.markpollack.prreview.judges.BuildJudge;
 import io.github.markpollack.prreview.judges.QualityJudge;
 import io.github.markpollack.prreview.judges.VersionPatternJudge;
-import io.github.markpollack.prreview.steps.AssessBackportStep;
-import io.github.markpollack.prreview.steps.AssessCodeQualityStep;
+import io.github.markpollack.prreview.model.PrContext;
 import io.github.markpollack.prreview.steps.ConflictDetectionStep;
 import io.github.markpollack.prreview.steps.FetchPrContextStep;
 import io.github.markpollack.prreview.steps.FixTestsStep;
 import io.github.markpollack.prreview.steps.GenerateReportStep;
 import io.github.markpollack.prreview.steps.RebaseStep;
 import io.github.markpollack.prreview.steps.RunTestsStep;
+import io.github.markpollack.workflow.flows.Step;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -52,11 +53,6 @@ public class DslWorkflowConfig {
 	}
 
 	@Bean
-	AiAssessmentStep aiAssessmentStep(AssessCodeQualityStep assessCodeQuality, AssessBackportStep assessBackport) {
-		return new AiAssessmentStep(assessCodeQuality, assessBackport);
-	}
-
-	@Bean
 	AssembleReportStep assembleReportStep() {
 		return new AssembleReportStep();
 	}
@@ -65,11 +61,13 @@ public class DslWorkflowConfig {
 	PrReviewDslWorkflow prReviewDslWorkflow(FetchPrContextStep fetchPrContext, RebaseStep rebaseStep,
 			ConflictDetectionStep conflictDetection, RunTestsStep runTests, FixAndRetestStep fixAndRetestStep,
 			CleanupStep cleanupStep, BuildGate buildGate, VersionPatternStep dslVersionPatternStep,
-			AiAssessmentStep aiAssessmentStep, QualityJudgeStep qualityJudgeStep, AssembleReportStep assembleReportStep,
-			GenerateReportStep generateReport, WorkshopProperties workshopProperties) {
+			@Qualifier("assess-code-quality") Step<PrContext, ?> assessCodeQuality,
+			@Qualifier("assess-backport") Step<PrContext, ?> assessBackport, QualityJudgeStep qualityJudgeStep,
+			AssembleReportStep assembleReportStep, GenerateReportStep generateReport,
+			WorkshopProperties workshopProperties) {
 		return new PrReviewDslWorkflow(fetchPrContext, rebaseStep, conflictDetection, runTests, fixAndRetestStep,
-				cleanupStep, buildGate, dslVersionPatternStep, aiAssessmentStep, qualityJudgeStep, assembleReportStep,
-				generateReport, workshopProperties);
+				cleanupStep, buildGate, dslVersionPatternStep, assessCodeQuality, assessBackport, qualityJudgeStep,
+				assembleReportStep, generateReport, workshopProperties);
 	}
 
 }
