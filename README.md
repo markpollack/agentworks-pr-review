@@ -26,7 +26,7 @@ export ANTHROPIC_API_KEY=sk-ant-...
 
 **Workshop attendees:** get a key at **[pollack.ai/key](https://pollack.ai/key)**
 
-Without Claude Code or an API key, run with `--workshop.skip-ai=true` to exercise the deterministic pipeline only.
+Claude Code and an API key are required — the pipeline always runs AI assessment.
 
 ### 3. Local clone of spring-ai
 
@@ -62,9 +62,6 @@ export GITHUB_TOKEN=ghp_...
 
 # Review a specific PR (default: 5774)
 ./mvnw spring-boot:run -Dspring-boot.run.arguments="5774"
-
-# Deterministic-only mode (no AI, no API key needed)
-./mvnw spring-boot:run -Dspring-boot.run.arguments="5774 --workshop.skip-ai=true"
 ```
 
 When complete, open the generated report:
@@ -88,7 +85,6 @@ All properties can be set in `application.yml`, as environment variables, or as 
 | Property | Default | Description |
 |----------|---------|-------------|
 | `workshop.default-pr` | 5774 | PR number when none specified on command line |
-| `workshop.skip-ai` | false | Skip AI assessment steps |
 | `workshop.fix-tests` | false | Enable AI fix-tests step when tests fail |
 | `workshop.use-dsl` | true | Use DSL workflow (false = manual orchestrator) |
 | `workshop.journal-dir` | `./journal` | Directory for journal output |
@@ -102,7 +98,7 @@ All properties can be set in `application.yml`, as environment variables, or as 
 1. **Phase 1: Deterministic Context Gathering** — fetch PR metadata, rebase, detect conflicts, run tests
 2. **T0 Gate: Build Judge** — deterministic pass/fail on rebase, conflicts, and test results
 3. **T1 Gate: Version Pattern Judge** — deterministic scan for Boot 3-to-4 migration anti-patterns (FAIL sets verdict but does not block AI)
-4. **Phase 2: AI Assessment** — Claude-powered code quality and backport assessment (skipped only if T0 fails or `skip-ai=true`)
+4. **Phase 2: AI Assessment** — Claude-powered code quality and backport assessment (skipped only if T0 fails)
 5. **T2 Gate: Quality Judge** — LLM meta-judge cross-checking AI assessments
 6. **Phase 3: Report Generation** — markdown report summarizing all findings
 
