@@ -61,14 +61,12 @@ public class PrReviewDslWorkflow implements AgentHandler<Integer, Path> {
 			.then(generateReport)
 			.build();
 
-		// AI assessment sub-workflow: extract PrContext from context, run both assessment
-		// steps sequentially. Each step's updateContext() writes its result to context;
-		// the sub-workflow executor merges those writes back to the parent on completion.
+		// AI assessment sub-workflow: extract PrContext, then run both assessments in
+		// parallel (enrichment join). Each branch's updateContext() writes its result to
+		// context; QualityJudgeStep reads both keys after the join.
 		Workflow<Object, Object> aiAssessment = Workflow.<Object, Object>define("ai-assessment")
 			.step(new ExtractPrContextStep())
-			.then(assessCodeQuality)
-			.then(new ExtractPrContextStep())
-			.then(assessBackport)
+			.parallel(assessCodeQuality, assessBackport)
 			.build();
 
 		// T0 pass path: T1 → [AI assessment if !skipAi] → T2 → report
