@@ -1,6 +1,8 @@
 spring:
   application:
     name: agentworks-pr-review
+  main:
+    web-application-type: none
 
 github:
   repo: spring-projects/spring-ai
