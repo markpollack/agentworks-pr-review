@@ -2,6 +2,8 @@ package io.github.markpollack.prreview.dsl;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 import io.github.markpollack.prreview.judges.BuildJudge;
 import io.github.markpollack.prreview.model.BuildResult;
@@ -24,8 +26,7 @@ import org.springaicommunity.judge.result.JudgmentStatus;
  *
  * <p>
  * Reads intermediate results from context and delegates to the deterministic judge.
- * Stores the judgment in a volatile field for retrieval by the companion
- * {@code recordT0Judgment} step that runs immediately after the gate.
+ * Writes the judgment to {@link DslContextKeys#JUDGMENTS} via {@link #updateContext}.
  */
 public class BuildGate implements Gate<Object> {
 
@@ -33,17 +34,10 @@ public class BuildGate implements Gate<Object> {
 
 	private final BuildJudge buildJudge;
 
-	// Temporal coupling: the companion recordT0Judgment step must read this
-	// before any other gate evaluation overwrites it. Safe in the single-threaded
-	// WorkflowExecutor.
-	private volatile Judgment lastJudgment;
+	private Judgment lastJudgment;
 
 	public BuildGate(BuildJudge buildJudge) {
 		this.buildJudge = buildJudge;
-	}
-
-	public Judgment lastJudgment() {
-		return this.lastJudgment;
 	}
 
 	@Override
@@ -67,6 +61,17 @@ public class BuildGate implements Gate<Object> {
 		logger.info("T0 verdict: {} — {}", judgment.status(), judgment.reasoning());
 
 		return judgment.status() == JudgmentStatus.PASS ? GateDecision.PASS : GateDecision.FAIL;
+	}
+
+	@Override
+	public AgentContext updateContext(AgentContext ctx, Object output, GateDecision decision) {
+		if (this.lastJudgment == null) {
+			return ctx;
+		}
+		List<Judgment> existing = ctx.get(DslContextKeys.JUDGMENTS).orElse(List.of());
+		List<Judgment> updated = new ArrayList<>(existing);
+		updated.add(this.lastJudgment);
+		return ctx.mutate().with(DslContextKeys.JUDGMENTS, List.copyOf(updated)).build();
 	}
 
 	private static Judgment withMeta(Judgment judgment) {

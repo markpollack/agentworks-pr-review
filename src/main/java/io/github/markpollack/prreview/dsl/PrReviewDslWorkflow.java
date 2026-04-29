@@ -1,13 +1,10 @@
 package io.github.markpollack.prreview.dsl;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 
 import io.github.markpollack.prreview.config.WorkshopProperties;
 import io.github.markpollack.prreview.model.PrContext;
-import io.github.markpollack.prreview.steps.AssessBackportStep;
-import io.github.markpollack.prreview.steps.AssessCodeQualityStep;
 import io.github.markpollack.prreview.steps.ConflictDetectionStep;
 import io.github.markpollack.prreview.steps.FetchPrContextStep;
 import io.github.markpollack.prreview.steps.GenerateReportStep;
@@ -21,7 +18,6 @@ import io.github.markpollack.workflow.flows.agent.Agent;
 import io.github.markpollack.workflow.flows.workflow.Workflow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springaicommunity.judge.result.Judgment;
 
 /**
  * DSL-based PR review pipeline — structurally equivalent to {@code PrReviewWorkflow} but
@@ -54,14 +50,10 @@ public class PrReviewDslWorkflow implements AgentHandler<Integer, Path> {
 			AssembleReportStep assembleReportStep, GenerateReportStep generateReport,
 			WorkshopProperties workshopProperties) {
 
-		// Step that records the T0 judgment into context (shared by both gate paths)
-		Step<Object, Object> recordT0Judgment = new RecordJudgmentStep("record-t0-judgment", buildGate::lastJudgment);
-
-		// T0 fail path: record judgment + generate report
-		// (inherits main workflow context, so PR_CONTEXT etc. are available)
+		// T0 fail path: assemble report from context (T0 judgment written by
+		// BuildGate.updateContext)
 		Workflow<Object, Path> earlyReport = Workflow.<Object, Path>define("early-report")
-			.step(recordT0Judgment)
-			.then(assembleReportStep)
+			.step(assembleReportStep)
 			.then(generateReport)
 			.build();
 
@@ -77,8 +69,7 @@ public class PrReviewDslWorkflow implements AgentHandler<Integer, Path> {
 
 		// T0 pass path: T1 → branch(skipAi) → AI assessment sub-workflow → T2 → report
 		Workflow<Object, Path> assessAndReport = Workflow.<Object, Path>define("assess-and-report")
-			.step(recordT0Judgment)
-			.then(versionPatternStep)
+			.step(versionPatternStep)
 			.branch(__ -> workshopProperties.skipAi())
 			.then(Step.named("skip-ai", (ctx, in) -> in))
 			.otherwise(aiAssessment)
@@ -119,47 +110,6 @@ public class PrReviewDslWorkflow implements AgentHandler<Integer, Path> {
 
 	public Workflow<Integer, Path> pipeline() {
 		return this.pipeline;
-	}
-
-	/**
-	 * Helper step that reads a judgment from a supplier and appends it to the JUDGMENTS
-	 * context list. Used to bridge the BuildGate's volatile field into context.
-	 */
-	static class RecordJudgmentStep implements Step<Object, Object> {
-
-		private final String stepName;
-
-		private final java.util.function.Supplier<Judgment> judgmentSupplier;
-
-		private volatile Judgment captured;
-
-		RecordJudgmentStep(String stepName, java.util.function.Supplier<Judgment> judgmentSupplier) {
-			this.stepName = stepName;
-			this.judgmentSupplier = judgmentSupplier;
-		}
-
-		@Override
-		public String name() {
-			return this.stepName;
-		}
-
-		@Override
-		public Object execute(AgentContext ctx, Object input) {
-			this.captured = this.judgmentSupplier.get();
-			return input;
-		}
-
-		@Override
-		public AgentContext updateContext(AgentContext ctx, Object output) {
-			if (this.captured != null) {
-				List<Judgment> existing = ctx.get(DslContextKeys.JUDGMENTS).orElse(List.of());
-				List<Judgment> updated = new ArrayList<>(existing);
-				updated.add(this.captured);
-				return ctx.mutate().with(DslContextKeys.JUDGMENTS, List.copyOf(updated)).build();
-			}
-			return ctx;
-		}
-
 	}
 
 }
