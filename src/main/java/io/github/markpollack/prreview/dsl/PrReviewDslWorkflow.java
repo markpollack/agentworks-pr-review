@@ -24,12 +24,16 @@ import org.slf4j.LoggerFactory;
  * composed using the Workflow DSL for declarative readability.
  *
  * <p>
- * Three sub-workflows:
+ * Two sub-workflows (when skipAi=false):
  * <ul>
- * <li>{@code aiAssessment}: extract PrContext → assessCodeQuality → assessBackport</li>
- * <li>{@code assessAndReport}: T1 → branch(skipAi) → aiAssessment → T2 → report</li>
+ * <li>{@code aiAssessment}: ExtractPrContext → assessCodeQuality → assessBackport</li>
+ * <li>{@code assessAndReport}: T1 → aiAssessment → T2 → report</li>
  * <li>{@code earlyReport}: T0 failure path → report</li>
  * </ul>
+ *
+ * <p>
+ * When {@code skipAi=true}, {@code assessAndReport} omits the {@code aiAssessment}
+ * sub-workflow (constructor-time if/else — no runtime branch predicate in the IR).
  *
  * <p>
  * The T0 gate is the structural pivot: onPass runs {@code assessAndReport}, onFail runs
@@ -67,16 +71,26 @@ public class PrReviewDslWorkflow implements AgentHandler<Integer, Path> {
 			.then(assessBackport)
 			.build();
 
-		// T0 pass path: T1 → branch(skipAi) → AI assessment sub-workflow → T2 → report
-		Workflow<Object, Path> assessAndReport = Workflow.<Object, Path>define("assess-and-report")
-			.step(versionPatternStep)
-			.branch(__ -> workshopProperties.skipAi())
-			.then(Step.named("skip-ai", (ctx, in) -> in))
-			.otherwise(aiAssessment)
-			.then(qualityJudgeStep)
-			.then(assembleReportStep)
-			.then(generateReport)
-			.build();
+		// T0 pass path: T1 → [AI assessment if !skipAi] → T2 → report
+		// skipAi is a startup config flag — resolved at constructor time, not at runtime.
+		Workflow<Object, Path> assessAndReport;
+		if (workshopProperties.skipAi()) {
+			assessAndReport = Workflow.<Object, Path>define("assess-and-report")
+				.step(versionPatternStep)
+				.then(qualityJudgeStep)
+				.then(assembleReportStep)
+				.then(generateReport)
+				.build();
+		}
+		else {
+			assessAndReport = Workflow.<Object, Path>define("assess-and-report")
+				.step(versionPatternStep)
+				.then(aiAssessment)
+				.then(qualityJudgeStep)
+				.then(assembleReportStep)
+				.then(generateReport)
+				.build();
+		}
 
 		// Main pipeline — context-gathering steps are flattened here so their
 		// updateContext() writes (PR_CONTEXT, REBASE_RESULT, etc.) stay in the
