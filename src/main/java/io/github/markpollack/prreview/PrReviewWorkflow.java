@@ -213,52 +213,45 @@ public class PrReviewWorkflow implements AgentHandler<Integer, Path> {
 
 			// ── Phase 2: AI Assessment ───────────────────────────────────
 			AgentContext ctx3 = ctx2;
-			if (this.workshopProperties.skipAi()) {
-				logger.info("── Phase 2: AI Assessment SKIPPED (skip-ai=true) ──");
-			}
-			else {
-				run.logEvent(StateChangeEvent.of("judge-cascade", "ai-assessment", "Proceeding to AI assessment"));
-				logger.info("── Phase 2: AI Assessment ──");
+			run.logEvent(StateChangeEvent.of("judge-cascade", "ai-assessment", "Proceeding to AI assessment"));
+			logger.info("── Phase 2: AI Assessment ──");
 
-				run.logEvent(CustomEvent.of("step-started", Map.of("step", "assess-code-quality")));
-				Instant qualityStart = Instant.now();
-				AssessmentResult quality = this.assessCodeQuality.execute(ctx3, prContext);
-				long qualityMs = Duration.between(qualityStart, Instant.now()).toMillis();
-				ctx3 = this.assessCodeQuality.updateContext(ctx3, quality);
-				ctx3.get(AssessCodeQualityStep.QUALITY_RESPONSE)
-					.ifPresent(r -> emitLlmCallEvent(run, r, "assess-code-quality"));
-				run.logEvent(CustomEvent.of("step-completed", Map.of("step", "assess-code-quality", "durationMs",
-						qualityMs, "status", quality.status().name())));
-				assessments.add(quality);
+			run.logEvent(CustomEvent.of("step-started", Map.of("step", "assess-code-quality")));
+			Instant qualityStart = Instant.now();
+			AssessmentResult quality = this.assessCodeQuality.execute(ctx3, prContext);
+			long qualityMs = Duration.between(qualityStart, Instant.now()).toMillis();
+			ctx3 = this.assessCodeQuality.updateContext(ctx3, quality);
+			ctx3.get(AssessCodeQualityStep.QUALITY_RESPONSE)
+				.ifPresent(r -> emitLlmCallEvent(run, r, "assess-code-quality"));
+			run.logEvent(CustomEvent.of("step-completed",
+					Map.of("step", "assess-code-quality", "durationMs", qualityMs, "status", quality.status().name())));
+			assessments.add(quality);
 
-				run.logEvent(CustomEvent.of("step-started", Map.of("step", "assess-backport")));
-				Instant backportStart = Instant.now();
-				AssessmentResult backport = this.assessBackport.execute(ctx3, prContext);
-				long backportMs = Duration.between(backportStart, Instant.now()).toMillis();
-				ctx3 = this.assessBackport.updateContext(ctx3, backport);
-				ctx3.get(AssessBackportStep.BACKPORT_RESPONSE)
-					.ifPresent(r -> emitLlmCallEvent(run, r, "assess-backport"));
-				run.logEvent(CustomEvent.of("step-completed", Map.of("step", "assess-backport", "durationMs",
-						backportMs, "status", backport.status().name())));
-				assessments.add(backport);
+			run.logEvent(CustomEvent.of("step-started", Map.of("step", "assess-backport")));
+			Instant backportStart = Instant.now();
+			AssessmentResult backport = this.assessBackport.execute(ctx3, prContext);
+			long backportMs = Duration.between(backportStart, Instant.now()).toMillis();
+			ctx3 = this.assessBackport.updateContext(ctx3, backport);
+			ctx3.get(AssessBackportStep.BACKPORT_RESPONSE).ifPresent(r -> emitLlmCallEvent(run, r, "assess-backport"));
+			run.logEvent(CustomEvent.of("step-completed",
+					Map.of("step", "assess-backport", "durationMs", backportMs, "status", backport.status().name())));
+			assessments.add(backport);
 
-				// ── T2 Gate: Quality Judge (LLM meta-judge) ──────────────
-				logger.info("── T2 Gate: Quality Judge ──");
-				run.logEvent(CustomEvent.of("judge-started", Map.of("tier", "T2", "judge", "quality-judge")));
-				Judgment t2 = evaluateQualityJudge(quality, backport);
-				judgments.add(t2);
-				run.logEvent(CustomEvent.of("judge-verdict",
-						Map.of("tier", "T2", "status", t2.status().name(), "reasoning", t2.reasoning())));
-				logger.info("T2 verdict: {} — {}", t2.status(), t2.reasoning());
+			// ── T2 Gate: Quality Judge (LLM meta-judge) ──────────────
+			logger.info("── T2 Gate: Quality Judge ──");
+			run.logEvent(CustomEvent.of("judge-started", Map.of("tier", "T2", "judge", "quality-judge")));
+			Judgment t2 = evaluateQualityJudge(quality, backport);
+			judgments.add(t2);
+			run.logEvent(CustomEvent.of("judge-verdict",
+					Map.of("tier", "T2", "status", t2.status().name(), "reasoning", t2.reasoning())));
+			logger.info("T2 verdict: {} — {}", t2.status(), t2.reasoning());
 
-				if (t2.status() == JudgmentStatus.FAIL) {
-					overallVerdict = "FAIL";
-				}
+			if (t2.status() == JudgmentStatus.FAIL) {
+				overallVerdict = "FAIL";
 			}
 
 			// ── Phase 3: Report Generation ───────────────────────────────
-			run.logEvent(StateChangeEvent.of(this.workshopProperties.skipAi() ? "judge-cascade" : "ai-assessment",
-					"report-generation", "Generating final report"));
+			run.logEvent(StateChangeEvent.of("ai-assessment", "report-generation", "Generating final report"));
 			Path report = generateFinalReport(run, ctx3, prContext, rebase, conflicts, build, fixResult, assessments,
 					judgments);
 			run.setSummary("verdict", overallVerdict);

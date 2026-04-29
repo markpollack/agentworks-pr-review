@@ -22,8 +22,8 @@ import org.springaicommunity.judge.result.Judgment;
  * Assembles a {@link ReviewReport} from all intermediate results stored in context.
  *
  * <p>
- * Handles missing values gracefully — the early-report path and skipAi path will have
- * empty assessments and judgments.
+ * Handles missing values gracefully — the early-report path will have empty assessments
+ * and judgments.
  */
 public class AssembleReportStep implements Step<Object, ReviewReport> {
 

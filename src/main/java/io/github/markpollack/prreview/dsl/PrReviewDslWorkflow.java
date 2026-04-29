@@ -3,7 +3,6 @@ package io.github.markpollack.prreview.dsl;
 import java.nio.file.Path;
 import java.util.List;
 
-import io.github.markpollack.prreview.config.WorkshopProperties;
 import io.github.markpollack.prreview.model.PrContext;
 import io.github.markpollack.prreview.steps.ConflictDetectionStep;
 import io.github.markpollack.prreview.steps.FetchPrContextStep;
@@ -24,16 +23,13 @@ import org.slf4j.LoggerFactory;
  * composed using the Workflow DSL for declarative readability.
  *
  * <p>
- * Two sub-workflows (when skipAi=false):
+ * Three sub-workflows:
  * <ul>
- * <li>{@code aiAssessment}: ExtractPrContext → assessCodeQuality → assessBackport</li>
+ * <li>{@code aiAssessment}: ExtractPrContext → parallel(assessCodeQuality,
+ * assessBackport)</li>
  * <li>{@code assessAndReport}: T1 → aiAssessment → T2 → report</li>
  * <li>{@code earlyReport}: T0 failure path → report</li>
  * </ul>
- *
- * <p>
- * When {@code skipAi=true}, {@code assessAndReport} omits the {@code aiAssessment}
- * sub-workflow (constructor-time if/else — no runtime branch predicate in the IR).
  *
  * <p>
  * The T0 gate is the structural pivot: onPass runs {@code assessAndReport}, onFail runs
@@ -51,8 +47,7 @@ public class PrReviewDslWorkflow implements AgentHandler<Integer, Path> {
 			ConflictDetectionStep conflictDetection, RunTestsStep runTests, FixAndRetestStep fixAndRetestStep,
 			CleanupStep cleanupStep, BuildGate buildGate, VersionPatternStep versionPatternStep,
 			Step<PrContext, ?> assessCodeQuality, Step<PrContext, ?> assessBackport, QualityJudgeStep qualityJudgeStep,
-			AssembleReportStep assembleReportStep, GenerateReportStep generateReport,
-			WorkshopProperties workshopProperties) {
+			AssembleReportStep assembleReportStep, GenerateReportStep generateReport) {
 
 		// T0 fail path: assemble report from context (T0 judgment written by
 		// BuildGate.updateContext)
@@ -69,26 +64,14 @@ public class PrReviewDslWorkflow implements AgentHandler<Integer, Path> {
 			.parallel(assessCodeQuality, assessBackport)
 			.build();
 
-		// T0 pass path: T1 → [AI assessment if !skipAi] → T2 → report
-		// skipAi is a startup config flag — resolved at constructor time, not at runtime.
-		Workflow<Object, Path> assessAndReport;
-		if (workshopProperties.skipAi()) {
-			assessAndReport = Workflow.<Object, Path>define("assess-and-report")
-				.step(versionPatternStep)
-				.then(qualityJudgeStep)
-				.then(assembleReportStep)
-				.then(generateReport)
-				.build();
-		}
-		else {
-			assessAndReport = Workflow.<Object, Path>define("assess-and-report")
-				.step(versionPatternStep)
-				.then(aiAssessment)
-				.then(qualityJudgeStep)
-				.then(assembleReportStep)
-				.then(generateReport)
-				.build();
-		}
+		// T0 pass path: T1 → AI assessment → T2 → report
+		Workflow<Object, Path> assessAndReport = Workflow.<Object, Path>define("assess-and-report")
+			.step(versionPatternStep)
+			.then(aiAssessment)
+			.then(qualityJudgeStep)
+			.then(assembleReportStep)
+			.then(generateReport)
+			.build();
 
 		// Main pipeline — context-gathering steps are flattened here so their
 		// updateContext() writes (PR_CONTEXT, REBASE_RESULT, etc.) stay in the

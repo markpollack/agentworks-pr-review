@@ -108,7 +108,7 @@ class PrReviewDslWorkflowTest {
 				}
 				"""));
 
-		PrReviewDslWorkflow workflow = createDslWorkflow(false);
+		PrReviewDslWorkflow workflow = createDslWorkflow();
 		Path report = workflow.handle(AgentContext.create(), 5774);
 
 		assertThat(report).exists();
@@ -123,27 +123,13 @@ class PrReviewDslWorkflowTest {
 		given(this.runTests.execute(any(AgentContext.class), any(ConflictReport.class)))
 			.willReturn(BuildResult.skippedBuild());
 
-		PrReviewDslWorkflow workflow = createDslWorkflow(false);
+		PrReviewDslWorkflow workflow = createDslWorkflow();
 		Path report = workflow.handle(AgentContext.create(), 5774);
 
 		assertThat(report).exists();
 		verify(this.agentClient, never()).run(anyString());
 		String content = readFile(report);
 		assertThat(content).contains("FAIL — One or more judges flagged issues");
-	}
-
-	@Test
-	void pipeline_skipAi_branchesAroundAiSteps() {
-		given(this.rebaseStep.execute(any(AgentContext.class), any(PrContext.class)))
-			.willReturn(RebaseResult.clean("fix/branch"));
-		given(this.runTests.execute(any(AgentContext.class), any(ConflictReport.class)))
-			.willReturn(new BuildResult(true, false, List.of("mcp-spring-webflux"), "BUILD SUCCESS", 5000));
-
-		PrReviewDslWorkflow workflow = createDslWorkflow(true);
-		Path report = workflow.handle(AgentContext.create(), 5774);
-
-		assertThat(report).exists();
-		verify(this.agentClient, never()).run(anyString());
 	}
 
 	@Test
@@ -170,13 +156,7 @@ class PrReviewDslWorkflowTest {
 				}
 				"""));
 
-		WorkshopProperties props = new WorkshopProperties(5774, false, false, this.tempDir.toString(), ".", false);
-		PrReviewDslWorkflow workflow = new PrReviewDslWorkflow(fetchStep, this.rebaseStep, this.conflictDetection,
-				this.runTests, new FixAndRetestStep(this.fixTests, this.runTests, props),
-				new CleanupStep(this.rebaseStep), new BuildGate(new BuildJudge()),
-				new VersionPatternStep(new VersionPatternJudge()), this.assessCodeQuality, this.assessBackport,
-				new QualityJudgeStep(new QualityJudge(this.agentClient)), new AssembleReportStep(), this.generateReport,
-				props);
+		PrReviewDslWorkflow workflow = createDslWorkflow(fetchStep);
 
 		Path report = workflow.handle(AgentContext.create(), 5774);
 
@@ -187,7 +167,7 @@ class PrReviewDslWorkflowTest {
 
 	@Test
 	void fixAndRetest_attemptedWhenTestsFail() {
-		WorkshopProperties props = new WorkshopProperties(5774, false, true, this.tempDir.toString(), ".", false);
+		WorkshopProperties props = new WorkshopProperties(5774, true, this.tempDir.toString(), ".", false);
 		FixAndRetestStep step = new FixAndRetestStep(this.fixTests, this.runTests, props);
 
 		RebaseResult rebase = RebaseResult.clean("fix/branch");
@@ -213,7 +193,7 @@ class PrReviewDslWorkflowTest {
 
 	@Test
 	void fixAndRetest_skippedWhenTestsPass() {
-		WorkshopProperties props = new WorkshopProperties(5774, false, true, this.tempDir.toString(), ".", false);
+		WorkshopProperties props = new WorkshopProperties(5774, true, this.tempDir.toString(), ".", false);
 		FixAndRetestStep step = new FixAndRetestStep(this.fixTests, this.runTests, props);
 
 		RebaseResult rebase = RebaseResult.clean("fix/branch");
@@ -234,13 +214,17 @@ class PrReviewDslWorkflowTest {
 
 	// ── Helpers ──────────────────────────────────────────────────────────
 
-	private PrReviewDslWorkflow createDslWorkflow(boolean skipAi) {
-		WorkshopProperties props = new WorkshopProperties(5774, skipAi, false, this.tempDir.toString(), ".", false);
-		return new PrReviewDslWorkflow(this.fetchPrContext, this.rebaseStep, this.conflictDetection, this.runTests,
+	private PrReviewDslWorkflow createDslWorkflow() {
+		return createDslWorkflow(this.fetchPrContext);
+	}
+
+	private PrReviewDslWorkflow createDslWorkflow(FetchPrContextStep fetchStep) {
+		WorkshopProperties props = new WorkshopProperties(5774, false, this.tempDir.toString(), ".", false);
+		return new PrReviewDslWorkflow(fetchStep, this.rebaseStep, this.conflictDetection, this.runTests,
 				new FixAndRetestStep(this.fixTests, this.runTests, props), new CleanupStep(this.rebaseStep),
 				new BuildGate(new BuildJudge()), new VersionPatternStep(new VersionPatternJudge()),
 				this.assessCodeQuality, this.assessBackport, new QualityJudgeStep(new QualityJudge(this.agentClient)),
-				new AssembleReportStep(), this.generateReport, props);
+				new AssembleReportStep(), this.generateReport);
 	}
 
 	private static AgentClientResponse agentResponse(String text) {

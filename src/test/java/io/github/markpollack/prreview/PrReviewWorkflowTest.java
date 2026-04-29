@@ -113,7 +113,7 @@ class PrReviewWorkflowTest {
 				}
 				"""));
 
-		PrReviewWorkflow workflow = createWorkflow(false);
+		PrReviewWorkflow workflow = createWorkflow();
 		Path report = workflow.handle(AgentContext.create(), 5774);
 
 		assertThat(report).exists();
@@ -159,7 +159,7 @@ class PrReviewWorkflowTest {
 		given(this.runTests.execute(any(AgentContext.class), any(ConflictReport.class)))
 			.willReturn(BuildResult.skippedBuild());
 
-		PrReviewWorkflow workflow = createWorkflow(false);
+		PrReviewWorkflow workflow = createWorkflow();
 		Path report = workflow.handle(AgentContext.create(), 5774);
 
 		assertThat(report).exists();
@@ -175,30 +175,6 @@ class PrReviewWorkflowTest {
 		assertThat(events.stream()
 			.filter(e -> e instanceof CustomEvent ce && "judge-started".equals(ce.name())
 					&& "T1".equals(ce.attributes().get("tier")))
-			.count()).isZero();
-	}
-
-	@Test
-	void pipeline_skipAi_skipsAiSteps() {
-		given(this.rebaseStep.execute(any(AgentContext.class), any(PrContext.class)))
-			.willReturn(RebaseResult.clean("fix/branch"));
-		given(this.runTests.execute(any(AgentContext.class), any(ConflictReport.class)))
-			.willReturn(new BuildResult(true, false, List.of("mcp-spring-webflux"), "BUILD SUCCESS", 5000));
-
-		PrReviewWorkflow workflow = createWorkflow(true);
-		Path report = workflow.handle(AgentContext.create(), 5774);
-
-		assertThat(report).exists();
-		verify(this.agentClient, never()).run(anyString());
-
-		// Journal: T0 and T1 pass, but no AI step events
-		String runId = workflow.lastRunId();
-		List<JournalEvent> events = this.journalStorage.loadEvents("pr-review", runId);
-		assertJudgePair(events, "T0");
-		assertJudgePair(events, "T1");
-		assertThat(events.stream()
-			.filter(e -> e instanceof CustomEvent ce && "step-started".equals(ce.name())
-					&& "assess-code-quality".equals(ce.attributes().get("step")))
 			.count()).isZero();
 	}
 
@@ -230,7 +206,7 @@ class PrReviewWorkflowTest {
 		PrReviewWorkflow workflow = new PrReviewWorkflow(fetchStep, this.rebaseStep, this.conflictDetection,
 				this.runTests, this.fixTests, new BuildJudge(), new VersionPatternJudge(), this.assessCodeQuality,
 				this.assessBackport, new QualityJudge(this.agentClient), this.generateReport,
-				new WorkshopProperties(5774, false, false, this.tempDir.toString(), ".", false));
+				new WorkshopProperties(5774, false, this.tempDir.toString(), ".", false));
 		Path report = workflow.handle(AgentContext.create(), 5774);
 
 		assertThat(report).exists();
@@ -251,11 +227,11 @@ class PrReviewWorkflowTest {
 
 	// ── Helpers ──────────────────────────────────────────────────────────
 
-	private PrReviewWorkflow createWorkflow(boolean skipAi) {
+	private PrReviewWorkflow createWorkflow() {
 		return new PrReviewWorkflow(this.fetchPrContext, this.rebaseStep, this.conflictDetection, this.runTests,
 				this.fixTests, new BuildJudge(), new VersionPatternJudge(), this.assessCodeQuality, this.assessBackport,
 				new QualityJudge(this.agentClient), this.generateReport,
-				new WorkshopProperties(5774, skipAi, false, this.tempDir.toString(), ".", false));
+				new WorkshopProperties(5774, false, this.tempDir.toString(), ".", false));
 	}
 
 	private static AgentClientResponse agentResponse(String text) {

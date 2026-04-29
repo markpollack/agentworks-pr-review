@@ -202,7 +202,7 @@ public class PreflightCheck {
 		}
 		catch (Exception ex) {
 			return CheckResult.warnFail("Claude Code CLI",
-					"claude not found. AI assessment will not work — use --workshop.skip-ai=true for deterministic-only mode.");
+					"claude not found. AI assessment will not work — ensure the claude CLI is installed and on PATH.");
 		}
 	}
 

@@ -281,7 +281,7 @@ public class GenerateReportStep implements Step<ReviewReport, Path> {
 			.toList();
 
 		if (aiAssessments.isEmpty()) {
-			sb.append("AI assessments were not run (blocked by deterministic gates or skip-ai mode).\n\n");
+			sb.append("AI assessments were not run (blocked by deterministic gates).\n\n");
 			return;
 		}
 

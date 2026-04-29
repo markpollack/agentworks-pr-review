@@ -22,7 +22,7 @@ class JournalConfigTest {
 
 	@Test
 	void initConfiguresJsonFileStorage() {
-		WorkshopProperties properties = new WorkshopProperties(5774, false, false, this.tempDir.toString(), ".", false);
+		WorkshopProperties properties = new WorkshopProperties(5774, false, this.tempDir.toString(), ".", false);
 		JournalConfig config = new JournalConfig(properties);
 		config.init();
 

@@ -63,11 +63,10 @@ public class DslWorkflowConfig {
 			CleanupStep cleanupStep, BuildGate buildGate, VersionPatternStep dslVersionPatternStep,
 			@Qualifier("assess-code-quality") Step<PrContext, ?> assessCodeQuality,
 			@Qualifier("assess-backport") Step<PrContext, ?> assessBackport, QualityJudgeStep qualityJudgeStep,
-			AssembleReportStep assembleReportStep, GenerateReportStep generateReport,
-			WorkshopProperties workshopProperties) {
+			AssembleReportStep assembleReportStep, GenerateReportStep generateReport) {
 		return new PrReviewDslWorkflow(fetchPrContext, rebaseStep, conflictDetection, runTests, fixAndRetestStep,
 				cleanupStep, buildGate, dslVersionPatternStep, assessCodeQuality, assessBackport, qualityJudgeStep,
-				assembleReportStep, generateReport, workshopProperties);
+				assembleReportStep, generateReport);
 	}
 
 }

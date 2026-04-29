@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class RunTestsStepTest {
 
-	private final RunTestsStep step = new RunTestsStep(new WorkshopProperties(5774, false, false, ".", ".", false));
+	private final RunTestsStep step = new RunTestsStep(new WorkshopProperties(5774, false, ".", ".", false));
 
 	@Test
 	void shouldHaveCorrectName() {
