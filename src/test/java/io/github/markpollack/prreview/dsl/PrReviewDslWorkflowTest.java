@@ -24,6 +24,7 @@ import io.github.markpollack.prreview.steps.GenerateReportStep;
 import io.github.markpollack.prreview.steps.RebaseStep;
 import io.github.markpollack.prreview.steps.RunTestsStep;
 import io.github.markpollack.workflow.core.AgentContext;
+import io.github.markpollack.workflow.flows.workflow.Workflow;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -220,11 +221,35 @@ class PrReviewDslWorkflowTest {
 
 	private PrReviewDslWorkflow createDslWorkflow(FetchPrContextStep fetchStep) {
 		WorkshopProperties props = new WorkshopProperties(5774, false, this.tempDir.toString(), ".", false);
-		return new PrReviewDslWorkflow(fetchStep, this.rebaseStep, this.conflictDetection, this.runTests,
-				new FixAndRetestStep(this.fixTests, this.runTests, props), new CleanupStep(this.rebaseStep),
-				new BuildGate(new BuildJudge()), new VersionPatternStep(new VersionPatternJudge()),
-				this.assessCodeQuality, this.assessBackport, new QualityJudgeStep(new QualityJudge(this.agentClient)),
-				new AssembleReportStep(), this.generateReport);
+
+		Workflow<Integer, Object> contextPhase = Workflow.<Integer, Object>define("context-phase")
+			.step(fetchStep)
+			.then(this.rebaseStep)
+			.then(this.conflictDetection)
+			.then(this.runTests)
+			.then(new FixAndRetestStep(this.fixTests, this.runTests, props))
+			.then(new CleanupStep(this.rebaseStep))
+			.build();
+
+		Workflow<Object, Object> aiAssessment = Workflow.<Object, Object>define("ai-assessment")
+			.step(new ExtractPrContextStep())
+			.parallel(this.assessCodeQuality, this.assessBackport)
+			.build();
+
+		Workflow<Object, Path> earlyReport = Workflow.<Object, Path>define("early-report")
+			.step(new AssembleReportStep())
+			.then(this.generateReport)
+			.build();
+
+		Workflow<Object, Path> assessAndReport = Workflow.<Object, Path>define("assess-and-report")
+			.step(new VersionPatternStep(new VersionPatternJudge()))
+			.then(aiAssessment)
+			.then(new QualityJudgeStep(new QualityJudge(this.agentClient)))
+			.then(new AssembleReportStep())
+			.then(this.generateReport)
+			.build();
+
+		return new PrReviewDslWorkflow(contextPhase, new BuildGate(new BuildJudge()), assessAndReport, earlyReport);
 	}
 
 	private static AgentClientResponse agentResponse(String text) {
