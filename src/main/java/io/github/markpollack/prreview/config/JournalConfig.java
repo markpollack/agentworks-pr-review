@@ -4,6 +4,7 @@ import java.nio.file.Path;
 
 import io.github.markpollack.journal.Journal;
 import io.github.markpollack.journal.storage.JsonFileStorage;
+import io.github.markpollack.workflow.journal.WorkflowJournal;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +31,7 @@ public class JournalConfig {
 	void init() {
 		Path journalDir = Path.of(this.workshopProperties.journalDir());
 		Journal.configure(new JsonFileStorage(journalDir));
+		WorkflowJournal.registerEventType();
 		logger.info("Journal configured with directory: {}", journalDir);
 	}
 

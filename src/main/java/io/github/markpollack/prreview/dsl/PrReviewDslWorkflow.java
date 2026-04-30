@@ -3,6 +3,8 @@ package io.github.markpollack.prreview.dsl;
 import java.nio.file.Path;
 import java.util.List;
 
+import io.github.markpollack.journal.Journal;
+import io.github.markpollack.journal.Run;
 import io.github.markpollack.prreview.model.PrContext;
 import io.github.markpollack.prreview.steps.ConflictDetectionStep;
 import io.github.markpollack.prreview.steps.FetchPrContextStep;
@@ -15,6 +17,8 @@ import io.github.markpollack.workflow.core.Description;
 import io.github.markpollack.workflow.flows.Step;
 import io.github.markpollack.workflow.flows.agent.Agent;
 import io.github.markpollack.workflow.flows.workflow.Workflow;
+import io.github.markpollack.workflow.flows.workflow.WorkflowExecutor;
+import io.github.markpollack.workflow.journal.WorkflowJournal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,7 +104,10 @@ public class PrReviewDslWorkflow implements AgentHandler<Integer, Path> {
 			.with(DslContextKeys.OVERALL_VERDICT, "PASS")
 			.build();
 
-		return this.pipeline.execute(seedCtx, prNumber);
+		try (Run run = Journal.run("pr-review").name("PR #" + prNumber).start()) {
+			WorkflowExecutor executor = new WorkflowExecutor(WorkflowJournal.forRun(run));
+			return executor.execute(this.pipeline.graph(), seedCtx, prNumber);
+		}
 	}
 
 	public Workflow<Integer, Path> pipeline() {
