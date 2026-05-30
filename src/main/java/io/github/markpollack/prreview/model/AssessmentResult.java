@@ -2,7 +2,7 @@ package io.github.markpollack.prreview.model;
 
 import java.util.List;
 
-import org.springaicommunity.judge.result.JudgmentStatus;
+import io.github.markpollack.judge.result.JudgmentStatus;
 
 /**
  * Result of a single AI assessment (code quality, backport, version patterns).

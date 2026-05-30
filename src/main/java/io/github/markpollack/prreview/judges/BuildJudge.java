@@ -6,12 +6,12 @@ import java.util.List;
 import io.github.markpollack.prreview.model.BuildResult;
 import io.github.markpollack.prreview.model.ConflictReport;
 import io.github.markpollack.prreview.model.RebaseResult;
-import org.springaicommunity.judge.Judge;
-import org.springaicommunity.judge.context.JudgmentContext;
-import org.springaicommunity.judge.result.Check;
-import org.springaicommunity.judge.result.Judgment;
-import org.springaicommunity.judge.result.JudgmentStatus;
-import org.springaicommunity.judge.score.BooleanScore;
+import io.github.markpollack.judge.Judge;
+import io.github.markpollack.judge.context.JudgmentContext;
+import io.github.markpollack.judge.result.Check;
+import io.github.markpollack.judge.result.Judgment;
+import io.github.markpollack.judge.result.JudgmentStatus;
+import io.github.markpollack.judge.score.BooleanScore;
 
 import org.springframework.stereotype.Component;
 

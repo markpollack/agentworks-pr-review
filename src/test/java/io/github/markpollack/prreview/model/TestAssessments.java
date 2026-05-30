@@ -3,11 +3,11 @@ package io.github.markpollack.prreview.model;
 import java.time.Instant;
 import java.util.List;
 
-import org.springaicommunity.judge.result.Check;
-import org.springaicommunity.judge.result.Judgment;
-import org.springaicommunity.judge.result.JudgmentStatus;
-import org.springaicommunity.judge.score.BooleanScore;
-import org.springaicommunity.judge.score.NumericalScore;
+import io.github.markpollack.judge.result.Check;
+import io.github.markpollack.judge.result.Judgment;
+import io.github.markpollack.judge.result.JudgmentStatus;
+import io.github.markpollack.judge.score.BooleanScore;
+import io.github.markpollack.judge.score.NumericalScore;
 
 /**
  * Factory methods for sample assessment results and judgments used in tests.

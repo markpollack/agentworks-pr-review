@@ -7,11 +7,11 @@ import io.github.markpollack.prreview.model.PrContext;
 import io.github.markpollack.prreview.model.TestPrContexts;
 import io.github.markpollack.workflow.core.AgentContext;
 import org.junit.jupiter.api.Test;
-import org.springaicommunity.agents.client.AgentClient;
-import org.springaicommunity.agents.client.AgentClientResponse;
-import org.springaicommunity.agents.model.AgentGeneration;
-import org.springaicommunity.agents.model.AgentResponse;
-import org.springaicommunity.judge.result.JudgmentStatus;
+import io.github.markpollack.agents.client.AgentClient;
+import io.github.markpollack.agents.client.AgentClientResponse;
+import io.github.markpollack.agents.model.AgentGeneration;
+import io.github.markpollack.agents.model.AgentResponse;
+import io.github.markpollack.judge.result.JudgmentStatus;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;

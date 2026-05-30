@@ -3,7 +3,7 @@ package io.github.markpollack.prreview.steps;
 import io.github.markpollack.prreview.model.AssessmentResult;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springaicommunity.judge.result.JudgmentStatus;
+import io.github.markpollack.judge.result.JudgmentStatus;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

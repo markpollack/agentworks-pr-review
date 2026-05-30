@@ -16,7 +16,7 @@ import io.github.markpollack.prreview.steps.RebaseStep;
 import io.github.markpollack.prreview.steps.RunTestsStep;
 import io.github.markpollack.workflow.core.AgentContext;
 import io.github.markpollack.workflow.flows.Step;
-import org.springaicommunity.judge.result.Judgment;
+import io.github.markpollack.judge.result.Judgment;
 
 /**
  * Assembles a {@link ReviewReport} from all intermediate results stored in context.

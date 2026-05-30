@@ -6,7 +6,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import io.github.markpollack.prreview.model.AssessmentResult;
-import org.springaicommunity.judge.result.JudgmentStatus;
+import io.github.markpollack.judge.result.JudgmentStatus;
 
 /**
  * Parses structured JSON responses from AI assessments into {@link AssessmentResult}.

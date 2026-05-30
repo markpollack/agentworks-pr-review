@@ -6,10 +6,10 @@ import io.github.markpollack.prreview.model.FileChange;
 import io.github.markpollack.prreview.model.PrContext;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springaicommunity.judge.context.JudgmentContext;
-import org.springaicommunity.judge.result.Check;
-import org.springaicommunity.judge.result.Judgment;
-import org.springaicommunity.judge.result.JudgmentStatus;
+import io.github.markpollack.judge.context.JudgmentContext;
+import io.github.markpollack.judge.result.Check;
+import io.github.markpollack.judge.result.Judgment;
+import io.github.markpollack.judge.result.JudgmentStatus;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

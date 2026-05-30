@@ -28,10 +28,10 @@ import io.github.markpollack.workflow.flows.workflow.Workflow;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.springaicommunity.agents.client.AgentClient;
-import org.springaicommunity.agents.client.AgentClientResponse;
-import org.springaicommunity.agents.model.AgentGeneration;
-import org.springaicommunity.agents.model.AgentResponse;
+import io.github.markpollack.agents.client.AgentClient;
+import io.github.markpollack.agents.client.AgentClientResponse;
+import io.github.markpollack.agents.model.AgentGeneration;
+import io.github.markpollack.agents.model.AgentResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;

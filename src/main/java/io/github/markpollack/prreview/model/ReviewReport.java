@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.List;
 
 import org.jspecify.annotations.Nullable;
-import org.springaicommunity.judge.result.Judgment;
+import io.github.markpollack.judge.result.Judgment;
 
 /**
  * Final PR review report assembled from all pipeline phases.

@@ -42,12 +42,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springaicommunity.agents.client.AgentClientResponse;
-import org.springaicommunity.agents.model.AgentResponseMetadata;
-import org.springaicommunity.judge.context.JudgmentContext;
-import org.springaicommunity.judge.result.Check;
-import org.springaicommunity.judge.result.Judgment;
-import org.springaicommunity.judge.result.JudgmentStatus;
+import io.github.markpollack.agents.client.AgentClientResponse;
+import io.github.markpollack.agents.model.AgentResponseMetadata;
+import io.github.markpollack.judge.context.JudgmentContext;
+import io.github.markpollack.judge.result.Check;
+import io.github.markpollack.judge.result.Judgment;
+import io.github.markpollack.judge.result.JudgmentStatus;
 
 /**
  * Orchestrates the complete PR review pipeline.

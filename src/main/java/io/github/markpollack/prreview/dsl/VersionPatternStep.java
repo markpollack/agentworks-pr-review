@@ -12,9 +12,9 @@ import io.github.markpollack.workflow.core.AgentContext;
 import io.github.markpollack.workflow.flows.Step;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springaicommunity.judge.context.JudgmentContext;
-import org.springaicommunity.judge.result.Judgment;
-import org.springaicommunity.judge.result.JudgmentStatus;
+import io.github.markpollack.judge.context.JudgmentContext;
+import io.github.markpollack.judge.result.Judgment;
+import io.github.markpollack.judge.result.JudgmentStatus;
 
 /**
  * T1 step: evaluates version migration patterns. This is NOT a gate — T1 failure records

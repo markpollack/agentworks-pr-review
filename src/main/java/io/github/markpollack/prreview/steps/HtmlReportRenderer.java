@@ -20,8 +20,8 @@ import io.github.markpollack.prreview.model.PrContext;
 import io.github.markpollack.prreview.model.RebaseResult;
 import io.github.markpollack.prreview.model.Review;
 import io.github.markpollack.prreview.model.ReviewReport;
-import org.springaicommunity.judge.result.Judgment;
-import org.springaicommunity.judge.result.JudgmentStatus;
+import io.github.markpollack.judge.result.Judgment;
+import io.github.markpollack.judge.result.JudgmentStatus;
 
 /**
  * Renders a self-contained HTML report from a {@link ReviewReport}.

@@ -26,7 +26,7 @@
             <dependency>
                 <groupId>io.github.markpollack</groupId>
                 <artifactId>agentworks-bom</artifactId>
-                <version>1.0.11</version>
+                <version>1.2.0</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -38,45 +38,42 @@
         <dependency>
             <groupId>io.github.markpollack</groupId>
             <artifactId>workflow-api</artifactId>
-            <version>0.6.0</version>
         </dependency>
 
         <!-- AgentWorks: Workflow DSL -->
         <dependency>
             <groupId>io.github.markpollack</groupId>
             <artifactId>workflow-flows</artifactId>
-            <version>0.6.0</version>
         </dependency>
 
         <!-- AgentWorks: Workflow Journal (typed step events into journal runs) -->
         <dependency>
             <groupId>io.github.markpollack</groupId>
             <artifactId>workflow-journal</artifactId>
-            <version>0.6.0</version>
+            <version>0.8.0</version>
         </dependency>
 
-        <!-- AgentWorks: Journal (explicit 1.0.1 — BOM pins 1.0.0 which has sealed JournalEvent) -->
+        <!-- AgentWorks: Journal -->
         <dependency>
             <groupId>io.github.markpollack</groupId>
             <artifactId>journal-core</artifactId>
-            <version>1.0.1</version>
         </dependency>
 
         <!-- AgentWorks: Judge framework -->
         <dependency>
-            <groupId>org.springaicommunity</groupId>
+            <groupId>io.github.markpollack</groupId>
             <artifactId>agent-judge-core</artifactId>
         </dependency>
 
         <!-- AgentWorks: Agent client facade -->
         <dependency>
-            <groupId>org.springaicommunity.agents</groupId>
+            <groupId>io.github.markpollack</groupId>
             <artifactId>agent-client-core</artifactId>
         </dependency>
 
         <!-- AgentWorks: Claude Code bridge (runtime only) -->
         <dependency>
-            <groupId>org.springaicommunity.agents</groupId>
+            <groupId>io.github.markpollack</groupId>
             <artifactId>agent-claude</artifactId>
             <scope>runtime</scope>
         </dependency>

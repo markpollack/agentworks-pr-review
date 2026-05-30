@@ -17,9 +17,9 @@ import io.github.markpollack.workflow.flows.workflow.Gate;
 import io.github.markpollack.workflow.flows.workflow.GateDecision;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springaicommunity.judge.context.JudgmentContext;
-import org.springaicommunity.judge.result.Judgment;
-import org.springaicommunity.judge.result.JudgmentStatus;
+import io.github.markpollack.judge.context.JudgmentContext;
+import io.github.markpollack.judge.result.Judgment;
+import io.github.markpollack.judge.result.JudgmentStatus;
 
 /**
  * T0 gate: evaluates build health using {@link BuildJudge}.

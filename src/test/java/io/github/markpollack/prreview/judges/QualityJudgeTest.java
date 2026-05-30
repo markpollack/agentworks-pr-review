@@ -5,11 +5,11 @@ import java.util.List;
 import io.github.markpollack.prreview.model.AssessmentResult;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springaicommunity.agents.client.AgentClient;
-import org.springaicommunity.judge.context.JudgmentContext;
-import org.springaicommunity.judge.result.Check;
-import org.springaicommunity.judge.result.Judgment;
-import org.springaicommunity.judge.result.JudgmentStatus;
+import io.github.markpollack.agents.client.AgentClient;
+import io.github.markpollack.judge.context.JudgmentContext;
+import io.github.markpollack.judge.result.Check;
+import io.github.markpollack.judge.result.Judgment;
+import io.github.markpollack.judge.result.JudgmentStatus;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;

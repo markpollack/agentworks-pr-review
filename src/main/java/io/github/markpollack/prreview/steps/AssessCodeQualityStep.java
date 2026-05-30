@@ -14,9 +14,9 @@ import io.github.markpollack.workflow.core.StepName;
 import io.github.markpollack.workflow.flows.Step;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springaicommunity.agents.client.AgentClient;
-import org.springaicommunity.agents.client.AgentClientResponse;
-import org.springaicommunity.judge.result.JudgmentStatus;
+import io.github.markpollack.agents.client.AgentClient;
+import io.github.markpollack.agents.client.AgentClientResponse;
+import io.github.markpollack.judge.result.JudgmentStatus;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;

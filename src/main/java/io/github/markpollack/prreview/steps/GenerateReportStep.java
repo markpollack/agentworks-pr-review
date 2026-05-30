@@ -338,7 +338,7 @@ public class GenerateReportStep implements Step<ReviewReport, Path> {
 		}
 		boolean allPass = report.judgments()
 			.stream()
-			.allMatch(j -> j.status() == org.springaicommunity.judge.result.JudgmentStatus.PASS);
+			.allMatch(j -> j.status() == io.github.markpollack.judge.result.JudgmentStatus.PASS);
 		if (allPass) {
 			return "PASS — All judges approved";
 		}

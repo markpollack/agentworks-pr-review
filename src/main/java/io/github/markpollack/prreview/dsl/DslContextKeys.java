@@ -5,7 +5,7 @@ import java.util.List;
 import io.github.markpollack.prreview.model.AssessmentResult;
 import io.github.markpollack.prreview.model.FixResult;
 import io.github.markpollack.workflow.core.ContextKey;
-import org.springaicommunity.judge.result.Judgment;
+import io.github.markpollack.judge.result.Judgment;
 
 /**
  * Context keys specific to the DSL workflow pipeline. Keys for individual step outputs

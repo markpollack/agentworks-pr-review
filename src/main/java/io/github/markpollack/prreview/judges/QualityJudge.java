@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.github.markpollack.prreview.model.AssessmentResult;
-import org.springaicommunity.agents.client.AgentClient;
-import org.springaicommunity.agents.client.AgentClientResponse;
-import org.springaicommunity.judge.Judge;
-import org.springaicommunity.judge.context.JudgmentContext;
-import org.springaicommunity.judge.result.Check;
-import org.springaicommunity.judge.result.Judgment;
-import org.springaicommunity.judge.result.JudgmentStatus;
-import org.springaicommunity.judge.score.NumericalScore;
+import io.github.markpollack.agents.client.AgentClient;
+import io.github.markpollack.agents.client.AgentClientResponse;
+import io.github.markpollack.judge.Judge;
+import io.github.markpollack.judge.context.JudgmentContext;
+import io.github.markpollack.judge.result.Check;
+import io.github.markpollack.judge.result.Judgment;
+import io.github.markpollack.judge.result.JudgmentStatus;
+import io.github.markpollack.judge.score.NumericalScore;
 
 import org.springframework.stereotype.Component;
 

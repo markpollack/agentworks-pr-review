@@ -1,0 +1,22 @@
+{
+  "projectId": "agentworks-pr-review",
+  "repoFullName": "markpollack/agentworks-pr-review",
+  "daysLastActive": 28,
+  "openIssueCount": 0,
+  "newIssueCount7d": 0,
+  "openPrCount": 0,
+  "newPrCount7d": 0,
+  "ciStatus": "unknown",
+  "backlogStatus": "healthy",
+  "nextAction": "Stable",
+  "agentAssigned": null,
+  "agentLastAction": null,
+  "lastRefreshed": "2026-05-28T15:19:50-04:00",
+  "lastCommitDate": "2026-04-29T18:00:23-04:00",
+  "lastCommitMessage": "Simplify Claude Code prereq: link to install docs",
+  "currentBranch": "main",
+  "commits7d": 0,
+  "commits30d": 9,
+  "zone": "working-campus",
+  "visualBuildingType": "dependency-project"
+}

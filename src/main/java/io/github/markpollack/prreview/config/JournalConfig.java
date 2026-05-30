@@ -8,7 +8,7 @@ import io.github.markpollack.workflow.journal.WorkflowJournal;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springaicommunity.agents.client.AgentClient;
+import io.github.markpollack.agents.client.AgentClient;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
