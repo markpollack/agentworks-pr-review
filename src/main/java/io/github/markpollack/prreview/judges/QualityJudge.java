@@ -19,13 +19,12 @@ import org.springframework.stereotype.Component;
  * T2 LLM judge — evaluates AI assessment quality and consistency.
  *
  * <p>
- * Cross-checks code quality and backport assessments for consistency, flags
- * low-confidence or contradictory results. Uses AgentClient for LLM evaluation. Only
- * fires after T0 (BuildJudge) and T1 (VersionPatternJudge) pass.
- *
- * <p>
- * First performs deterministic consistency checks, then optionally calls the LLM for
- * deeper analysis if assessments are borderline.
+ * Evaluates the code-quality assessment and, when present, cross-checks it against the
+ * (optional) backport assessment for consistency, flagging low-confidence or
+ * contradictory results. The backport assessment is required only when the judge is
+ * constructed with {@code requireBackport = true} (the default, for the spring-ai
+ * reviewer); reviewers with no maintenance branches construct it with {@code false}. Uses
+ * AgentClient for LLM evaluation.
  */
 @Component
 public class QualityJudge implements Judge {
@@ -38,8 +37,21 @@ public class QualityJudge implements Judge {
 
 	private final AgentClient agentClient;
 
+	private final boolean requireBackport;
+
+	/**
+	 * Defaults {@code requireBackport} to {@code true}: the spring-ai reviewer always
+	 * supplies a backport assessment. Use {@link #QualityJudge(AgentClient, boolean)}
+	 * with {@code false} for reviewers (e.g. agent-experiment) with no maintenance
+	 * branches.
+	 */
 	public QualityJudge(AgentClient agentClient) {
+		this(agentClient, true);
+	}
+
+	public QualityJudge(AgentClient agentClient, boolean requireBackport) {
 		this.agentClient = agentClient;
+		this.requireBackport = requireBackport;
 	}
 
 	@Override
@@ -50,7 +62,9 @@ public class QualityJudge implements Judge {
 		List<Check> checks = new ArrayList<>();
 
 		checkAssessmentPresent("quality-present", quality, checks);
-		checkAssessmentPresent("backport-present", backport, checks);
+		if (this.requireBackport) {
+			checkAssessmentPresent("backport-present", backport, checks);
+		}
 		checkNotError("quality-no-error", quality, checks);
 		checkNotError("backport-no-error", backport, checks);
 		checkConsistency(quality, backport, checks);
@@ -110,8 +124,12 @@ public class QualityJudge implements Judge {
 			return 0.3;
 		}
 		double qualityScore = (quality != null) ? quality.score() : 0.5;
-		double backportScore = (backport != null) ? backport.score() : 0.5;
-		return (qualityScore * 0.7) + (backportScore * 0.3);
+		// No backport assessment (e.g. a repo with no maintenance branches): the quality
+		// assessment carries full weight rather than being diluted by a 0.5 default.
+		if (backport == null) {
+			return qualityScore;
+		}
+		return (qualityScore * 0.7) + (backport.score() * 0.3);
 	}
 
 	private static String buildReasoning(List<Check> checks, double score) {

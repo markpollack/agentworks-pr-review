@@ -23,10 +23,33 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- Override the workflow stack to 0.11.0-SNAPSHOT for the JudgeGate context-mapper fix
+                 (agentworks-bom 1.12.0 pins 0.10.0). First-declared wins in dependencyManagement, so
+                 these precede the BOM import. Remove once 0.11.0 is released and folded into the BOM. -->
+            <dependency>
+                <groupId>io.github.markpollack</groupId>
+                <artifactId>workflow-api</artifactId>
+                <version>0.11.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.markpollack</groupId>
+                <artifactId>workflow-core</artifactId>
+                <version>0.11.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.markpollack</groupId>
+                <artifactId>workflow-flows</artifactId>
+                <version>0.11.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.markpollack</groupId>
+                <artifactId>workflow-journal</artifactId>
+                <version>0.11.0-SNAPSHOT</version>
+            </dependency>
             <dependency>
                 <groupId>io.github.markpollack</groupId>
                 <artifactId>agentworks-bom</artifactId>
-                <version>1.2.0</version>
+                <version>1.12.0</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -50,7 +73,6 @@
         <dependency>
             <groupId>io.github.markpollack</groupId>
             <artifactId>workflow-journal</artifactId>
-            <version>0.8.0</version>
         </dependency>
 
         <!-- AgentWorks: Journal -->
@@ -71,11 +93,13 @@
             <artifactId>agent-client-core</artifactId>
         </dependency>
 
-        <!-- AgentWorks: Claude Code bridge (runtime only) -->
+        <!-- AgentWorks: Claude Code bridge. Compile-visible (not runtime-only) so the
+             no-Spring experiment runner can build a trace-wired AgentClient directly via
+             ClaudeAgentModel.builder().workingDirectory(..).traceDir(..). The Spring app
+             still resolves it the same way. -->
         <dependency>
             <groupId>io.github.markpollack</groupId>
             <artifactId>agent-claude</artifactId>
-            <scope>runtime</scope>
         </dependency>
 
         <!-- Nullness annotations -->
