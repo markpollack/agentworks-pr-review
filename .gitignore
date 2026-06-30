@@ -37,9 +37,8 @@ build/
 ### Logs ###
 *.log
 
-### Claude Code ###
-CLAUDE.md
-plans/
+# Claude Code artifacts are tracked (private repo): CLAUDE.md (agent instructions +
+# distilled learnings) and plans/ (Forge VISION/DESIGN/ROADMAP/learnings) are part of the project.
 
 ### Generated output ###
 journal/
