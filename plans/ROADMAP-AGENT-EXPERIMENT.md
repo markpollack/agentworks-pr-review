@@ -83,18 +83,18 @@ The agent-experiment generalization of the PR reviewer (Forge multi-roadmap: one
 
 **Deliverables**: a functional, verified reviewer.
 
-### Step 1.K — Stage 1 consolidation
+### Step 1.K — Stage 1 consolidation ✅ DONE
 **Entry criteria**:
-- [ ] All Stage 1 steps complete (1.0–1.3)
-- [ ] Read: this roadmap's Stage 1 record + the build commits (`21d26eb`, `f9696eb`)
+- [x] All Stage 1 steps complete (1.0–1.3)
+- [x] Read: this roadmap's Stage 1 record + the build commits (`21d26eb`, `f9696eb`)
 
 **Work items**:
-- [ ] COMPACT Stage-1 learnings → `plans/learnings/LEARNINGS.md` (the build was ad-hoc; this is where its per-step learnings land): the **DD-8→DD-10 through-line**, the **`QualityJudge` backport-coupling** finding, the **`0.11.0-SNAPSHOT` dependency** state — all inputs to the future `ReviewProfile` template / `bud-review-core`
-- [ ] UPDATE `CLAUDE.md` with the Stage-1 distilled learnings
-- [ ] Run the Forge Phase Review (`agento-forge/phases/phase-review-template.md`)
+- [x] COMPACT Stage-1 learnings → `plans/learnings/LEARNINGS.md` Part 2: the **DD-8→DD-10 through-line**, the **`QualityJudge` backport-coupling** finding, the **`0.11.0-SNAPSHOT` dependency** state, the **KB-consulting-judges** principle
+- [x] UPDATE `CLAUDE.md` with the Stage-1 distilled learnings (V2 section)
+- [x] Phase Review folded into `step-ae-1.K-stage1-summary.md` — **no MUST-FIX** (verify green, no V1 regression)
 
 **Exit criteria**:
-- [ ] `LEARNINGS.md` updated; Create: `plans/learnings/step-ae-1.K-stage1-summary.md`; `CLAUDE.md` updated; ROADMAP checkboxes updated; COMMIT
+- [x] `LEARNINGS.md` updated; Created `plans/learnings/step-ae-1.K-stage1-summary.md`; `CLAUDE.md` updated; ROADMAP checkboxes updated; COMMIT
 
 **Deliverables**: consolidated Stage-1 narrative; the reviewer's provenance captured.
 

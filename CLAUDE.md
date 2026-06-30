@@ -115,3 +115,13 @@ Judge cascade: **T0 (BuildJudge)** → **T1 (VersionPatternJudge)** → AI steps
 ## Python Reference
 - Original Python pipeline: `~/projects/spring-ai-project-mgmt/pr-review/`
 - Portable copy: `/tmp/prmerge/`
+
+## V2 — Agent-Experiment Reviewer (KB-consulting eval-agent)
+
+> The reviewer is generalizing beyond the spring-ai workshop tool. See `plans/VISION.md` (V2), `plans/DESIGN.md` Part 2, `plans/ROADMAP-AGENT-EXPERIMENT.md`. Stage-1 learnings: `plans/learnings/step-ae-1.K-stage1-summary.md`.
+
+- **New package** `io.github.markpollack.prreview.experiment` — `PrReviewExperimentWorkflow` (no Spring) + `Runner` + `JuryFactory`, for `markpollack/agent-experiment`. Reuses the deterministic `steps/*` + `judges/{BuildJudge,QualityJudge}`; **drops** VersionPattern + Backport.
+- **Workflow stack overridden to `0.11.0-SNAPSHOT`** (the BOM 1.12.0 pins 0.10.0) for the **mapper-fed `JudgeGate`**: `new JudgeGate<>(jury, threshold, mapper)` — the mapper populates `JudgmentContext` metadata from `AgentContext` (this **supersedes the DD-8 `PrReviewGate` workaround**). The executor records a standard `AgentContext.JUDGE_VERDICTS` trail; `AssembleReportStep` reads it.
+- **`QualityJudge` generalized**: `requireBackport` flag (default true for spring-ai; the agent-experiment runner passes false; full-weight quality when backport absent).
+- **KB-consulting judges** (a growing set — "more and more quickly"): each judge consults its KB(s) **by path** (read the brief, don't inline). Lenses: data-discipline (control-theory + experiment-method) and Java/Spring/DDD quality (`plans/research/java-quality-judge-knowledge-sources.md`).
+- **Trace-wired + cost-capped**: the assess step uses `ClaudeAgentModel.traceDir(...)`; runs bounded by `RunOptions.maxCost`.

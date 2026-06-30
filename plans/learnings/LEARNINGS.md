@@ -1,7 +1,7 @@
 # Learnings: AgentWorks PR Review Pipeline
 
-> **Last compacted**: 2026-04-09T10:00-04:00
-> **Covers through**: Stage 4 complete (Steps 1.0–4.4)
+> **Last compacted**: 2026-06-30 (V2 Stage 1)
+> **Covers through**: V1 Stage 4 complete (Steps 1.0–4.4) + **V2 Stage 1** (agent-experiment — see Part 2)
 
 This is the **Tier 1 compacted summary**. Read this first for the current state of project knowledge. For details on specific steps, see the per-step files (Tier 2).
 
@@ -121,6 +121,18 @@ agent-claude:0.11.0 (runtime)
 
 ---
 
+## Part 2 — Agent-Experiment Generalization (V2, 2026-06-30)
+
+> The V2 track (`ROADMAP-AGENT-EXPERIMENT.md`) generalizes the reviewer to agent-experiment as a KB-consulting eval-agent. Stage-1 detail: `step-ae-1.K-stage1-summary.md`.
+
+1. **DD-8 → DD-10: the JudgeGate metadata gap is fixed at the root.** The V1 `PrReviewGate`/`BuildGate` workaround (learnings #5/#20/#27, pitfall #2) is now **obsolete** — `JudgeGate`/`TieredGate` require an `AgentContext→JudgmentContext` mapper (the mapper *is* the old bridge body); `WorkflowExecutor` records a standard `AgentContext.JUDGE_VERDICTS` trail. (agent-workflow `main` `21d26eb`, `0.11.0-SNAPSHOT`.)
+2. **`QualityJudge` was spring-ai-coupled (hidden backport requirement)** — it hardwired "backport present, else FAIL," so dropping Backport FAILed the quality tier by construction. Generalized with a `requireBackport` flag (default true; agent-experiment false). A by-hand generalization surfaces couplings reading misses.
+3. **The report reads the verdict trail, not the gates** — `AssembleReportStep` merges the standard `JUDGE_VERDICTS` + the assess-step output (backward-compatible with the legacy `DslContextKeys.JUDGMENTS`).
+4. **The reviewer accrues KB-consulting judges** ("more and more quickly"): each consults its KB(s) **by path** (read, don't inline). Lenses: data-discipline (control-theory + experiment-method) and Java/Spring/DDD quality (`plans/research/java-quality-judge-knowledge-sources.md`). Stage 2's consult mechanism must stay judge-agnostic.
+5. **Build state**: pr-review overrides `workflow-flows` to `0.11.0-SNAPSHOT` (mapper-fed JudgeGate); drop once 0.11.0 is released into the BOM. The reviewer is built + verified but not yet KB-informed (Stage 2) or run live (Stage 3.4).
+
+---
+
 ## Per-Step Detail Files (Tier 2)
 
 | File | Step | Topic |
@@ -155,3 +167,4 @@ agent-claude:0.11.0 (runtime)
 | 2026-04-08T23:30-04:00 | **Stage 2 consolidation** — compacted Steps 2.0–2.6 | Step 2.7 |
 | 2026-04-09T08:00-04:00 | **Stage 3 consolidation** — compacted Steps 3.0–3.5 | Step 3.6 |
 | 2026-04-09T10:00-04:00 | **Stage 4 consolidation** — compacted Steps 4.0–4.3; all stages complete | Step 4.4 |
+| 2026-06-30 | **V2 Stage 1 consolidation** (Part 2) — agent-experiment generalization: DD-8→DD-10, QualityJudge backport-coupling, verdict-trail report, KB-consulting judges | Step ae-1.K |
