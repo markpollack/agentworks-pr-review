@@ -1,0 +1,29 @@
+# The agent-experiment reviewer profile (DESIGN.md Part 2 — DD-15 worked example).
+# Activate with: --spring.profiles.active=agent-experiment
+#
+# This profile customizes the shared reviewer for markpollack/agent-experiment purely via
+# configuration + bean override (see AgentExperimentReviewerConfig). No code is forked.
+
+github:
+  # The GitHub repo the PR context is fetched from.
+  repo: markpollack/agent-experiment
+
+workshop:
+  # The agent-experiment reviewer is the experiment assembly (mapper-fed JudgeGate), not
+  # the spring-ai DSL/manual orchestrator. Keep the spring-ai DSL workflow inactive.
+  use-dsl: false
+  default-pr: 1
+  # Local clone the deterministic steps (rebase/test) operate in.
+  repo-dir: ${AGENT_EXPERIMENT_REPO_DIR:/home/mark/projects/agent-experiment}
+
+review:
+  target:
+    repo: markpollack/agent-experiment
+    repo-dir: ${AGENT_EXPERIMENT_REPO_DIR:/home/mark/projects/agent-experiment}
+  kb:
+    # Briefs the assess agent READS by path before assessing (not inlined). Absolute paths
+    # so they resolve regardless of the agent's working directory.
+    briefs:
+      - /home/mark/projects/control-theory-kb/docs/pr-review-context-for-agent-experiment.md
+      - /home/mark/projects/experiment-method-kb/PR-REVIEW-AGENT-BRIEF.md
+  max-cost-usd: 5.0

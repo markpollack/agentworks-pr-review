@@ -15,6 +15,8 @@ The agent-experiment generalization of the PR reviewer (Forge multi-roadmap: one
 - **Stage 2 — KB-consulting assessment** (the two-KB consult by instruction + the anti-over-mapping discipline).
 - **Stage 3 — Evaluation harness** (the gold-standard benchmark + the calibration loss + the optimization loop) → then the first meaningful live run.
 
+> **Commercial genesis (DESIGN DD-15).** After Step 2.1, the **spring-ai ∩ agent-experiment commonality** is extracted into a **generic, sellable PR review agent** — customized via the **Spring component model** (bean override), to **demo + sell at the Tuvium AI workshops in Vienna, summer 2026**. So: **lean into Spring component annotations as the customization blueprint**, and the agent-experiment reviewer becomes a Spring `@Profile` customization (reconsidering the no-Spring `experiment/` build).
+
 > **Before every commit**: verify ALL exit criteria for the current step (including the standard items — see [Conventions](#conventions)). Do not delete a criterion to mark a step done — fulfill it.
 
 ## Key facts carried from the build (pre-roadmap)
@@ -120,12 +122,13 @@ The agent-experiment generalization of the PR reviewer (Forge multi-roadmap: one
 **Entry criteria**:
 - [ ] Step 2.0 complete; Read: `plans/learnings/step-ae-2.0-stage2-entry.md` — prior step learnings
 
-**Work items**:
-- [ ] WRITE the agent-experiment assess prompt to **instruct the agent to consult the two briefs by path** (read `control-theory-kb/docs/pr-review-context-for-agent-experiment.md` + `experiment-method-kb/PR-REVIEW-AGENT-BRIEF.md` *before* assessing) — do **NOT** inline the KB (OQ-1 resolved). Keep the shared `AssessCodeQualityStep` spring-ai-agnostic; the consult instruction lives in the experiment reviewer's prompt.
-- [ ] VERIFY (dry-run) the agent actually reads both briefs. **If the instruction is ignored**, add a **KB-consult skill** that enforces read→apply-lens→output (the fallback flagged in the design).
+**Work items** — delivered as part of the **Spring pivot (DD-15)**:
+- [x] BUILT `steps/KbConsultingAssessStep` (`@Component`, config-driven briefs via `ReviewProperties.kb.briefs`) + `prompts/kb-consulting-assessment.md` — instructs the agent to **read the configured briefs by path** before assessing (KB not inlined); shared `AssessCodeQualityStep` untouched; drop-in (publishes `QUALITY_ASSESSMENT`). Assembled by `@Profile("agent-experiment")` `AgentExperimentReviewerConfig` (the bean-override blueprint) + a profile-gated `CommandLineRunner`; `application-agent-experiment.yml` points `review.kb.briefs` at the two briefs.
+- [x] **Steps 2.2 (discipline) + 2.3 (JIT pull) are baked into the same prompt** — the anti-over-mapping rules + the JIT concept-pull instruction.
+- [ ] **Dry-run verification = Step 2.K** (the calibration check against the 3-PR gold standard — claude-cost). If the agent ignores the consult there, add the **KB-consult skill** fallback.
 
 **Exit criteria**:
-- [ ] The assess prompt instructs the consult; a dry-run shows the agent reads both briefs (or the skill enforces it); `./mvnw test` green; Create: `plans/learnings/step-ae-2.1-consult-prompt.md`; `CLAUDE.md` updated; ROADMAP checkboxes updated; COMMIT
+- [x] The Spring-pivoted KB-consulting reviewer is built; `./mvnw verify` GREEN (159 tests, no V1 regression); committed. Consult/discipline/JIT live in the prompt; validation is Step 2.K. → `plans/learnings/step-ae-2.1-spring-pivot.md`.
 
 **Deliverables**: the consult-instructing assess prompt (+ skill fallback if needed).
 

@@ -13,8 +13,10 @@ import io.github.markpollack.prreview.dsl.DslContextKeys;
 import io.github.markpollack.prreview.dsl.ExtractPrContextStep;
 import io.github.markpollack.prreview.judges.BuildJudge;
 import io.github.markpollack.prreview.judges.QualityJudge;
+import io.github.markpollack.prreview.model.AssessmentResult;
 import io.github.markpollack.prreview.model.BuildResult;
 import io.github.markpollack.prreview.model.ConflictReport;
+import io.github.markpollack.prreview.model.PrContext;
 import io.github.markpollack.prreview.model.RebaseResult;
 import io.github.markpollack.prreview.steps.AssessCodeQualityStep;
 import io.github.markpollack.prreview.steps.ConflictDetectionStep;
@@ -25,6 +27,7 @@ import io.github.markpollack.prreview.steps.RunTestsStep;
 import io.github.markpollack.workflow.core.AgentContext;
 import io.github.markpollack.workflow.core.AgentHandler;
 import io.github.markpollack.workflow.core.Description;
+import io.github.markpollack.workflow.flows.Step;
 import io.github.markpollack.workflow.flows.agent.Agent;
 import io.github.markpollack.workflow.flows.workflow.JudgeGate;
 import io.github.markpollack.workflow.flows.workflow.RunOptions;
@@ -38,8 +41,18 @@ import io.github.markpollack.judge.jury.Jury;
 import io.github.markpollack.judge.jury.TierPolicy;
 
 /**
- * No-Spring, modern generalization of {@code dsl.PrReviewDslWorkflow} for the
- * {@code markpollack/agent-experiment} repository.
+ * The agent-experiment reviewer pipeline — a modern generalization of
+ * {@code dsl.PrReviewDslWorkflow} for the {@code markpollack/agent-experiment}
+ * repository.
+ *
+ * <p>
+ * <strong>Spring-assembled (DD-15).</strong> This class holds the pipeline shape + the
+ * two {@link JudgeGate} context mappers; it is wired from Spring beans by
+ * {@code AgentExperimentReviewerConfig} under the {@code agent-experiment} profile (it
+ * replaces the retired no-Spring {@code PrReviewExperimentRunner} hand-wiring). The
+ * assess step is injected as a {@link Step} interface so the profile plugs in the
+ * {@code KbConsultingAssessStep} (and any reviewer could swap a different assess
+ * implementation).
  *
  * <p>
  * This is the same shape as the DSL workflow but built on the new mapper-enabled
@@ -65,7 +78,7 @@ import io.github.markpollack.judge.jury.TierPolicy;
  * and {@link QualityJudge} receive their typed inputs.
  */
 @Agent("pr-review-experiment")
-@Description("No-Spring PR review pipeline for markpollack/agent-experiment")
+@Description("KB-consulting PR review pipeline for markpollack/agent-experiment")
 public class PrReviewExperimentWorkflow implements AgentHandler<Integer, Path> {
 
 	/**
@@ -100,14 +113,14 @@ public class PrReviewExperimentWorkflow implements AgentHandler<Integer, Path> {
 	 * {@link #DEFAULT_MAX_COST_USD} budget.
 	 */
 	public PrReviewExperimentWorkflow(FetchPrContextStep fetchPrContext, RebaseStep rebaseStep,
-			ConflictDetectionStep conflictDetection, RunTestsStep runTests, AssessCodeQualityStep assessCodeQuality,
+			ConflictDetectionStep conflictDetection, RunTestsStep runTests, Step<PrContext, AssessmentResult> assess,
 			BuildJudge buildJudge, QualityJudge qualityJudge, GenerateReportStep generateReport) {
-		this(fetchPrContext, rebaseStep, conflictDetection, runTests, assessCodeQuality, buildJudge, qualityJudge,
-				generateReport, DEFAULT_REPO, DEFAULT_MAX_COST_USD);
+		this(fetchPrContext, rebaseStep, conflictDetection, runTests, assess, buildJudge, qualityJudge, generateReport,
+				DEFAULT_REPO, DEFAULT_MAX_COST_USD);
 	}
 
 	public PrReviewExperimentWorkflow(FetchPrContextStep fetchPrContext, RebaseStep rebaseStep,
-			ConflictDetectionStep conflictDetection, RunTestsStep runTests, AssessCodeQualityStep assessCodeQuality,
+			ConflictDetectionStep conflictDetection, RunTestsStep runTests, Step<PrContext, AssessmentResult> assess,
 			BuildJudge buildJudge, QualityJudge qualityJudge, GenerateReportStep generateReport, String repo,
 			double maxCostUsd) {
 
@@ -143,7 +156,7 @@ public class PrReviewExperimentWorkflow implements AgentHandler<Integer, Path> {
 		// report.
 		Workflow<Object, Path> assessAndReport = Workflow.<Object, Path>define("assess-and-report")
 			.step(new ExtractPrContextStep())
-			.then(assessCodeQuality)
+			.then(assess)
 			.gate(qualityGate)
 			.onPass(reportWorkflow("quality-pass-report", generateReport))
 			.onFail(reportWorkflow("quality-fail-report", generateReport))

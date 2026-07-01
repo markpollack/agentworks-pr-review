@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 /**
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Component;
  * {@code --github.repo=owner/repo}.
  */
 @Component
+@Profile("!agent-experiment")
 public class PrReviewRunner implements CommandLineRunner {
 
 	private static final Logger logger = LoggerFactory.getLogger(PrReviewRunner.class);
