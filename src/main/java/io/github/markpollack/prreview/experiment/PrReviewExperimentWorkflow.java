@@ -63,9 +63,8 @@ import io.github.markpollack.judge.jury.TierPolicy;
  *
  * <pre>
  * contextPhase: FetchPrContextStep -&gt; RebaseStep -&gt; ConflictDetectionStep -&gt; RunTestsStep
- *   -&gt; JudgeGate(buildJury, 0.5, buildMapper)
- *        onFail -&gt; earlyReport (AssembleReportStep -&gt; GenerateReportStep)
- *        onPass -&gt; ExtractPrContextStep -&gt; AssessCodeQualityStep
+ *   -&gt; JudgeGate(buildJury, 0.5, buildMapper)   [sets merge-readiness, NOT review-or-not — DD-10]
+ *        onPass/onFail -&gt; ExtractPrContextStep -&gt; assess (KbConsultingAssessStep)
  *                  -&gt; JudgeGate(qualityJury, 0.7, qualityMapper)
  *                       onPass/onFail -&gt; AssembleReportStep -&gt; GenerateReportStep
  * </pre>
@@ -143,10 +142,8 @@ public class PrReviewExperimentWorkflow implements AgentHandler<Integer, Path> {
 			.build()
 			.build();
 
-		// Mapper-enabled gates: the mapper populates JudgmentContext metadata from
-		// AgentContext.
+		// The build gate's mapper populates JudgmentContext metadata from AgentContext.
 		JudgeGate<Object> buildGate = new JudgeGate<>(buildJury, BUILD_THRESHOLD, buildMapper());
-		JudgeGate<Object> qualityGate = new JudgeGate<>(qualityJury, QUALITY_THRESHOLD, qualityMapper());
 
 		Workflow<Integer, Object> contextPhase = Workflow.<Integer, Object>define("context-phase")
 			.step(fetchPrContext)
@@ -155,25 +152,16 @@ public class PrReviewExperimentWorkflow implements AgentHandler<Integer, Path> {
 			.then(runTests)
 			.build();
 
-		// onPass: pull PrContext from context, assess code quality, gate on it, then
-		// report.
-		Workflow<Object, Path> assessAndReport = Workflow.<Object, Path>define("assess-and-report")
-			.step(new ExtractPrContextStep())
-			.then(assess)
-			.gate(qualityGate)
-			.onPass(reportWorkflow("quality-pass-report", generateReport))
-			.onFail(reportWorkflow("quality-fail-report", generateReport))
-			.end()
-			.build();
-
-		// onFail: short-circuit straight to a report explaining the broken build.
-		Workflow<Object, Path> earlyReport = reportWorkflow("early-report", generateReport);
-
+		// DD-10 — the code review runs on BOTH build-gate branches. A rebase/build
+		// failure
+		// only sets merge-readiness (surfaced in the report); it does NOT skip the
+		// review, so
+		// a stale or unbuildable PR still gets a full KB-consult review of its diff.
 		this.pipeline = Workflow.<Integer, Path>define("pr-review-experiment")
 			.step(contextPhase)
 			.gate(buildGate)
-			.onPass(assessAndReport)
-			.onFail(earlyReport)
+			.onPass(assessAndReport("assess-build-pass", assess, qualityJury, generateReport))
+			.onFail(assessAndReport("assess-build-fail", assess, qualityJury, generateReport))
 			.end()
 			.build();
 	}
@@ -204,6 +192,26 @@ public class PrReviewExperimentWorkflow implements AgentHandler<Integer, Path> {
 
 	private static Workflow<Object, Path> reportWorkflow(String name, GenerateReportStep generateReport) {
 		return Workflow.<Object, Path>define(name).step(new AssembleReportStep()).then(generateReport).build();
+	}
+
+	/**
+	 * The assess-then-report sub-workflow: extract the PR context, run the KB-consult
+	 * assess on the diff, record the quality verdict, and report. Used on BOTH build-gate
+	 * branches (DD-10) so the code review is produced regardless of merge-readiness — the
+	 * build/rebase outcome is a merge-readiness signal in the report, not a gate on
+	 * whether we review.
+	 */
+	private static Workflow<Object, Path> assessAndReport(String name, Step<PrContext, AssessmentResult> assess,
+			Jury qualityJury, GenerateReportStep generateReport) {
+		JudgeGate<Object> qualityGate = new JudgeGate<>(qualityJury, QUALITY_THRESHOLD, qualityMapper());
+		return Workflow.<Object, Path>define(name)
+			.step(new ExtractPrContextStep())
+			.then(assess)
+			.gate(qualityGate)
+			.onPass(reportWorkflow(name + "-quality-pass", generateReport))
+			.onFail(reportWorkflow(name + "-quality-fail", generateReport))
+			.end()
+			.build();
 	}
 
 	/**
