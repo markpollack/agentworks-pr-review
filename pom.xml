@@ -24,7 +24,7 @@
     <dependencyManagement>
         <dependencies>
             <!-- Override the workflow stack to 0.11.0-SNAPSHOT for the JudgeGate context-mapper fix
-                 (agentworks-bom 1.12.0 pins 0.10.0). First-declared wins in dependencyManagement, so
+                 (agentworks-bom 1.15.0 pins 0.10.0). First-declared wins in dependencyManagement, so
                  these precede the BOM import. Remove once 0.11.0 is released and folded into the BOM. -->
             <dependency>
                 <groupId>io.github.markpollack</groupId>
@@ -49,7 +49,7 @@
             <dependency>
                 <groupId>io.github.markpollack</groupId>
                 <artifactId>agentworks-bom</artifactId>
-                <version>1.12.0</version>
+                <version>1.15.0</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

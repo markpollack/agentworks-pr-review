@@ -43,3 +43,4 @@ build/
 ### Generated output ###
 journal/
 reports/
+traces/

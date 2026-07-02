@@ -127,11 +127,14 @@ public class PrReviewExperimentWorkflow implements AgentHandler<Integer, Path> {
 		this.repo = repo;
 		this.maxCostUsd = maxCostUsd;
 
-		// Two single-tier juries (the spring-ai version/backport tiers are intentionally
-		// absent).
+		// Two single-tier juries. Each is its own JudgeGate, so its lone tier is also the
+		// last tier and must be FINAL_TIER (CascadedJury enforces this). The build-fail
+		// short-circuit comes from the workflow (buildGate onFail -> earlyReport), not a
+		// REJECT_ON_ANY_FAIL cascade tier. (spring-ai version/backport tiers are
+		// dropped.)
 		Jury buildJury = JuryFactory.builder()
 			.addJudge(0, buildJudge)
-			.tierPolicy(0, TierPolicy.REJECT_ON_ANY_FAIL)
+			.tierPolicy(0, TierPolicy.FINAL_TIER)
 			.build()
 			.build();
 		Jury qualityJury = JuryFactory.builder()

@@ -12,6 +12,7 @@ import io.github.markpollack.agents.client.AgentClient;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 /**
  * Configures the journal storage backend and the AgentClient bean.
@@ -35,7 +36,17 @@ public class JournalConfig {
 		logger.info("Journal configured with directory: {}", journalDir);
 	}
 
+	/**
+	 * The default AgentClient. Skipped under the {@code agent-experiment} profile, which
+	 * supplies its own {@code @Primary} trace-wired client
+	 * ({@code AgentExperimentReviewerConfig}) rooted in the target clone. The default is
+	 * both redundant there and unsatisfiable on this classpath: nothing publishes an
+	 * {@link AgentClient.Builder} bean (it is created via the static
+	 * {@code AgentClient.builder(model)} factory), so DI cannot supply one. The spring-ai
+	 * (default-profile) path still needs a builder provider — tracked separately.
+	 */
 	@Bean
+	@Profile("!agent-experiment")
 	AgentClient agentClient(AgentClient.Builder builder) {
 		return builder.build();
 	}

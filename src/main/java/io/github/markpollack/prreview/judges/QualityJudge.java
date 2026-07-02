@@ -13,6 +13,7 @@ import io.github.markpollack.judge.result.Judgment;
 import io.github.markpollack.judge.result.JudgmentStatus;
 import io.github.markpollack.judge.score.NumericalScore;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -45,6 +46,7 @@ public class QualityJudge implements Judge {
 	 * with {@code false} for reviewers (e.g. agent-experiment) with no maintenance
 	 * branches.
 	 */
+	@Autowired
 	public QualityJudge(AgentClient agentClient) {
 		this(agentClient, true);
 	}
