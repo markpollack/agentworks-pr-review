@@ -1,0 +1,333 @@
+{
+  "apiVersion": "workflow/v3alpha",
+  "kind": "OperationCatalog",
+  "instance": {
+    "id": "agentworks-pr-review-app@2026-07-23.1",
+    "capturedAt": "2026-07-23T12:00:00.000Z"
+  },
+  "operations": [
+    {
+      "ref": "java:pr-review.cleanup-branch:v1",
+      "version": "1.0.0",
+      "name": "Clean up branch",
+      "description": "Deletes the temporary rebase branch after the pipeline completes.",
+      "input": {
+        "schemaId": "https://schemas.agentworks.dev/types/CleanupRequest",
+        "digest": "sha256:fa9a9cf33f834b5c6b6710d07b4afe4b65b7134ff49640d163245e7e5282472b",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "build": {
+              "$ref": "https://schemas.agentworks.dev/types/BuildResult"
+            }
+          },
+          "required": [
+            "build"
+          ]
+        }
+      },
+      "output": {
+        "schemaId": "https://schemas.agentworks.dev/types/CleanupResult",
+        "digest": "sha256:8cd8963a62af8d6832b42921733b983c1bee7e19d988e49594239816fd5c3d43",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "branch": {
+              "type": "string"
+            },
+            "cleaned": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "branch",
+            "cleaned"
+          ]
+        }
+      },
+      "tags": [
+        "git"
+      ]
+    },
+    {
+      "ref": "java:pr-review.detect-conflicts:v1",
+      "version": "1.0.0",
+      "name": "Detect conflicts",
+      "description": "Scans the rebase result for merge conflicts and classifies their complexity.",
+      "input": {
+        "schemaId": "https://schemas.agentworks.dev/types/ConflictScanRequest",
+        "digest": "sha256:696b92b82dff3a53898fd0bc1b0958f4b43650cc0313296292ef21273f086f14",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "rebase": {
+              "$ref": "https://schemas.agentworks.dev/types/RebaseResult"
+            }
+          },
+          "required": [
+            "rebase"
+          ]
+        }
+      },
+      "output": {
+        "schemaId": "https://schemas.agentworks.dev/types/ConflictReport",
+        "digest": "sha256:217a91ed9ffbee844332da2089cfce5214bbf4ff979be7ec1a867a38a72de69f",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "conflicts": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "hasComplexConflicts": {
+              "type": "boolean"
+            },
+            "summary": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "conflicts",
+            "hasComplexConflicts",
+            "summary"
+          ]
+        }
+      },
+      "tags": [
+        "git"
+      ]
+    },
+    {
+      "ref": "java:pr-review.fetch-pr-context:v1",
+      "version": "1.0.0",
+      "name": "Fetch PR context",
+      "description": "Fetches the pull request's metadata, files, comments and reviews from GitHub.",
+      "input": {
+        "schemaId": "https://schemas.agentworks.dev/types/FetchPrRequest",
+        "digest": "sha256:346dfb1ac809dc8e917d78e492c3beb9bf8c36f00cde1fb971766c0d6b54daaa",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "pr": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "required": [
+            "pr"
+          ]
+        }
+      },
+      "output": {
+        "schemaId": "https://schemas.agentworks.dev/types/PrContext",
+        "digest": "sha256:18d458f03e29b0e345b83af62de66e130164169f38c6684fae95a1d3114c4f32",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "number": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "title": {
+              "type": "string"
+            },
+            "author": {
+              "type": "string"
+            },
+            "baseBranch": {
+              "type": "string"
+            },
+            "headBranch": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "number",
+            "title",
+            "author",
+            "baseBranch",
+            "headBranch"
+          ]
+        }
+      },
+      "tags": [
+        "github"
+      ]
+    },
+    {
+      "ref": "java:pr-review.fix-and-retest:v1",
+      "version": "1.0.0",
+      "name": "Fix and retest",
+      "description": "Attempts an AI-driven test fix and re-runs the build when tests failed.",
+      "input": {
+        "schemaId": "https://schemas.agentworks.dev/types/FixAndRetestRequest",
+        "digest": "sha256:fa9a9cf33f834b5c6b6710d07b4afe4b65b7134ff49640d163245e7e5282472b",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "build": {
+              "$ref": "https://schemas.agentworks.dev/types/BuildResult"
+            }
+          },
+          "required": [
+            "build"
+          ]
+        }
+      },
+      "output": {
+        "schemaId": "https://schemas.agentworks.dev/types/BuildResult",
+        "digest": "sha256:b1f0b2498a1d551eb5c3acadd1d4971b671e6e7709b60797f547211390b25ca7",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "success": {
+              "type": "boolean"
+            },
+            "skipped": {
+              "type": "boolean"
+            },
+            "modules": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "durationMs": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "success",
+            "skipped",
+            "modules",
+            "durationMs"
+          ]
+        }
+      },
+      "tags": [
+        "build",
+        "ai"
+      ]
+    },
+    {
+      "ref": "java:pr-review.rebase-on-main:v1",
+      "version": "1.0.0",
+      "name": "Rebase on main",
+      "description": "Rebases the PR branch onto main in a temporary work branch.",
+      "input": {
+        "schemaId": "https://schemas.agentworks.dev/types/RebaseRequest",
+        "digest": "sha256:aacec0a491cdcdbe674b2c93cb4fdbaf652e83a6811e8f3599edc794836b3b63",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "context": {
+              "$ref": "https://schemas.agentworks.dev/types/PrContext"
+            }
+          },
+          "required": [
+            "context"
+          ]
+        }
+      },
+      "output": {
+        "schemaId": "https://schemas.agentworks.dev/types/RebaseResult",
+        "digest": "sha256:3be0c9a9f00ca2ae60a0759a1c819fe2332cae2728fd55cd2067147951507b7e",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "success": {
+              "type": "boolean"
+            },
+            "branch": {
+              "type": "string"
+            },
+            "conflictFiles": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "success",
+            "branch",
+            "conflictFiles"
+          ]
+        }
+      },
+      "tags": [
+        "git"
+      ]
+    },
+    {
+      "ref": "java:pr-review.run-tests:v1",
+      "version": "1.0.0",
+      "name": "Run tests",
+      "description": "Runs the affected modules' test suites against the rebased branch.",
+      "input": {
+        "schemaId": "https://schemas.agentworks.dev/types/RunTestsRequest",
+        "digest": "sha256:72b9d2aff3fe0a82c655784a130acee127a608b73549c5ccbfe65025fcd138a1",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "conflicts": {
+              "$ref": "https://schemas.agentworks.dev/types/ConflictReport"
+            }
+          },
+          "required": [
+            "conflicts"
+          ]
+        }
+      },
+      "output": {
+        "schemaId": "https://schemas.agentworks.dev/types/BuildResult",
+        "digest": "sha256:b1f0b2498a1d551eb5c3acadd1d4971b671e6e7709b60797f547211390b25ca7",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "success": {
+              "type": "boolean"
+            },
+            "skipped": {
+              "type": "boolean"
+            },
+            "modules": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "durationMs": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "success",
+            "skipped",
+            "modules",
+            "durationMs"
+          ]
+        }
+      },
+      "tags": [
+        "build"
+      ]
+    }
+  ]
+}

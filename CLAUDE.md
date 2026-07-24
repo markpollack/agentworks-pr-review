@@ -22,6 +22,19 @@ Workshop-teachable PR review pipeline for Spring conferences.
 - Java 21
 - Spring AI 2.0.0-M3 (transitive via workflow-flows; needs Spring milestones repo)
 
+## v3alpha Serving Seam (branch `v3-serving` — agent-workflow ROADMAP Step 1.2)
+- `serving/WorkflowV3AlphaController` serves GET `/workflow/v3alpha/view` + `/catalog`
+  for the ONE pr-review workflow (no list-all — collection deferred by contract)
+- `src/main/resources/v3alpha/workflow-pr-review-linear.json` is the hand-authored
+  emittable linear slice (real step names, `java:pr-review.<step>:v1` refs) — it is
+  **Stage 2.1's golden emitter target**; never edit it casually. Catalog instance:
+  `v3alpha/operation-catalog.json` (content change ⇒ new instance id + capturedAt)
+- Envelopes serialize via workflow-spec's Jackson-2 `WireJson` (Boot 4 is Jackson 3 —
+  both coexist; Spring must never re-serialize v3alpha envelopes)
+- JUnit: `org.junit:junit-bom:${junit-jupiter.version}` is imported FIRST in
+  dependencyManagement — agentworks-bom pins jupiter 5.10.3, which breaks Boot 4's
+  test machinery (compiled against JUnit 6). Keep the import first-declared.
+
 ## Key AgentWorks Dependencies (all released, no SNAPSHOTs)
 - `agentworks-bom` 1.0.4 (`io.github.markpollack`)
 - `workflow-flows` 0.3.0 (`io.github.markpollack`) — Step<I,O>, Workflow DSL, AgentContext, ContextKey, JudgeGate, TieredGate

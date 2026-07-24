@@ -23,6 +23,16 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- agentworks-bom pins junit-jupiter 5.10.3, which breaks Boot 4's MockMvcTester
+                 (spring-test 7 is compiled against JUnit 6). Restore Boot's managed JUnit by
+                 importing the junit-bom at Boot's version FIRST (first-declared wins). -->
+            <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>${junit-jupiter.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <!-- Override the workflow stack to 0.11.0-SNAPSHOT for the JudgeGate context-mapper fix
                  (agentworks-bom 1.15.0 pins 0.10.0). First-declared wins in dependencyManagement, so
                  these precede the BOM import. Remove once 0.11.0 is released and folded into the BOM. -->
@@ -48,6 +58,11 @@
             </dependency>
             <dependency>
                 <groupId>io.github.markpollack</groupId>
+                <artifactId>workflow-spec</artifactId>
+                <version>0.11.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.markpollack</groupId>
                 <artifactId>agentworks-bom</artifactId>
                 <version>1.15.0</version>
                 <type>pom</type>
@@ -67,6 +82,14 @@
         <dependency>
             <groupId>io.github.markpollack</groupId>
             <artifactId>workflow-flows</artifactId>
+        </dependency>
+
+        <!-- AgentWorks: workflow/v3alpha contract model + view projection (Step 1.2 serving seam).
+             Ships its own Jackson 2 (com.fasterxml) — coexists with Boot 4's Jackson 3; the
+             endpoints serialize v3alpha envelopes with the contract-side WireJson mapper. -->
+        <dependency>
+            <groupId>io.github.markpollack</groupId>
+            <artifactId>workflow-spec</artifactId>
         </dependency>
 
         <!-- AgentWorks: Workflow Journal (typed step events into journal runs) -->
@@ -119,6 +142,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
             <scope>test</scope>
         </dependency>
 
