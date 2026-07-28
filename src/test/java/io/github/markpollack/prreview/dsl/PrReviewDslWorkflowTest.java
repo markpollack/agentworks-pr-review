@@ -23,6 +23,7 @@ import io.github.markpollack.prreview.steps.FixTestsStep;
 import io.github.markpollack.prreview.steps.GenerateReportStep;
 import io.github.markpollack.prreview.steps.RebaseStep;
 import io.github.markpollack.prreview.steps.RunTestsStep;
+import io.github.markpollack.prreview.steps.ShouldAttemptFixStep;
 import io.github.markpollack.workflow.core.AgentContext;
 import io.github.markpollack.workflow.flows.workflow.Workflow;
 import org.junit.jupiter.api.BeforeEach;
@@ -169,7 +170,7 @@ class PrReviewDslWorkflowTest {
 	@Test
 	void fixAndRetest_attemptedWhenTestsFail() {
 		WorkshopProperties props = new WorkshopProperties(5774, true, this.tempDir.toString(), ".", false);
-		FixAndRetestStep step = new FixAndRetestStep(this.fixTests, this.runTests, props);
+		FixAndRetestStep step = new FixAndRetestStep(this.fixTests, this.runTests, props, new ShouldAttemptFixStep());
 
 		RebaseResult rebase = RebaseResult.clean("fix/branch");
 		ConflictReport conflicts = ConflictReport.clean();
@@ -195,7 +196,7 @@ class PrReviewDslWorkflowTest {
 	@Test
 	void fixAndRetest_skippedWhenTestsPass() {
 		WorkshopProperties props = new WorkshopProperties(5774, true, this.tempDir.toString(), ".", false);
-		FixAndRetestStep step = new FixAndRetestStep(this.fixTests, this.runTests, props);
+		FixAndRetestStep step = new FixAndRetestStep(this.fixTests, this.runTests, props, new ShouldAttemptFixStep());
 
 		RebaseResult rebase = RebaseResult.clean("fix/branch");
 		ConflictReport conflicts = ConflictReport.clean();
@@ -227,7 +228,7 @@ class PrReviewDslWorkflowTest {
 			.then(this.rebaseStep)
 			.then(this.conflictDetection)
 			.then(this.runTests)
-			.then(new FixAndRetestStep(this.fixTests, this.runTests, props))
+			.then(new FixAndRetestStep(this.fixTests, this.runTests, props, new ShouldAttemptFixStep()))
 			.then(new CleanupStep(this.rebaseStep))
 			.build();
 

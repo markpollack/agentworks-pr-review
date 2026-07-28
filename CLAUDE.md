@@ -22,13 +22,40 @@ Workshop-teachable PR review pipeline for Spring conferences.
 - Java 21
 - Spring AI 2.0.0-M3 (transitive via workflow-flows; needs Spring milestones repo)
 
-## v3alpha Serving Seam (branch `v3-serving` — agent-workflow ROADMAP Step 1.2)
+## v3alpha: the workflow is authored in the v3 DSL (branch `v3-serving` — agent-workflow ROADMAP Step 2.4)
+
+**The two served artifacts are GENERATED. Do not hand-edit them.**
+`src/main/resources/v3alpha/workflow-pr-review.json` is emitted from
+`v3/PrReviewWorkflowV3` and `v3alpha/operation-catalog.json` is derived from the leaf
+beans, both by `PrReviewSpecV3Test`, which byte-compares them against a fresh emission.
+Regenerate deliberately and read the diff as a contract diff — `specHash` moves with it:
+
+```bash
+./mvnw test -Dtest=PrReviewSpecV3Test -Dv3.spec.regenerate=true
+```
+
+- **Emission is a build-time act, on purpose.** Each node's §8.2 `source.uri` is
+  repository-relative, so only an emitter running inside a checkout can produce one. A
+  deployment is not a checkout, so a spec emitted at startup would carry **no provenance
+  at all** — and §8.2 makes absence legal, so nothing would fail. Emit in the build,
+  review the artifact, serve the artifact. (`source` is also inside `specHash`, so the
+  emitting *build* is part of run identity: `-g:none` digests differently.)
+- **Every leaf is a real bean, and most are two leaves in one class**: the v3
+  `execute(I)` holds the body, the v1 `execute(AgentContext, I)` delegates to it. A class
+  implementing both `flows.Step` and `flows.v3.Step` **must** override `name()` (two
+  unrelated defaults). The v1 pipeline (`dsl/PrReviewDslWorkflow`, `workshop.use-dsl=true`)
+  is still what **executes** — nothing dispatches a `flows.v3.Step` yet.
+- **`workshop.fix-tests` rides the artifact** as the fix decision's node `config`. The
+  committed spec is therefore the artifact for the committed `application.yml`; flipping
+  the property is a different workflow and needs a re-emit.
+- Leaf beans are declared unconditionally in `v3/PrReviewV3Config` — a step does not stop
+  existing because a different executor was selected. `DslWorkflowConfig` (still
+  `@ConditionalOnProperty`) assembles the v1 pipeline from them.
 - `serving/WorkflowV3AlphaController` serves GET `/workflow/v3alpha/view` + `/catalog`
-  for the ONE pr-review workflow (no list-all — collection deferred by contract)
-- `src/main/resources/v3alpha/workflow-pr-review-linear.json` is the hand-authored
-  emittable linear slice (real step names, `java:pr-review.<step>:v1` refs) — it is
-  **Stage 2.1's golden emitter target**; never edit it casually. Catalog instance:
-  `v3alpha/operation-catalog.json` (content change ⇒ new instance id + capturedAt)
+  for the ONE pr-review workflow (no list-all — collection deferred by contract). The
+  served view carries `source` on all 19 nodes and zero advisories.
+- Catalog instance id + `capturedAt` are constants in `v3/OperationCatalogFactory`:
+  content change ⇒ bump both (an instance id names a snapshot).
 - Envelopes serialize via workflow-spec's Jackson-2 `WireJson` (Boot 4 is Jackson 3 —
   both coexist; Spring must never re-serialize v3alpha envelopes)
 - JUnit: `org.junit:junit-bom:${junit-jupiter.version}` is imported FIRST in

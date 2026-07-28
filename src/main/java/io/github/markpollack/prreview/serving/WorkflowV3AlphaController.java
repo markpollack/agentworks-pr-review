@@ -23,17 +23,29 @@ import org.springframework.web.bind.annotation.RestController;
  * HTTP is host-app detail. No list-all endpoint: the collection surface stays deferred.
  *
  * <p>
- * The spec resource is hand-authored at Step 1.2 (the emitter speaks v3alpha at Stage
- * 2.1, whose exit criterion is reproducing this exact document) and passes the engine's
- * two-phase reader at startup — the served spec is valid by construction. Envelopes are
- * serialized with the contract-side Jackson 2 {@code WireJson} mapper (Boot 4's Jackson 3
- * never touches them), so the emission shape is exactly the producer schema's.
+ * Both resources are <b>generated</b>, not hand-authored: the spec is emitted from
+ * {@code io.github.markpollack.prreview.v3.PrReviewWorkflowV3} and the catalog is derived
+ * from the leaf beans this deployment holds, both in the build
+ * ({@code PrReviewSpecV3Test}). They are read back as resources rather than taken from
+ * the {@code WorkflowSpec} and {@code OperationCatalog} beans for one reason, and it is a
+ * contract reason: each node's §8.2 {@code source.uri} is repository-relative, and only
+ * an emitter running inside a checkout can produce one. A deployment is not a checkout,
+ * so a spec emitted at startup would serve a canvas no way back to the code — silently,
+ * because §8.2 makes absence the legal answer. Serving what the build emitted keeps the
+ * provenance and leaves resolution where canvas-spike CS-8 put it: with the deployment
+ * that knows which repository it served the document from.
+ *
+ * <p>
+ * The spec passes the engine's two-phase reader at startup, so the served document is
+ * valid by construction. Envelopes are serialized with the contract-side Jackson 2
+ * {@code WireJson} mapper (Boot 4's Jackson 3 never touches them), so the emission shape
+ * is exactly the producer schema's.
  */
 @RestController
 @RequestMapping(path = "/workflow/v3alpha", produces = MediaType.APPLICATION_JSON_VALUE)
 public class WorkflowV3AlphaController {
 
-	static final String SPEC_RESOURCE = "/v3alpha/workflow-pr-review-linear.json";
+	static final String SPEC_RESOURCE = "/v3alpha/workflow-pr-review.json";
 
 	static final String CATALOG_RESOURCE = "/v3alpha/operation-catalog.json";
 

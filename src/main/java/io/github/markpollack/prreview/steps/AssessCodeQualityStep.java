@@ -33,7 +33,11 @@ import org.springframework.stereotype.Component;
 @Qualifier("assess-code-quality")
 @StepName("assess-code-quality")
 @Description("AI-powered code quality assessment using AgentClient")
-public class AssessCodeQualityStep implements Step<PrContext, AssessmentResult> {
+public class AssessCodeQualityStep implements Step<PrContext, AssessmentResult>,
+		io.github.markpollack.workflow.flows.v3.Step<PrContext, AssessmentResult> {
+
+	/** The {@code judgeName} every assessment this step produces carries. */
+	public static final String JUDGE_NAME = "code-quality";
 
 	public static final ContextKey<AssessmentResult> QUALITY_ASSESSMENT = ContextKey.of("qualityAssessment",
 			AssessmentResult.class);
@@ -64,6 +68,11 @@ public class AssessCodeQualityStep implements Step<PrContext, AssessmentResult> 
 
 	@Override
 	public AssessmentResult execute(AgentContext ctx, PrContext input) {
+		return execute(input);
+	}
+
+	@Override
+	public AssessmentResult execute(PrContext input) {
 		logger.info("Running code quality assessment for PR #{}", input.number());
 
 		String prompt = renderPrompt(input);
@@ -72,12 +81,12 @@ public class AssessCodeQualityStep implements Step<PrContext, AssessmentResult> 
 			this.lastResponse = response;
 			String result = response.getResult();
 			logger.info("Quality assessment complete for PR #{}", input.number());
-			return AssessmentParser.parse("code-quality", result);
+			return AssessmentParser.parse(JUDGE_NAME, result);
 		}
 		catch (Exception ex) {
 			logger.error("Quality assessment failed for PR #{}: {}", input.number(), ex.getMessage());
-			return new AssessmentResult("code-quality", JudgmentStatus.ERROR, 0.0,
-					"Assessment failed: " + ex.getMessage(), List.of());
+			return new AssessmentResult(JUDGE_NAME, JudgmentStatus.ERROR, 0.0, "Assessment failed: " + ex.getMessage(),
+					List.of());
 		}
 	}
 

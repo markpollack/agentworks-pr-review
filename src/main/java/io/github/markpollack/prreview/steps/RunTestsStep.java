@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 import io.github.markpollack.prreview.config.WorkshopProperties;
 import io.github.markpollack.prreview.model.BuildResult;
 import io.github.markpollack.prreview.model.ConflictReport;
-import io.github.markpollack.prreview.model.PrContext;
+import io.github.markpollack.prreview.model.TestRequest;
 import io.github.markpollack.workflow.core.AgentContext;
 import io.github.markpollack.workflow.core.ContextKey;
 import io.github.markpollack.workflow.core.Description;
@@ -32,7 +32,8 @@ import org.springframework.stereotype.Component;
 @Component
 @StepName("run-tests")
 @Description("Runs targeted Maven tests on affected modules")
-public class RunTestsStep implements Step<ConflictReport, BuildResult> {
+public class RunTestsStep implements Step<ConflictReport, BuildResult>,
+		io.github.markpollack.workflow.flows.v3.Step<TestRequest, BuildResult> {
 
 	public static final ContextKey<BuildResult> BUILD_RESULT = ContextKey.of("build-result", BuildResult.class);
 
@@ -58,14 +59,17 @@ public class RunTestsStep implements Step<ConflictReport, BuildResult> {
 
 	@Override
 	public BuildResult execute(AgentContext ctx, ConflictReport input) {
-		if (input.hasComplexConflicts()) {
+		return execute(new TestRequest(input, ctx.require(FetchPrContextStep.PR_CONTEXT)));
+	}
+
+	@Override
+	public BuildResult execute(TestRequest request) {
+		if (request.conflicts().hasComplexConflicts()) {
 			logger.warn("Skipping tests — complex conflicts detected");
 			return BuildResult.skippedBuild();
 		}
 
-		// Get PrContext from the shared context to discover affected modules
-		PrContext prContext = ctx.require(FetchPrContextStep.PR_CONTEXT);
-		List<String> modules = ModuleDiscovery.discoverModules(prContext.files());
+		List<String> modules = ModuleDiscovery.discoverModules(request.context().files());
 
 		if (modules.isEmpty() || (modules.size() == 1 && ".".equals(modules.get(0)))) {
 			logger.info("No specific modules affected, running full test suite");

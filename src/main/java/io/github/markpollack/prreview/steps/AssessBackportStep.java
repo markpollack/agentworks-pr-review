@@ -33,7 +33,11 @@ import org.springframework.stereotype.Component;
 @Qualifier("assess-backport")
 @StepName("assess-backport")
 @Description("AI-powered backport candidacy assessment")
-public class AssessBackportStep implements Step<PrContext, AssessmentResult> {
+public class AssessBackportStep implements Step<PrContext, AssessmentResult>,
+		io.github.markpollack.workflow.flows.v3.Step<PrContext, AssessmentResult> {
+
+	/** The {@code judgeName} every assessment this step produces carries. */
+	public static final String JUDGE_NAME = "backport";
 
 	public static final ContextKey<AssessmentResult> BACKPORT_ASSESSMENT = ContextKey.of("backportAssessment",
 			AssessmentResult.class);
@@ -64,6 +68,11 @@ public class AssessBackportStep implements Step<PrContext, AssessmentResult> {
 
 	@Override
 	public AssessmentResult execute(AgentContext ctx, PrContext input) {
+		return execute(input);
+	}
+
+	@Override
+	public AssessmentResult execute(PrContext input) {
 		logger.info("Running backport assessment for PR #{}", input.number());
 
 		String prompt = renderPrompt(input);
@@ -72,11 +81,11 @@ public class AssessBackportStep implements Step<PrContext, AssessmentResult> {
 			this.lastResponse = response;
 			String result = response.getResult();
 			logger.info("Backport assessment complete for PR #{}", input.number());
-			return AssessmentParser.parse("backport", result);
+			return AssessmentParser.parse(JUDGE_NAME, result);
 		}
 		catch (Exception ex) {
 			logger.error("Backport assessment failed for PR #{}: {}", input.number(), ex.getMessage());
-			return new AssessmentResult("backport", JudgmentStatus.ERROR, 0.0, "Assessment failed: " + ex.getMessage(),
+			return new AssessmentResult(JUDGE_NAME, JudgmentStatus.ERROR, 0.0, "Assessment failed: " + ex.getMessage(),
 					List.of());
 		}
 	}

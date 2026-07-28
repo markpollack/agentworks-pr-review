@@ -3,12 +3,15 @@ package io.github.markpollack.prreview.dsl;
 import io.github.markpollack.prreview.config.WorkshopProperties;
 import io.github.markpollack.prreview.model.BuildResult;
 import io.github.markpollack.prreview.model.ConflictReport;
+import io.github.markpollack.prreview.model.FixDecision;
+import io.github.markpollack.prreview.model.FixOutcome;
 import io.github.markpollack.prreview.model.FixResult;
 import io.github.markpollack.prreview.model.RebaseResult;
 import io.github.markpollack.prreview.steps.ConflictDetectionStep;
 import io.github.markpollack.prreview.steps.FixTestsStep;
 import io.github.markpollack.prreview.steps.RebaseStep;
 import io.github.markpollack.prreview.steps.RunTestsStep;
+import io.github.markpollack.prreview.steps.ShouldAttemptFixStep;
 import io.github.markpollack.workflow.core.AgentContext;
 import io.github.markpollack.workflow.flows.Step;
 import org.slf4j.Logger;
@@ -31,13 +34,16 @@ public class FixAndRetestStep implements Step<BuildResult, BuildResult> {
 
 	private final WorkshopProperties workshopProperties;
 
+	private final ShouldAttemptFixStep shouldAttemptFixStep;
+
 	private volatile FixResult lastFixResult;
 
-	public FixAndRetestStep(FixTestsStep fixTestsStep, RunTestsStep runTestsStep,
-			WorkshopProperties workshopProperties) {
+	public FixAndRetestStep(FixTestsStep fixTestsStep, RunTestsStep runTestsStep, WorkshopProperties workshopProperties,
+			ShouldAttemptFixStep shouldAttemptFixStep) {
 		this.fixTestsStep = fixTestsStep;
 		this.runTestsStep = runTestsStep;
 		this.workshopProperties = workshopProperties;
+		this.shouldAttemptFixStep = shouldAttemptFixStep;
 	}
 
 	@Override
@@ -74,9 +80,15 @@ public class FixAndRetestStep implements Step<BuildResult, BuildResult> {
 		return builder.build();
 	}
 
+	/**
+	 * The structural half of the predicate is {@link ShouldAttemptFixStep} — the same
+	 * decision the v3 graph routes on, so there is one of it and not two. What stays here
+	 * is the policy half: v1 reads it from a Spring property, v3 carries it in the node's
+	 * {@code config}.
+	 */
 	private boolean shouldAttemptFix(RebaseResult rebase, ConflictReport conflicts, BuildResult build) {
-		return this.workshopProperties.fixTests() && rebase != null && rebase.success() && conflicts != null
-				&& !conflicts.hasComplexConflicts() && !build.skipped() && !build.success();
+		return this.workshopProperties.fixTests() && rebase != null && conflicts != null
+				&& this.shouldAttemptFixStep.execute(new FixDecision(rebase, conflicts, build)) == FixOutcome.FIX;
 	}
 
 	@Override

@@ -63,7 +63,7 @@ class WorkflowV3AlphaControllerTest {
 		assertThat(schema.validate(catalog)).as("served catalog validates against operation-catalog.schema.json")
 			.isEmpty();
 
-		assertThat(catalog.get("instance").get("id").asText()).isEqualTo("agentworks-pr-review-app@2026-07-23.1");
+		assertThat(catalog.get("instance").get("id").asText()).isEqualTo("agentworks-pr-review-app@2026-07-28.1");
 		String previousRef = "";
 		for (JsonNode entry : catalog.get("operations")) {
 			assertThat(entry.get("ref").asText()).as("entries ordered lexicographically by ref (§13.1)")

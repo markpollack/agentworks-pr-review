@@ -4,8 +4,6 @@ import java.nio.file.Path;
 
 import io.github.markpollack.prreview.config.WorkshopProperties;
 import io.github.markpollack.prreview.judges.BuildJudge;
-import io.github.markpollack.prreview.judges.QualityJudge;
-import io.github.markpollack.prreview.judges.VersionPatternJudge;
 import io.github.markpollack.prreview.model.PrContext;
 import io.github.markpollack.prreview.steps.ConflictDetectionStep;
 import io.github.markpollack.prreview.steps.FetchPrContextStep;
@@ -13,6 +11,7 @@ import io.github.markpollack.prreview.steps.FixTestsStep;
 import io.github.markpollack.prreview.steps.GenerateReportStep;
 import io.github.markpollack.prreview.steps.RebaseStep;
 import io.github.markpollack.prreview.steps.RunTestsStep;
+import io.github.markpollack.prreview.steps.ShouldAttemptFixStep;
 import io.github.markpollack.workflow.flows.Step;
 import io.github.markpollack.workflow.flows.workflow.Workflow;
 
@@ -27,7 +26,10 @@ import org.springframework.context.annotation.Configuration;
  *
  * <p>
  * This class is the wiring hub: it assembles sub-workflows as Spring beans and injects
- * them into {@link PrReviewDslWorkflow} by phase, not by leaf step.
+ * them into {@link PrReviewDslWorkflow} by phase, not by leaf step. The leaves themselves
+ * are unconditional beans declared by
+ * {@code io.github.markpollack.prreview.v3.PrReviewV3Config} — a step does not stop
+ * existing because a different executor was selected.
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = "workshop.use-dsl", havingValue = "true")
@@ -39,29 +41,9 @@ public class DslWorkflowConfig {
 	}
 
 	@Bean
-	VersionPatternStep dslVersionPatternStep(VersionPatternJudge versionPatternJudge) {
-		return new VersionPatternStep(versionPatternJudge);
-	}
-
-	@Bean
 	FixAndRetestStep fixAndRetestStep(FixTestsStep fixTestsStep, RunTestsStep runTestsStep,
-			WorkshopProperties workshopProperties) {
-		return new FixAndRetestStep(fixTestsStep, runTestsStep, workshopProperties);
-	}
-
-	@Bean
-	CleanupStep cleanupStep(RebaseStep rebaseStep) {
-		return new CleanupStep(rebaseStep);
-	}
-
-	@Bean
-	QualityJudgeStep qualityJudgeStep(QualityJudge qualityJudge) {
-		return new QualityJudgeStep(qualityJudge);
-	}
-
-	@Bean
-	AssembleReportStep assembleReportStep() {
-		return new AssembleReportStep();
+			WorkshopProperties workshopProperties, ShouldAttemptFixStep shouldAttemptFixStep) {
+		return new FixAndRetestStep(fixTestsStep, runTestsStep, workshopProperties, shouldAttemptFixStep);
 	}
 
 	@Bean

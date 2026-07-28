@@ -29,7 +29,8 @@ import org.springframework.stereotype.Component;
 @Component
 @StepName("detect-conflicts")
 @Description("Classifies rebase conflicts as SIMPLE or COMPLEX")
-public class ConflictDetectionStep implements Step<RebaseResult, ConflictReport> {
+public class ConflictDetectionStep implements Step<RebaseResult, ConflictReport>,
+		io.github.markpollack.workflow.flows.v3.Step<RebaseResult, ConflictReport> {
 
 	public static final ContextKey<ConflictReport> CONFLICT_REPORT = ContextKey.of("conflict-report",
 			ConflictReport.class);
@@ -48,6 +49,11 @@ public class ConflictDetectionStep implements Step<RebaseResult, ConflictReport>
 
 	@Override
 	public ConflictReport execute(AgentContext ctx, RebaseResult input) {
+		return execute(input);
+	}
+
+	@Override
+	public ConflictReport execute(RebaseResult input) {
 		if (input.success()) {
 			logger.info("Clean rebase, no conflicts to classify");
 			return ConflictReport.clean();

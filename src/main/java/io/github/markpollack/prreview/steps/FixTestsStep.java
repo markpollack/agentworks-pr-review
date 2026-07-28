@@ -8,6 +8,7 @@ import java.util.List;
 
 import io.github.markpollack.prreview.config.WorkshopProperties;
 import io.github.markpollack.prreview.model.BuildResult;
+import io.github.markpollack.prreview.model.FixRequest;
 import io.github.markpollack.prreview.model.FixResult;
 import io.github.markpollack.prreview.model.PrContext;
 import io.github.markpollack.workflow.core.AgentContext;
@@ -34,7 +35,8 @@ import org.springframework.stereotype.Component;
 @Component
 @StepName("fix-tests")
 @Description("AI-powered step that attempts to fix failing tests")
-public class FixTestsStep implements Step<BuildResult, FixResult> {
+public class FixTestsStep
+		implements Step<BuildResult, FixResult>, io.github.markpollack.workflow.flows.v3.Step<FixRequest, FixResult> {
 
 	public static final ContextKey<AgentClientResponse> FIX_TESTS_RESPONSE = ContextKey.of("fixTestsResponse",
 			AgentClientResponse.class);
@@ -63,27 +65,47 @@ public class FixTestsStep implements Step<BuildResult, FixResult> {
 		return "fix-tests";
 	}
 
+	/**
+	 * The v1 leaf. The catch lives here rather than in the body because the v1 executor
+	 * has no failure channel: a throw ends the run, so this step has always had to turn a
+	 * failed agent call into a normal completion. The v3 leaf below does not, and must
+	 * not — an interpreter's retry policy and error edges are the only things allowed to
+	 * react to a failed attempt, and they cannot see a fallback value.
+	 */
 	@Override
 	public FixResult execute(AgentContext ctx, BuildResult input) {
 		if (input.success() || input.skipped()) {
+			// Answered before the context lookup, exactly as it was before the v3 leaf
+			// existed: a build with nothing to fix must not require a PrContext to say
+			// so.
 			return FixResult.notNeeded();
 		}
-
 		PrContext prContext = ctx.require(FetchPrContextStep.PR_CONTEXT);
-		logger.info("Attempting AI fix for test failures in PR #{}", prContext.number());
-
-		String prompt = renderPrompt(prContext, input);
 		try {
-			AgentClientResponse response = this.agentClient.goal(prompt).workingDirectory(this.workingDirectory).run();
-			this.lastResponse = response;
-			String result = response.getResult();
-			logger.info("AI fix-tests complete for PR #{}", prContext.number());
-			return parseResult(result);
+			return execute(new FixRequest(input, prContext));
 		}
 		catch (Exception ex) {
 			logger.error("AI fix-tests failed for PR #{}: {}", prContext.number(), ex.getMessage());
 			return new FixResult(false, false, List.of(), "Fix failed: " + ex.getMessage());
 		}
+	}
+
+	@Override
+	public FixResult execute(FixRequest request) {
+		BuildResult build = request.build();
+		if (build.success() || build.skipped()) {
+			return FixResult.notNeeded();
+		}
+
+		PrContext prContext = request.context();
+		logger.info("Attempting AI fix for test failures in PR #{}", prContext.number());
+
+		String prompt = renderPrompt(prContext, build);
+		AgentClientResponse response = this.agentClient.goal(prompt).workingDirectory(this.workingDirectory).run();
+		this.lastResponse = response;
+		String result = response.getResult();
+		logger.info("AI fix-tests complete for PR #{}", prContext.number());
+		return parseResult(result);
 	}
 
 	@Override

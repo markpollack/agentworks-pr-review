@@ -8,6 +8,7 @@ import io.github.markpollack.prreview.model.AssessmentResult;
 import io.github.markpollack.prreview.model.BuildResult;
 import io.github.markpollack.prreview.model.ConflictReport;
 import io.github.markpollack.prreview.model.FixResult;
+import io.github.markpollack.prreview.model.FullReportRequest;
 import io.github.markpollack.prreview.model.PrContext;
 import io.github.markpollack.prreview.model.RebaseResult;
 import io.github.markpollack.prreview.model.ReviewReport;
@@ -22,17 +23,35 @@ import io.github.markpollack.judge.jury.Verdict;
 import io.github.markpollack.judge.result.Judgment;
 
 /**
- * Assembles a {@link ReviewReport} from all intermediate results stored in context.
+ * Assembles a {@link ReviewReport} on the arm where the build-health gate passed.
  *
  * <p>
- * Handles missing values gracefully — the early-report path will have empty assessments
- * and judgments.
+ * <b>One class became two.</b> In v1 this bean served both arms and read eight context
+ * keys, handling absence "gracefully" — which is what a step does when it cannot tell
+ * which path reached it. The v3 leaves dispatch different values, so the early arm is
+ * {@link AssembleEarlyReportStep} and the difference between the reports is a type
+ * difference rather than a run-time absence check.
+ *
+ * <p>
+ * <b>What the v3 leaf does not receive</b>: the raw assessment list and the judgment
+ * trail. Both are collections of a domain type, and the surface derives a binding from a
+ * producer of the <em>element</em> type only inside a {@code fork}; a
+ * {@code List<AssessmentResult>} parameter names no producer the graph can find. What the
+ * arm does carry is the quality verdict that summarizes them and the gate's own
+ * {@link io.github.markpollack.workflow.spec.v3.envelope.VerdictRecord}.
  */
-public class AssembleReportStep implements Step<Object, ReviewReport> {
+public class AssembleReportStep implements Step<Object, ReviewReport>,
+		io.github.markpollack.workflow.flows.v3.Step<FullReportRequest, ReviewReport> {
 
 	@Override
 	public String name() {
 		return "assemble-report";
+	}
+
+	@Override
+	public ReviewReport execute(FullReportRequest request) {
+		return new ReviewReport(request.context(), request.rebase(), request.conflicts(), request.build(), null,
+				List.of(), List.of(), Instant.now());
 	}
 
 	@Override

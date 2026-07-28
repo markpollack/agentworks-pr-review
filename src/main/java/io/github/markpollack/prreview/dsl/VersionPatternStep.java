@@ -7,6 +7,7 @@ import java.util.List;
 
 import io.github.markpollack.prreview.judges.VersionPatternJudge;
 import io.github.markpollack.prreview.model.PrContext;
+import io.github.markpollack.prreview.model.VersionPatternFinding;
 import io.github.markpollack.prreview.steps.FetchPrContextStep;
 import io.github.markpollack.workflow.core.AgentContext;
 import io.github.markpollack.workflow.flows.Step;
@@ -20,7 +21,8 @@ import io.github.markpollack.judge.result.JudgmentStatus;
  * T1 step: evaluates version migration patterns. This is NOT a gate — T1 failure records
  * the verdict and sets overall verdict to FAIL but does not short-circuit the pipeline.
  */
-public class VersionPatternStep implements Step<Object, Object> {
+public class VersionPatternStep implements Step<Object, Object>,
+		io.github.markpollack.workflow.flows.v3.Step<PrContext, VersionPatternFinding> {
 
 	private static final Logger logger = LoggerFactory.getLogger(VersionPatternStep.class);
 
@@ -39,8 +41,12 @@ public class VersionPatternStep implements Step<Object, Object> {
 
 	@Override
 	public Object execute(AgentContext ctx, Object input) {
-		PrContext prContext = ctx.require(FetchPrContextStep.PR_CONTEXT);
+		execute(ctx.require(FetchPrContextStep.PR_CONTEXT));
+		return input;
+	}
 
+	@Override
+	public VersionPatternFinding execute(PrContext prContext) {
 		JudgmentContext.Builder builder = JudgmentContext.builder()
 			.goal("Version pattern evaluation")
 			.agentOutput("Version pattern check for PR")
@@ -53,7 +59,7 @@ public class VersionPatternStep implements Step<Object, Object> {
 
 		logger.info("T1 verdict: {} — {}", judgment.status(), judgment.reasoning());
 
-		return input;
+		return new VersionPatternFinding(judgment.status(), judgment.reasoning());
 	}
 
 	@Override

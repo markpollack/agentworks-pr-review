@@ -31,7 +31,8 @@ import org.springframework.stereotype.Component;
 @Component
 @StepName("rebase-on-main")
 @Description("Rebases the PR branch onto main to check for conflicts")
-public class RebaseStep implements Step<PrContext, RebaseResult> {
+public class RebaseStep implements Step<PrContext, RebaseResult>,
+		io.github.markpollack.workflow.flows.v3.Step<PrContext, RebaseResult> {
 
 	public static final ContextKey<RebaseResult> REBASE_RESULT = ContextKey.of("rebase-result", RebaseResult.class);
 
@@ -55,6 +56,11 @@ public class RebaseStep implements Step<PrContext, RebaseResult> {
 
 	@Override
 	public RebaseResult execute(AgentContext ctx, PrContext input) {
+		return execute(input);
+	}
+
+	@Override
+	public RebaseResult execute(PrContext input) {
 		String branch = input.headBranch();
 		String reviewBranch = "review/pr-" + input.number();
 		int prNumber = input.number();
