@@ -94,7 +94,12 @@ final class OperationCatalogFactory {
 						+ " consumer the operation is not deployed, which would be false");
 			}
 			Class<?>[] io = declaredTypes(leaf);
+			// class + artifact (CONTRACT §13.3, DD-30) are BOTH absent, and deliberately: every
+			// leaf this deployment supplies is a plain operation, so an entry classed `workflow`
+			// would claim a child run nothing here executes — which run admission (§14.7) would
+			// then refuse. Absent class = a plain operation, which is exactly what these are.
 			entries.add(new CatalogEntry(declaration.ref(), OPERATION_VERSION, humanize(alias), describe(leaf),
+					null, null,
 					carried(inputSchema(io[0], dispatchKeys.getOrDefault(alias, Set.of())), requestTypeName(alias)),
 					carried(schemaOf(io[1], new LinkedHashSet<>()), io[1].getSimpleName()), null, null));
 		});
