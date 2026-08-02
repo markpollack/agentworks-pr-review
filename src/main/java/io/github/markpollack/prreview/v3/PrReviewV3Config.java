@@ -44,9 +44,9 @@ import org.springframework.context.annotation.Configuration;
  * is selected, and the v3 spec has to be emittable either way.
  *
  * <p>
- * The {@link WorkflowSpec} bean is the wiring's own test: {@code Flow.build()} refuses a
- * graph whose bindings it cannot derive, so a leaf whose declared types stop fitting the
- * graph fails application startup rather than emitting a wrong document.
+ * The {@link WorkflowSpec} bean is the wiring's own test: {@code Workflow.build()}
+ * refuses a graph whose bindings it cannot derive, so a leaf whose declared types stop
+ * fitting the graph fails application startup rather than emitting a wrong document.
  */
 @Configuration(proxyBeanMethods = false)
 public class PrReviewV3Config {

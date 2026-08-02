@@ -44,7 +44,7 @@ import static org.mockito.Mockito.mock;
  *
  * <p>
  * Two claims, and they are different. That the <b>wiring</b> holds is
- * {@link #springAssemblesTheSpecFromTheApplicationsOwnBeans()}: {@code Flow.build()}
+ * {@link #springAssemblesTheSpecFromTheApplicationsOwnBeans()}: {@code Workflow.build()}
  * refuses a graph whose bindings it cannot derive, so a leaf whose declared types stop
  * fitting the graph fails the context. That the <b>artifact</b> is current is
  * {@link #theCommittedSpecIsWhatTheDslEmitsRightNow()}: the resource the controller
