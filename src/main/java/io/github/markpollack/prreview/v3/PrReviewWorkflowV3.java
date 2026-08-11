@@ -2,7 +2,6 @@ package io.github.markpollack.prreview.v3;
 
 import java.time.Duration;
 
-import io.github.markpollack.judge.jury.Jury;
 import io.github.markpollack.prreview.dsl.AssembleEarlyReportStep;
 import io.github.markpollack.prreview.dsl.AssembleReportStep;
 import io.github.markpollack.prreview.dsl.CleanupStep;
@@ -15,13 +14,13 @@ import io.github.markpollack.prreview.steps.AssessCodeQualityStep;
 import io.github.markpollack.prreview.steps.ConflictDetectionStep;
 import io.github.markpollack.prreview.steps.FetchPrContextStep;
 import io.github.markpollack.prreview.steps.FixTestsStep;
-import io.github.markpollack.prreview.steps.GenerateReportStep;
 import io.github.markpollack.prreview.steps.RebaseStep;
 import io.github.markpollack.prreview.steps.RunTestsStep;
 import io.github.markpollack.prreview.steps.ShouldAttemptFixStep;
 import io.github.markpollack.workflow.flows.v3.ContextKey;
+import io.github.markpollack.workflow.flows.v3.JuryProvider;
 import io.github.markpollack.workflow.flows.v3.Workflow;
-import io.github.markpollack.workflow.spec.v3.WorkflowSpec;
+import io.github.markpollack.workflow.flows.v3.WorkflowEmission;
 
 /**
  * This application's PR-review pipeline, authored in the {@code workflow/v3alpha} DSL.
@@ -64,12 +63,12 @@ public final class PrReviewWorkflowV3 {
 	private PrReviewWorkflowV3() {
 	}
 
-	public static WorkflowSpec build(FetchPrContextStep fetchPrContext, RebaseStep rebaseOnMain,
+	public static WorkflowEmission build(FetchPrContextStep fetchPrContext, RebaseStep rebaseOnMain,
 			ConflictDetectionStep detectConflicts, RunTestsStep runTests, ShouldAttemptFixStep shouldAttemptFix,
 			FixTestsStep fixTests, CleanupStep cleanupBranch, VersionPatternStep versionPatternCheck,
 			AssessCodeQualityStep assessCodeQuality, AssessBackportStep assessBackport, QualityJudgeStep qualityJudge,
 			AssembleReportStep assembleReport, AssembleEarlyReportStep assembleEarlyReport,
-			GenerateReportStep generateReport, Jury buildHealthJury, FixPolicy fixPolicy) {
+			GenerateReportV3Step generateReport, JuryProvider buildHealthJury, FixPolicy fixPolicy) {
 
 		return Workflow.define("pr-review")
 			.version("1.0.0")
@@ -78,48 +77,60 @@ public final class PrReviewWorkflowV3 {
 			.retry(2, Duration.ofSeconds(1), 2.0)
 
 			.step(fetchPrContext)
+			.usingProvider("fetch-pr-context")
 			.then(rebaseOnMain)
+			.usingProvider("rebase-on-main")
 			.then(detectConflicts)
+			.usingProvider("detect-conflicts")
 			// The timeout is the operation's, not this node's: run-tests is placed twice,
 			// and a node-level bound would leave 'retest' running unbounded.
 			.then(runTests)
+			.usingProvider("run-tests")
 			.timingOutAfter(Duration.ofMinutes(10))
 			.atEveryUse()
 			.writing(BUILD_RESULT)
 
 			.decision(shouldAttemptFix)
+			.usingProvider("should-attempt-fix")
 			.configuring(fixPolicy)
 			.on("fix",
 					fix -> fix.then(fixTests)
+						.usingProvider("fix-tests")
 						.retrying(1, Duration.ofSeconds(5), 2.0)
 						.then("retest", runTests)
+						.usingProvider("run-tests")
 						.writing(BUILD_RESULT))
 			.on("skip")
 
 			.then(cleanupBranch)
+			.usingProvider("cleanup-branch")
 
-			// The gateRef is derived, not written: 'judge:' is a fact about the injected
-			// bean's type and the rest is this node's authored name.
 			.gate("build-health", buildHealthJury)
 			.atThreshold(0.7)
 			.submitting(BuildResult.class)
 			.onPass(pass -> pass.then(versionPatternCheck)
+				.usingProvider("version-pattern-check")
 				.parallel("assess")
 				.of(assessCodeQuality, assessBackport)
 				.merged()
 				.maxConcurrency(2)
 				.then(qualityJudge)
+				.usingProvider("quality-judge")
 				// Placed once, so the bound is this node's.
 				.then(assembleReport)
+				.usingProvider("assemble-report")
 				.timingOutAfter(Duration.ofMinutes(2))
 				.then(generateReport)
+				.usingProvider("generate-report")
 				.terminate("published"))
 			.onFail(early -> early.then(assembleEarlyReport)
+				.usingProvider("assemble-early-report")
 				.timingOutAfter(Duration.ofMinutes(2))
 				.then("generate-early-report", generateReport)
+				.usingProvider("generate-report")
 				.terminate("early-published"))
 
-			.build();
+			.buildWithEvidence();
 	}
 
 }

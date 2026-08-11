@@ -1,0 +1,107 @@
+{
+  "apiVersion" : "workflow/v3alpha",
+  "kind" : "WorkflowArtifactRecord",
+  "producer" : {
+    "language" : "java",
+    "sdk" : "agent-workflow-java",
+    "version" : "0.11.0-SNAPSHOT"
+  },
+  "sources" : {
+    "assemble-early-report" : {
+      "startLine" : 126,
+      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
+      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
+    },
+    "assemble-report" : {
+      "startLine" : 120,
+      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
+      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
+    },
+    "assess" : {
+      "startLine" : 113,
+      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
+      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
+    },
+    "assess-join" : {
+      "startLine" : 113,
+      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
+      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
+    },
+    "build-health" : {
+      "startLine" : 108,
+      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
+      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
+    },
+    "cleanup-branch" : {
+      "startLine" : 105,
+      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
+      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
+    },
+    "detect-conflicts" : {
+      "startLine" : 83,
+      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
+      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
+    },
+    "early-published" : {
+      "startLine" : 131,
+      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
+      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
+    },
+    "fetch-pr-context" : {
+      "startLine" : 79,
+      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
+      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
+    },
+    "fix-tests" : {
+      "startLine" : 97,
+      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
+      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
+    },
+    "generate-early-report" : {
+      "startLine" : 129,
+      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
+      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
+    },
+    "generate-report" : {
+      "startLine" : 123,
+      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
+      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
+    },
+    "published" : {
+      "startLine" : 125,
+      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
+      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
+    },
+    "quality-judge" : {
+      "startLine" : 117,
+      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
+      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
+    },
+    "rebase-on-main" : {
+      "startLine" : 81,
+      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
+      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
+    },
+    "retest" : {
+      "startLine" : 100,
+      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
+      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
+    },
+    "run-tests" : {
+      "startLine" : 87,
+      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
+      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
+    },
+    "should-attempt-fix" : {
+      "startLine" : 93,
+      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
+      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
+    },
+    "version-pattern-check" : {
+      "startLine" : 111,
+      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
+      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
+    }
+  },
+  "specHash" : "sha256:30c353a540087be764a1bec542f3bb999d97a9412ad78653e5583ff859f7e207"
+}

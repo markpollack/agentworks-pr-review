@@ -27,8 +27,13 @@ import io.github.markpollack.prreview.steps.RebaseStep;
 import io.github.markpollack.prreview.steps.RunTestsStep;
 import io.github.markpollack.prreview.steps.ShouldAttemptFixStep;
 import io.github.markpollack.workflow.flows.v3.Step;
+import io.github.markpollack.workflow.flows.v3.JuryProvider;
+import io.github.markpollack.workflow.flows.v3.WorkflowEmission;
 import io.github.markpollack.workflow.spec.v3.WorkflowSpec;
-import io.github.markpollack.workflow.spec.v3.envelope.OperationCatalog;
+import io.github.markpollack.workflow.spec.v3.catalog.WorkflowCatalogSelector;
+import io.github.markpollack.workflow.spec.v3.envelope.CuratedCatalog;
+import io.github.markpollack.workflow.spec.v3.envelope.WorkflowArtifactRecord;
+import io.github.markpollack.workflow.spec.v3.envelope.WorkflowCatalogSelection;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -76,6 +81,11 @@ public class PrReviewV3Config {
 		return new AssembleEarlyReportStep();
 	}
 
+	@Bean
+	GenerateReportV3Step generateReportV3Step(GenerateReportStep generateReportStep) {
+		return new GenerateReportV3Step(generateReportStep);
+	}
+
 	/**
 	 * The jury the build-health gate is scored by — one tier, the deterministic
 	 * {@link BuildJudge}, which is exactly what the v1 {@code BuildGate} delegated to.
@@ -92,6 +102,11 @@ public class PrReviewV3Config {
 		return SimpleJury.builder().votingStrategy(new ConsensusStrategy()).judge(buildJudge).build();
 	}
 
+	@Bean
+	JuryProvider buildHealthJuryProvider(Jury buildHealthJury) {
+		return JuryProvider.of("build-health-jury", "pr-review.build-health-jury", 1, buildHealthJury);
+	}
+
 	/**
 	 * The fix policy as the artifact carries it. {@code workshop.fix-tests} is a
 	 * deployment property; making it the decision node's {@code config} puts it inside
@@ -104,16 +119,26 @@ public class PrReviewV3Config {
 	}
 
 	@Bean
-	WorkflowSpec prReviewSpecV3(FetchPrContextStep fetchPrContext, RebaseStep rebaseOnMain,
+	WorkflowEmission prReviewEmissionV3(FetchPrContextStep fetchPrContext, RebaseStep rebaseOnMain,
 			ConflictDetectionStep detectConflicts, RunTestsStep runTests, ShouldAttemptFixStep shouldAttemptFix,
 			FixTestsStep fixTests, CleanupStep cleanupBranch, VersionPatternStep versionPatternCheck,
 			AssessCodeQualityStep assessCodeQuality, AssessBackportStep assessBackport, QualityJudgeStep qualityJudge,
 			AssembleReportStep assembleReport, AssembleEarlyReportStep assembleEarlyReport,
-			GenerateReportStep generateReport, Jury buildHealthJury, FixPolicy fixPolicy) {
+			GenerateReportV3Step generateReport, JuryProvider buildHealthJuryProvider, FixPolicy fixPolicy) {
 
 		return PrReviewWorkflowV3.build(fetchPrContext, rebaseOnMain, detectConflicts, runTests, shouldAttemptFix,
 				fixTests, cleanupBranch, versionPatternCheck, assessCodeQuality, assessBackport, qualityJudge,
-				assembleReport, assembleEarlyReport, generateReport, buildHealthJury, fixPolicy);
+				assembleReport, assembleEarlyReport, generateReport, buildHealthJuryProvider, fixPolicy);
+	}
+
+	@Bean
+	WorkflowSpec prReviewSpecV3(WorkflowEmission prReviewEmissionV3) {
+		return prReviewEmissionV3.spec();
+	}
+
+	@Bean
+	WorkflowArtifactRecord prReviewArtifactRecordV3(WorkflowEmission prReviewEmissionV3) {
+		return prReviewEmissionV3.artifactRecord();
 	}
 
 	/**
@@ -127,7 +152,8 @@ public class PrReviewV3Config {
 	 * quietly omits an operation.
 	 */
 	@Bean
-	OperationCatalog prReviewCatalogV3(WorkflowSpec prReviewSpecV3, List<Step<?, ?>> leaves) {
+	CuratedCatalog prReviewCatalogV3(WorkflowSpec prReviewSpecV3, List<Step<?, ?>> leaves,
+			List<JuryProvider> juryProviders) {
 		Map<String, Step<?, ?>> byName = new TreeMap<>();
 		for (Step<?, ?> leaf : leaves) {
 			Step<?, ?> clash = byName.put(leaf.name(), leaf);
@@ -136,7 +162,19 @@ public class PrReviewV3Config {
 						+ clash.getClass().getName() + " and " + leaf.getClass().getName());
 			}
 		}
-		return OperationCatalogFactory.from(prReviewSpecV3, byName);
+		Map<String, JuryProvider> juriesByAlias = new TreeMap<>();
+		for (JuryProvider jury : juryProviders) {
+			JuryProvider clash = juriesByAlias.put(jury.alias(), jury);
+			if (clash != null) {
+				throw new IllegalStateException("two beans claim the jury alias '" + jury.alias() + "'");
+			}
+		}
+		return CuratedCatalogFactory.from(prReviewSpecV3, byName, juriesByAlias);
+	}
+
+	@Bean
+	WorkflowCatalogSelection prReviewCatalogSelectionV3(CuratedCatalog prReviewCatalogV3) {
+		return new WorkflowCatalogSelector().select(prReviewCatalogV3, "pr-review");
 	}
 
 }

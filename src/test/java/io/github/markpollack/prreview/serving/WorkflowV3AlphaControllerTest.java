@@ -17,13 +17,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Producer-side contract tests (CONTRACT C-2/§19; ROADMAP 1.2): every served payload
- * validates against the committed exemplar schemas (loaded from the workflow-spec jar —
- * the same artifacts the engine's own gate runs), and the served view/catalog cohere:
- * real specHash, real digests, ordered entries, zero advisories against this deployment's
- * own catalog instance.
- */
+/** Producer-side schema and coherence tests for every served v3alpha artifact. */
 class WorkflowV3AlphaControllerTest {
 
 	private static final String ID_PREFIX = "https://raw.githubusercontent.com/markpollack/agent-workflow/main/spec/v3alpha/";
@@ -34,47 +28,50 @@ class WorkflowV3AlphaControllerTest {
 	private final MockMvc mvc = MockMvcBuilders.standaloneSetup(new WorkflowV3AlphaController()).build();
 
 	@Test
-	void servedViewValidatesAgainstTheCommittedProducerSchema() throws Exception {
+	void servedViewValidatesAndCoheres() throws Exception {
 		JsonNode view = getJson("/workflow/v3alpha/view");
-
-		JsonSchema schema = this.schemaFactory.getSchema(SchemaLocation.of(ID_PREFIX + "workflow-view.schema.json"));
-		Set<ValidationMessage> messages = schema.validate(view);
-		assertThat(messages).as("served WorkflowView validates against workflow-view.schema.json").isEmpty();
-	}
-
-	@Test
-	void servedViewCoheres() throws Exception {
-		JsonNode view = getJson("/workflow/v3alpha/view");
-
-		assertThat(view.get("derived").get("specHash").asText())
-			.as("derived.specHash is the real C-6 digest of the embedded spec")
+		assertValid(view, "workflow-view.schema.json");
+		assertThat(view.path("derived").path("specHash").asText())
 			.isEqualTo(V3ServingFixtures.jcsDigest(view.get("spec")));
-		assertThat(view.get("diagnostics")).as("the deployment's own catalog resolves every ref — zero advisories")
-			.isEmpty();
-		assertThat(view.get("spec").get("metadata").get("name").asText()).isEqualTo("pr-review");
+		assertThat(view.path("evidence").path("workflowArtifactRecordHash").asText()).startsWith("sha256:");
+		assertThat(view.path("derived").path("sources")).hasSize(19);
+		assertThat(view.path("diagnostics")).isEmpty();
 	}
 
 	@Test
 	void servedCatalogValidatesAndCoheres() throws Exception {
 		JsonNode catalog = getJson("/workflow/v3alpha/catalog");
-
-		JsonSchema schema = this.schemaFactory
-			.getSchema(SchemaLocation.of(ID_PREFIX + "operation-catalog.schema.json"));
-		assertThat(schema.validate(catalog)).as("served catalog validates against operation-catalog.schema.json")
-			.isEmpty();
-
-		assertThat(catalog.get("instance").get("id").asText()).isEqualTo("agentworks-pr-review-app@2026-07-28.1");
-		String previousRef = "";
-		for (JsonNode entry : catalog.get("operations")) {
-			assertThat(entry.get("ref").asText()).as("entries ordered lexicographically by ref (§13.1)")
-				.isGreaterThan(previousRef);
-			previousRef = entry.get("ref").asText();
+		assertValid(catalog, "curated-catalog.schema.json");
+		assertThat(catalog.path("workflows")).hasSize(1);
+		assertThat(catalog.path("contracts")).hasSize(15);
+		String previous = "";
+		for (JsonNode entry : catalog.path("contracts")) {
+			String name = entry.path("contract").path("name").asText();
+			assertThat(name).isGreaterThan(previous);
+			previous = name;
 			for (String side : new String[] { "input", "output" }) {
-				assertThat(entry.get(side).get("digest").asText())
-					.as("%s %s digest is the real sha256 over JCS bytes (C-6)", entry.get("ref").asText(), side)
-					.isEqualTo(V3ServingFixtures.jcsDigest(entry.get(side).get("schema")));
+				JsonNode carried = entry.path("contract").path(side);
+				assertThat(carried.path("digest").asText())
+					.isEqualTo(V3ServingFixtures.jcsDigest(carried.path("schema")));
 			}
 		}
+	}
+
+	@Test
+	void servedSelectionAndArtifactRecordValidate() throws Exception {
+		JsonNode selection = getJson("/workflow/v3alpha/selection");
+		JsonNode record = getJson("/workflow/v3alpha/artifact-record");
+		assertValid(selection, "workflow-catalog-selection.schema.json");
+		assertValid(record, "workflow-artifact-record.schema.json");
+		assertThat(selection.path("root").path("specHash")).isEqualTo(record.path("specHash"));
+		assertThat(selection.path("contracts")).hasSize(15);
+		assertThat(record.path("sources")).hasSize(19);
+	}
+
+	private void assertValid(JsonNode document, String schemaName) {
+		JsonSchema schema = this.schemaFactory.getSchema(SchemaLocation.of(ID_PREFIX + schemaName));
+		Set<ValidationMessage> messages = schema.validate(document);
+		assertThat(messages).as("served document validates against %s", schemaName).isEmpty();
 	}
 
 	private JsonNode getJson(String uri) throws Exception {

@@ -144,12 +144,7 @@
       }
     },
     "kind" : "operation",
-    "operation" : "fetch-pr-context",
-    "source" : {
-      "startLine" : 80,
-      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
-      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
-    }
+    "operation" : "fetch-pr-context"
   }, {
     "id" : "rebase-on-main",
     "input" : {
@@ -158,12 +153,7 @@
       }
     },
     "kind" : "operation",
-    "operation" : "rebase-on-main",
-    "source" : {
-      "startLine" : 81,
-      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
-      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
-    }
+    "operation" : "rebase-on-main"
   }, {
     "id" : "detect-conflicts",
     "input" : {
@@ -172,12 +162,7 @@
       }
     },
     "kind" : "operation",
-    "operation" : "detect-conflicts",
-    "source" : {
-      "startLine" : 82,
-      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
-      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
-    }
+    "operation" : "detect-conflicts"
   }, {
     "contextWrites" : {
       "build.result" : {
@@ -194,12 +179,7 @@
       }
     },
     "kind" : "operation",
-    "operation" : "run-tests",
-    "source" : {
-      "startLine" : 85,
-      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
-      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
-    }
+    "operation" : "run-tests"
   }, {
     "config" : {
       "fixTestsEnabled" : false
@@ -218,12 +198,7 @@
     },
     "kind" : "decision",
     "operation" : "should-attempt-fix",
-    "outcomes" : [ "fix", "skip" ],
-    "source" : {
-      "startLine" : 90,
-      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
-      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
-    }
+    "outcomes" : [ "fix", "skip" ]
   }, {
     "id" : "fix-tests",
     "input" : {
@@ -245,11 +220,6 @@
         },
         "maxAttempts" : 1
       }
-    },
-    "source" : {
-      "startLine" : 93,
-      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
-      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
     }
   }, {
     "contextWrites" : {
@@ -267,12 +237,7 @@
       }
     },
     "kind" : "operation",
-    "operation" : "run-tests",
-    "source" : {
-      "startLine" : 95,
-      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
-      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
-    }
+    "operation" : "run-tests"
   }, {
     "id" : "cleanup-branch",
     "input" : {
@@ -281,12 +246,7 @@
       }
     },
     "kind" : "operation",
-    "operation" : "cleanup-branch",
-    "source" : {
-      "startLine" : 99,
-      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
-      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
-    }
+    "operation" : "cleanup-branch"
   }, {
     "id" : "build-health",
     "input" : {
@@ -295,16 +255,11 @@
       }
     },
     "judge" : {
-      "gateRef" : "judge:pr-review.build-health:v1",
+      "jury" : "build-health-jury",
       "threshold" : 0.7
     },
     "kind" : "gate",
-    "mode" : "judge",
-    "source" : {
-      "startLine" : 103,
-      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
-      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
-    }
+    "mode" : "judge"
   }, {
     "id" : "version-pattern-check",
     "input" : {
@@ -313,12 +268,7 @@
       }
     },
     "kind" : "operation",
-    "operation" : "version-pattern-check",
-    "source" : {
-      "startLine" : 106,
-      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
-      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
-    }
+    "operation" : "version-pattern-check"
   }, {
     "branches" : [ {
       "id" : "assess-code-quality",
@@ -340,21 +290,11 @@
     "id" : "assess",
     "join" : "assess-join",
     "kind" : "parallel",
-    "maxConcurrency" : 2,
-    "source" : {
-      "startLine" : 107,
-      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
-      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
-    }
+    "maxConcurrency" : 2
   }, {
     "id" : "assess-join",
     "kind" : "join",
-    "mode" : "ENRICHMENT",
-    "source" : {
-      "startLine" : 107,
-      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
-      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
-    }
+    "mode" : "ENRICHMENT"
   }, {
     "id" : "quality-judge",
     "input" : {
@@ -363,12 +303,7 @@
       }
     },
     "kind" : "operation",
-    "operation" : "quality-judge",
-    "source" : {
-      "startLine" : 111,
-      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
-      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
-    }
+    "operation" : "quality-judge"
   }, {
     "id" : "assemble-report",
     "input" : {
@@ -397,11 +332,6 @@
       "timeout" : {
         "perAttemptMillis" : 120000
       }
-    },
-    "source" : {
-      "startLine" : 113,
-      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
-      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
     }
   }, {
     "id" : "generate-report",
@@ -411,22 +341,12 @@
       }
     },
     "kind" : "operation",
-    "operation" : "generate-report",
-    "source" : {
-      "startLine" : 115,
-      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
-      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
-    }
+    "operation" : "generate-report"
   }, {
     "id" : "published",
     "kind" : "terminate",
     "result" : {
       "from" : "$node.generate-report.output"
-    },
-    "source" : {
-      "startLine" : 116,
-      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
-      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
     },
     "status" : "completed"
   }, {
@@ -454,11 +374,6 @@
       "timeout" : {
         "perAttemptMillis" : 120000
       }
-    },
-    "source" : {
-      "startLine" : 117,
-      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
-      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
     }
   }, {
     "id" : "generate-early-report",
@@ -468,73 +383,17 @@
       }
     },
     "kind" : "operation",
-    "operation" : "generate-report",
-    "source" : {
-      "startLine" : 119,
-      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
-      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
-    }
+    "operation" : "generate-report"
   }, {
     "id" : "early-published",
     "kind" : "terminate",
     "result" : {
       "from" : "$node.generate-early-report.output"
     },
-    "source" : {
-      "startLine" : 120,
-      "symbol" : "io.github.markpollack.prreview.v3.PrReviewWorkflowV3#build",
-      "uri" : "src/main/java/io/github/markpollack/prreview/v3/PrReviewWorkflowV3.java"
-    },
     "status" : "completed"
   } ],
-  "operations" : {
-    "assemble-early-report" : {
-      "ref" : "java:pr-review.assemble-early-report:v1"
-    },
-    "assemble-report" : {
-      "ref" : "java:pr-review.assemble-report:v1"
-    },
-    "assess-backport" : {
-      "ref" : "java:pr-review.assess-backport:v1"
-    },
-    "assess-code-quality" : {
-      "ref" : "java:pr-review.assess-code-quality:v1"
-    },
-    "cleanup-branch" : {
-      "ref" : "java:pr-review.cleanup-branch:v1"
-    },
-    "detect-conflicts" : {
-      "ref" : "java:pr-review.detect-conflicts:v1"
-    },
-    "fetch-pr-context" : {
-      "ref" : "java:pr-review.fetch-pr-context:v1"
-    },
-    "fix-tests" : {
-      "ref" : "java:pr-review.fix-tests:v1"
-    },
-    "generate-report" : {
-      "ref" : "java:pr-review.generate-report:v1"
-    },
-    "quality-judge" : {
-      "ref" : "java:pr-review.quality-judge:v1"
-    },
-    "rebase-on-main" : {
-      "ref" : "java:pr-review.rebase-on-main:v1"
-    },
-    "run-tests" : {
-      "defaultPolicies" : {
-        "timeout" : {
-          "perAttemptMillis" : 600000
-        }
-      },
-      "ref" : "java:pr-review.run-tests:v1"
-    },
-    "should-attempt-fix" : {
-      "ref" : "java:pr-review.should-attempt-fix:v1"
-    },
-    "version-pattern-check" : {
-      "ref" : "java:pr-review.version-pattern-check:v1"
-    }
+  "outputSchema" : {
+    "type" : "string"
   },
   "policies" : {
     "retry" : {
@@ -544,6 +403,103 @@
         "strategy" : "exponential"
       },
       "maxAttempts" : 2
+    }
+  },
+  "providers" : {
+    "assemble-early-report" : {
+      "contract" : {
+        "name" : "pr-review.assemble-early-report",
+        "version" : 1
+      }
+    },
+    "assemble-report" : {
+      "contract" : {
+        "name" : "pr-review.assemble-report",
+        "version" : 1
+      }
+    },
+    "assess-backport" : {
+      "contract" : {
+        "name" : "pr-review.assess-backport",
+        "version" : 1
+      }
+    },
+    "assess-code-quality" : {
+      "contract" : {
+        "name" : "pr-review.assess-code-quality",
+        "version" : 1
+      }
+    },
+    "build-health-jury" : {
+      "contract" : {
+        "name" : "pr-review.build-health-jury",
+        "version" : 1
+      }
+    },
+    "cleanup-branch" : {
+      "contract" : {
+        "name" : "pr-review.cleanup-branch",
+        "version" : 1
+      }
+    },
+    "detect-conflicts" : {
+      "contract" : {
+        "name" : "pr-review.detect-conflicts",
+        "version" : 1
+      }
+    },
+    "fetch-pr-context" : {
+      "contract" : {
+        "name" : "pr-review.fetch-pr-context",
+        "version" : 1
+      }
+    },
+    "fix-tests" : {
+      "contract" : {
+        "name" : "pr-review.fix-tests",
+        "version" : 1
+      }
+    },
+    "generate-report" : {
+      "contract" : {
+        "name" : "pr-review.generate-report",
+        "version" : 1
+      }
+    },
+    "quality-judge" : {
+      "contract" : {
+        "name" : "pr-review.quality-judge",
+        "version" : 1
+      }
+    },
+    "rebase-on-main" : {
+      "contract" : {
+        "name" : "pr-review.rebase-on-main",
+        "version" : 1
+      }
+    },
+    "run-tests" : {
+      "contract" : {
+        "name" : "pr-review.run-tests",
+        "version" : 1
+      },
+      "defaultPolicies" : {
+        "timeout" : {
+          "perAttemptMillis" : 600000
+        }
+      }
+    },
+    "should-attempt-fix" : {
+      "contract" : {
+        "name" : "pr-review.should-attempt-fix",
+        "version" : 1
+      }
+    },
+    "version-pattern-check" : {
+      "contract" : {
+        "name" : "pr-review.version-pattern-check",
+        "version" : 1
+      }
     }
   }
 }
