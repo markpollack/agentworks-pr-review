@@ -81,14 +81,7 @@ public class VersionPatternStep implements Step<Object, Object>,
 	}
 
 	private static Judgment withMeta(Judgment judgment) {
-		return Judgment.builder()
-			.score(judgment.score())
-			.status(judgment.status())
-			.reasoning(judgment.reasoning())
-			.checks(judgment.checks())
-			.metadata("judge_name", "Version Pattern Judge")
-			.metadata("tier", "T1")
-			.build();
+		return judgment.toBuilder().metadata("judge_name", "Version Pattern Judge").metadata("tier", "T1").build();
 	}
 
 }

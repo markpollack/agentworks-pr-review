@@ -46,7 +46,26 @@ class GenerateReportStepTest {
 		ReviewReport report = TestAssessments.failedBuildReport();
 		String markdown = this.step.renderMarkdown(report);
 
-		assertThat(markdown).contains("FAIL — One or more judges flagged issues");
+		assertThat(markdown).contains("FAIL — One or more judges flagged issues")
+			.contains("### FAIL")
+			.contains("Build judge: 3/4 checks passed. Failures: tests-passed (Tests failed)")
+			.doesNotContain("- **Score**:")
+			.doesNotContain("Score: null")
+			.doesNotContain("Score: 0")
+			.doesNotContain("Score: N/A");
+	}
+
+	@Test
+	void renderMarkdown_passingReport_onlyShowsMeasuredQualityScore() {
+		String markdown = this.step.renderMarkdown(TestAssessments.passingReport());
+		String judgmentSection = markdown.substring(markdown.indexOf("## Phase 2: Judge Cascade"),
+				markdown.indexOf("## Phase 3: AI Assessments"));
+
+		assertThat(judgmentSection).containsOnlyOnce("- **Score**: 0.895")
+			.doesNotContain("Score: null")
+			.doesNotContain("Score: 0\n")
+			.doesNotContain("Score: N/A");
+		assertThat(judgmentSection.lines().filter(line -> line.startsWith("- **Score**:")).count()).isEqualTo(1);
 	}
 
 	@Test

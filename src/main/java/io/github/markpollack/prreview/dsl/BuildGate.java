@@ -76,14 +76,7 @@ public class BuildGate implements Gate<Object> {
 	}
 
 	private static Judgment withMeta(Judgment judgment) {
-		return Judgment.builder()
-			.score(judgment.score())
-			.status(judgment.status())
-			.reasoning(judgment.reasoning())
-			.checks(judgment.checks())
-			.metadata("judge_name", "Build Judge")
-			.metadata("tier", "T0")
-			.build();
+		return judgment.toBuilder().metadata("judge_name", "Build Judge").metadata("tier", "T0").build();
 	}
 
 	private static void putIfNotNull(JudgmentContext.Builder builder, String key, Object value) {
