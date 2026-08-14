@@ -296,7 +296,7 @@
         "digest" : {
           "algorithm" : "sha256",
           "profile" : "raw-file/v1",
-          "value" : "f92422ecfab581f0a504ce1624f10ebd4cf8aeaecdcec969fdc97dbd3c5fe243"
+          "value" : "b4fa064738c2561ca87ab02ffd1410247bb373676d1d227cf6837aefa57ffb40"
         },
         "kind" : "classpath",
         "locator" : "/io/github/markpollack/prreview/dsl/AssembleReportStep.class"
@@ -1377,7 +1377,7 @@
         "digest" : {
           "algorithm" : "sha256",
           "profile" : "raw-file/v1",
-          "value" : "f3f28e05e4502849413794e2c7368abf38591ea98e863c14a61b1fb1346dc1c7"
+          "value" : "65b518e1de2500ae532d66ac5fc9eae86386e90968df293d0301c7d1eadbfebe"
         },
         "kind" : "classpath",
         "locator" : "/io/github/markpollack/prreview/dsl/QualityJudgeStep.class"
@@ -1736,7 +1736,7 @@
         "digest" : {
           "algorithm" : "sha256",
           "profile" : "raw-file/v1",
-          "value" : "419fd8a5d9f2620782da9c7741d8b71fbc856b2979342c35cc6315c580013990"
+          "value" : "3f4bbd79ff2039349daf563933f8f3a79f1711f45fa9d4074e6d9a508818ef0e"
         },
         "kind" : "classpath",
         "locator" : "/io/github/markpollack/prreview/dsl/VersionPatternStep.class"
