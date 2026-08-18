@@ -17,7 +17,7 @@
     "contract" : {
       "displayName" : "Assemble early report",
       "input" : {
-        "digest" : "sha256:2daa229d302b088cb2fdc0840aa3ed918b3962e037a37d78fcc6da1ad04ef2cc",
+        "digest" : "sha256:d5e69f5c259d66b0fa02507e8ceb8c069db4fccae6a13f431e692e6c3a0dda3f",
         "schema" : {
           "additionalProperties" : false,
           "properties" : {
@@ -124,23 +124,53 @@
             "verdict" : {
               "additionalProperties" : false,
               "properties" : {
-                "aggregatedScore" : {
-                  "type" : "number"
+                "mode" : {
+                  "type" : "string"
                 },
-                "judgments" : {
+                "outcome" : {
+                  "type" : "string"
+                },
+                "policy" : {
+                  "additionalProperties" : false,
+                  "properties" : {
+                    "judge" : {
+                      "additionalProperties" : false,
+                      "properties" : {
+                        "threshold" : {
+                          "type" : "number"
+                        }
+                      },
+                      "required" : [ "threshold" ],
+                      "type" : "object"
+                    },
+                    "suspend" : {
+                      "additionalProperties" : false,
+                      "properties" : {
+                        "required" : {
+                          "type" : "integer"
+                        },
+                        "strategy" : {
+                          "type" : "string"
+                        },
+                        "timeout" : {
+                          "type" : "string"
+                        }
+                      },
+                      "required" : [ "strategy", "required", "timeout" ],
+                      "type" : "object"
+                    }
+                  },
+                  "required" : [ "judge", "suspend" ],
+                  "type" : "object"
+                },
+                "resolution" : {
+                  "type" : "string"
+                },
+                "tiers" : {
                   "type" : "array"
-                },
-                "threshold" : {
-                  "type" : "number"
-                },
-                "tier" : {
-                  "type" : "string"
-                },
-                "verdict" : {
-                  "type" : "string"
                 }
               },
-              "required" : [ "verdict", "aggregatedScore", "threshold", "judgments", "tier" ],
+              "required" : [ "mode", "policy", "resolution", "tiers", "outcome" ],
               "type" : "object"
             }
           },
@@ -307,7 +337,7 @@
     "contract" : {
       "displayName" : "Assemble report",
       "input" : {
-        "digest" : "sha256:b345642ab70413bfe0c5919397d6c06f5dbb0b98fe3971cb8c4df5ad8f279fc2",
+        "digest" : "sha256:6a417b6f750994a8d28e74594fe7f1836707ca1d2d834cc5899eee2857e6c351",
         "schema" : {
           "additionalProperties" : false,
           "properties" : {
@@ -427,23 +457,53 @@
             "verdict" : {
               "additionalProperties" : false,
               "properties" : {
-                "aggregatedScore" : {
-                  "type" : "number"
+                "mode" : {
+                  "type" : "string"
                 },
-                "judgments" : {
+                "outcome" : {
+                  "type" : "string"
+                },
+                "policy" : {
+                  "additionalProperties" : false,
+                  "properties" : {
+                    "judge" : {
+                      "additionalProperties" : false,
+                      "properties" : {
+                        "threshold" : {
+                          "type" : "number"
+                        }
+                      },
+                      "required" : [ "threshold" ],
+                      "type" : "object"
+                    },
+                    "suspend" : {
+                      "additionalProperties" : false,
+                      "properties" : {
+                        "required" : {
+                          "type" : "integer"
+                        },
+                        "strategy" : {
+                          "type" : "string"
+                        },
+                        "timeout" : {
+                          "type" : "string"
+                        }
+                      },
+                      "required" : [ "strategy", "required", "timeout" ],
+                      "type" : "object"
+                    }
+                  },
+                  "required" : [ "judge", "suspend" ],
+                  "type" : "object"
+                },
+                "resolution" : {
+                  "type" : "string"
+                },
+                "tiers" : {
                   "type" : "array"
-                },
-                "threshold" : {
-                  "type" : "number"
-                },
-                "tier" : {
-                  "type" : "string"
-                },
-                "verdict" : {
-                  "type" : "string"
                 }
               },
-              "required" : [ "verdict", "aggregatedScore", "threshold", "judgments", "tier" ],
+              "required" : [ "mode", "policy", "resolution", "tiers", "outcome" ],
               "type" : "object"
             }
           },
