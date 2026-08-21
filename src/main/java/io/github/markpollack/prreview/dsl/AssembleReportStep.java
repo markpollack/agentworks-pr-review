@@ -38,7 +38,7 @@ import io.github.markpollack.judge.result.Judgment;
  * producer of the <em>element</em> type only inside a {@code fork}; a
  * {@code List<AssessmentResult>} parameter names no producer the graph can find. What the
  * arm does carry is the quality verdict that summarizes them and the gate's own
- * {@link io.github.markpollack.workflow.spec.v3.envelope.VerdictRecord}.
+ * {@link io.github.markpollack.workflow.spec.v3.envelope.GateEvaluation}.
  */
 public class AssembleReportStep implements Step<Object, ReviewReport>,
 		io.github.markpollack.workflow.flows.v3.Step<FullReportRequest, ReviewReport> {
@@ -91,15 +91,17 @@ public class AssembleReportStep implements Step<Object, ReviewReport>,
 		if (!(verdictObj instanceof Verdict verdict)) {
 			return;
 		}
-		if (verdict.subVerdicts() != null && !verdict.subVerdicts().isEmpty()) {
-			for (Verdict sub : verdict.subVerdicts()) {
-				collectJudgments(sub, out);
+		if (!verdict.compositeAttempts().isEmpty()) {
+			for (var attempt : verdict.compositeAttempts()) {
+				if (attempt.verdict() != null) {
+					collectJudgments(attempt.verdict(), out);
+				}
 			}
 		}
-		else if (verdict.individual() != null && !verdict.individual().isEmpty()) {
+		else if (!verdict.individual().isEmpty()) {
 			out.addAll(verdict.individual());
 		}
-		else if (verdict.aggregated() != null) {
+		else {
 			out.add(verdict.aggregated());
 		}
 	}

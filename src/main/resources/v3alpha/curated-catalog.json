@@ -1,0 +1,2396 @@
+{
+  "apiVersion" : "workflow/v3alpha",
+  "contracts" : [ {
+    "binding" : {
+      "artifact" : {
+        "digest" : {
+          "algorithm" : "sha256",
+          "profile" : "raw-file/v1",
+          "value" : "e333a74ed4f08809775a44080d7d8db47170f051d4de3c9a267cfde39e0416db"
+        },
+        "kind" : "classpath",
+        "locator" : "/io/github/markpollack/prreview/dsl/AssembleEarlyReportStep.class"
+      },
+      "entryPoint" : "io.github.markpollack.prreview.dsl.AssembleEarlyReportStep",
+      "runtime" : "java"
+    },
+    "contract" : {
+      "displayName" : "Assemble early report",
+      "input" : {
+        "digest" : "sha256:d5e69f5c259d66b0fa02507e8ceb8c069db4fccae6a13f431e692e6c3a0dda3f",
+        "schema" : {
+          "additionalProperties" : false,
+          "properties" : {
+            "build" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "durationMs" : {
+                  "type" : "integer"
+                },
+                "modules" : {
+                  "type" : "array"
+                },
+                "output" : {
+                  "type" : "string"
+                },
+                "skipped" : {
+                  "type" : "boolean"
+                },
+                "success" : {
+                  "type" : "boolean"
+                }
+              },
+              "required" : [ "success", "skipped", "modules", "output", "durationMs" ],
+              "type" : "object"
+            },
+            "conflicts" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "conflicts" : {
+                  "type" : "array"
+                },
+                "hasComplexConflicts" : {
+                  "type" : "boolean"
+                },
+                "summary" : {
+                  "type" : "string"
+                }
+              },
+              "required" : [ "conflicts", "hasComplexConflicts", "summary" ],
+              "type" : "object"
+            },
+            "context" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "author" : {
+                  "type" : "string"
+                },
+                "baseBranch" : {
+                  "type" : "string"
+                },
+                "comments" : {
+                  "type" : "array"
+                },
+                "description" : {
+                  "type" : "string"
+                },
+                "files" : {
+                  "type" : "array"
+                },
+                "headBranch" : {
+                  "type" : "string"
+                },
+                "labels" : {
+                  "type" : "array"
+                },
+                "linkedIssues" : {
+                  "type" : "array"
+                },
+                "number" : {
+                  "type" : "integer"
+                },
+                "reviews" : {
+                  "type" : "array"
+                },
+                "state" : {
+                  "type" : "string"
+                },
+                "title" : {
+                  "type" : "string"
+                }
+              },
+              "required" : [ "number", "title", "description", "author", "labels", "state", "baseBranch", "headBranch", "files", "comments", "reviews", "linkedIssues" ],
+              "type" : "object"
+            },
+            "rebase" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "branch" : {
+                  "type" : "string"
+                },
+                "conflictFiles" : {
+                  "type" : "array"
+                },
+                "errorMessage" : {
+                  "type" : "string"
+                },
+                "success" : {
+                  "type" : "boolean"
+                }
+              },
+              "required" : [ "success", "branch", "conflictFiles", "errorMessage" ],
+              "type" : "object"
+            },
+            "verdict" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "mode" : {
+                  "type" : "string"
+                },
+                "outcome" : {
+                  "type" : "string"
+                },
+                "policy" : {
+                  "additionalProperties" : false,
+                  "properties" : {
+                    "judge" : {
+                      "additionalProperties" : false,
+                      "properties" : {
+                        "threshold" : {
+                          "type" : "number"
+                        }
+                      },
+                      "required" : [ "threshold" ],
+                      "type" : "object"
+                    },
+                    "suspend" : {
+                      "additionalProperties" : false,
+                      "properties" : {
+                        "required" : {
+                          "type" : "integer"
+                        },
+                        "strategy" : {
+                          "type" : "string"
+                        },
+                        "timeout" : {
+                          "type" : "string"
+                        }
+                      },
+                      "required" : [ "strategy", "required", "timeout" ],
+                      "type" : "object"
+                    }
+                  },
+                  "required" : [ "judge", "suspend" ],
+                  "type" : "object"
+                },
+                "resolution" : {
+                  "type" : "string"
+                },
+                "tiers" : {
+                  "type" : "array"
+                }
+              },
+              "required" : [ "mode", "policy", "resolution", "tiers", "outcome" ],
+              "type" : "object"
+            }
+          },
+          "required" : [ "build", "conflicts", "context", "rebase", "verdict" ],
+          "type" : "object"
+        },
+        "schemaId" : "https://schemas.agentworks.dev/types/AssembleEarlyReportRequest"
+      },
+      "kind" : "operation",
+      "name" : "pr-review.assemble-early-report",
+      "output" : {
+        "digest" : "sha256:f2b3eb96e75af313e669dfedd55f12a0fe38a4e0b0e6cebf0aa1765a718e9389",
+        "schema" : {
+          "additionalProperties" : false,
+          "properties" : {
+            "assessments" : {
+              "type" : "array"
+            },
+            "buildResult" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "durationMs" : {
+                  "type" : "integer"
+                },
+                "modules" : {
+                  "type" : "array"
+                },
+                "output" : {
+                  "type" : "string"
+                },
+                "skipped" : {
+                  "type" : "boolean"
+                },
+                "success" : {
+                  "type" : "boolean"
+                }
+              },
+              "required" : [ "success", "skipped", "modules", "output", "durationMs" ],
+              "type" : "object"
+            },
+            "conflictReport" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "conflicts" : {
+                  "type" : "array"
+                },
+                "hasComplexConflicts" : {
+                  "type" : "boolean"
+                },
+                "summary" : {
+                  "type" : "string"
+                }
+              },
+              "required" : [ "conflicts", "hasComplexConflicts", "summary" ],
+              "type" : "object"
+            },
+            "fixResult" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "attempted" : {
+                  "type" : "boolean"
+                },
+                "filesChanged" : {
+                  "type" : "array"
+                },
+                "fixed" : {
+                  "type" : "boolean"
+                },
+                "summary" : {
+                  "type" : "string"
+                }
+              },
+              "required" : [ "attempted", "fixed", "filesChanged", "summary" ],
+              "type" : "object"
+            },
+            "generatedAt" : { },
+            "judgments" : {
+              "type" : "array"
+            },
+            "prContext" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "author" : {
+                  "type" : "string"
+                },
+                "baseBranch" : {
+                  "type" : "string"
+                },
+                "comments" : {
+                  "type" : "array"
+                },
+                "description" : {
+                  "type" : "string"
+                },
+                "files" : {
+                  "type" : "array"
+                },
+                "headBranch" : {
+                  "type" : "string"
+                },
+                "labels" : {
+                  "type" : "array"
+                },
+                "linkedIssues" : {
+                  "type" : "array"
+                },
+                "number" : {
+                  "type" : "integer"
+                },
+                "reviews" : {
+                  "type" : "array"
+                },
+                "state" : {
+                  "type" : "string"
+                },
+                "title" : {
+                  "type" : "string"
+                }
+              },
+              "required" : [ "number", "title", "description", "author", "labels", "state", "baseBranch", "headBranch", "files", "comments", "reviews", "linkedIssues" ],
+              "type" : "object"
+            },
+            "rebaseResult" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "branch" : {
+                  "type" : "string"
+                },
+                "conflictFiles" : {
+                  "type" : "array"
+                },
+                "errorMessage" : {
+                  "type" : "string"
+                },
+                "success" : {
+                  "type" : "boolean"
+                }
+              },
+              "required" : [ "success", "branch", "conflictFiles", "errorMessage" ],
+              "type" : "object"
+            }
+          },
+          "required" : [ "prContext", "rebaseResult", "conflictReport", "buildResult", "fixResult", "assessments", "judgments", "generatedAt" ],
+          "type" : "object"
+        },
+        "schemaId" : "https://schemas.agentworks.dev/types/ReviewReport"
+      },
+      "version" : 1
+    }
+  }, {
+    "binding" : {
+      "artifact" : {
+        "digest" : {
+          "algorithm" : "sha256",
+          "profile" : "raw-file/v1",
+          "value" : "b4fa064738c2561ca87ab02ffd1410247bb373676d1d227cf6837aefa57ffb40"
+        },
+        "kind" : "classpath",
+        "locator" : "/io/github/markpollack/prreview/dsl/AssembleReportStep.class"
+      },
+      "entryPoint" : "io.github.markpollack.prreview.dsl.AssembleReportStep",
+      "runtime" : "java"
+    },
+    "contract" : {
+      "displayName" : "Assemble report",
+      "input" : {
+        "digest" : "sha256:6a417b6f750994a8d28e74594fe7f1836707ca1d2d834cc5899eee2857e6c351",
+        "schema" : {
+          "additionalProperties" : false,
+          "properties" : {
+            "build" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "durationMs" : {
+                  "type" : "integer"
+                },
+                "modules" : {
+                  "type" : "array"
+                },
+                "output" : {
+                  "type" : "string"
+                },
+                "skipped" : {
+                  "type" : "boolean"
+                },
+                "success" : {
+                  "type" : "boolean"
+                }
+              },
+              "required" : [ "success", "skipped", "modules", "output", "durationMs" ],
+              "type" : "object"
+            },
+            "conflicts" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "conflicts" : {
+                  "type" : "array"
+                },
+                "hasComplexConflicts" : {
+                  "type" : "boolean"
+                },
+                "summary" : {
+                  "type" : "string"
+                }
+              },
+              "required" : [ "conflicts", "hasComplexConflicts", "summary" ],
+              "type" : "object"
+            },
+            "context" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "author" : {
+                  "type" : "string"
+                },
+                "baseBranch" : {
+                  "type" : "string"
+                },
+                "comments" : {
+                  "type" : "array"
+                },
+                "description" : {
+                  "type" : "string"
+                },
+                "files" : {
+                  "type" : "array"
+                },
+                "headBranch" : {
+                  "type" : "string"
+                },
+                "labels" : {
+                  "type" : "array"
+                },
+                "linkedIssues" : {
+                  "type" : "array"
+                },
+                "number" : {
+                  "type" : "integer"
+                },
+                "reviews" : {
+                  "type" : "array"
+                },
+                "state" : {
+                  "type" : "string"
+                },
+                "title" : {
+                  "type" : "string"
+                }
+              },
+              "required" : [ "number", "title", "description", "author", "labels", "state", "baseBranch", "headBranch", "files", "comments", "reviews", "linkedIssues" ],
+              "type" : "object"
+            },
+            "quality" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "reasoning" : {
+                  "type" : "string"
+                },
+                "status" : {
+                  "type" : "string"
+                }
+              },
+              "required" : [ "status", "reasoning" ],
+              "type" : "object"
+            },
+            "rebase" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "branch" : {
+                  "type" : "string"
+                },
+                "conflictFiles" : {
+                  "type" : "array"
+                },
+                "errorMessage" : {
+                  "type" : "string"
+                },
+                "success" : {
+                  "type" : "boolean"
+                }
+              },
+              "required" : [ "success", "branch", "conflictFiles", "errorMessage" ],
+              "type" : "object"
+            },
+            "verdict" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "mode" : {
+                  "type" : "string"
+                },
+                "outcome" : {
+                  "type" : "string"
+                },
+                "policy" : {
+                  "additionalProperties" : false,
+                  "properties" : {
+                    "judge" : {
+                      "additionalProperties" : false,
+                      "properties" : {
+                        "threshold" : {
+                          "type" : "number"
+                        }
+                      },
+                      "required" : [ "threshold" ],
+                      "type" : "object"
+                    },
+                    "suspend" : {
+                      "additionalProperties" : false,
+                      "properties" : {
+                        "required" : {
+                          "type" : "integer"
+                        },
+                        "strategy" : {
+                          "type" : "string"
+                        },
+                        "timeout" : {
+                          "type" : "string"
+                        }
+                      },
+                      "required" : [ "strategy", "required", "timeout" ],
+                      "type" : "object"
+                    }
+                  },
+                  "required" : [ "judge", "suspend" ],
+                  "type" : "object"
+                },
+                "resolution" : {
+                  "type" : "string"
+                },
+                "tiers" : {
+                  "type" : "array"
+                }
+              },
+              "required" : [ "mode", "policy", "resolution", "tiers", "outcome" ],
+              "type" : "object"
+            }
+          },
+          "required" : [ "build", "conflicts", "context", "quality", "rebase", "verdict" ],
+          "type" : "object"
+        },
+        "schemaId" : "https://schemas.agentworks.dev/types/AssembleReportRequest"
+      },
+      "kind" : "operation",
+      "name" : "pr-review.assemble-report",
+      "output" : {
+        "digest" : "sha256:f2b3eb96e75af313e669dfedd55f12a0fe38a4e0b0e6cebf0aa1765a718e9389",
+        "schema" : {
+          "additionalProperties" : false,
+          "properties" : {
+            "assessments" : {
+              "type" : "array"
+            },
+            "buildResult" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "durationMs" : {
+                  "type" : "integer"
+                },
+                "modules" : {
+                  "type" : "array"
+                },
+                "output" : {
+                  "type" : "string"
+                },
+                "skipped" : {
+                  "type" : "boolean"
+                },
+                "success" : {
+                  "type" : "boolean"
+                }
+              },
+              "required" : [ "success", "skipped", "modules", "output", "durationMs" ],
+              "type" : "object"
+            },
+            "conflictReport" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "conflicts" : {
+                  "type" : "array"
+                },
+                "hasComplexConflicts" : {
+                  "type" : "boolean"
+                },
+                "summary" : {
+                  "type" : "string"
+                }
+              },
+              "required" : [ "conflicts", "hasComplexConflicts", "summary" ],
+              "type" : "object"
+            },
+            "fixResult" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "attempted" : {
+                  "type" : "boolean"
+                },
+                "filesChanged" : {
+                  "type" : "array"
+                },
+                "fixed" : {
+                  "type" : "boolean"
+                },
+                "summary" : {
+                  "type" : "string"
+                }
+              },
+              "required" : [ "attempted", "fixed", "filesChanged", "summary" ],
+              "type" : "object"
+            },
+            "generatedAt" : { },
+            "judgments" : {
+              "type" : "array"
+            },
+            "prContext" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "author" : {
+                  "type" : "string"
+                },
+                "baseBranch" : {
+                  "type" : "string"
+                },
+                "comments" : {
+                  "type" : "array"
+                },
+                "description" : {
+                  "type" : "string"
+                },
+                "files" : {
+                  "type" : "array"
+                },
+                "headBranch" : {
+                  "type" : "string"
+                },
+                "labels" : {
+                  "type" : "array"
+                },
+                "linkedIssues" : {
+                  "type" : "array"
+                },
+                "number" : {
+                  "type" : "integer"
+                },
+                "reviews" : {
+                  "type" : "array"
+                },
+                "state" : {
+                  "type" : "string"
+                },
+                "title" : {
+                  "type" : "string"
+                }
+              },
+              "required" : [ "number", "title", "description", "author", "labels", "state", "baseBranch", "headBranch", "files", "comments", "reviews", "linkedIssues" ],
+              "type" : "object"
+            },
+            "rebaseResult" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "branch" : {
+                  "type" : "string"
+                },
+                "conflictFiles" : {
+                  "type" : "array"
+                },
+                "errorMessage" : {
+                  "type" : "string"
+                },
+                "success" : {
+                  "type" : "boolean"
+                }
+              },
+              "required" : [ "success", "branch", "conflictFiles", "errorMessage" ],
+              "type" : "object"
+            }
+          },
+          "required" : [ "prContext", "rebaseResult", "conflictReport", "buildResult", "fixResult", "assessments", "judgments", "generatedAt" ],
+          "type" : "object"
+        },
+        "schemaId" : "https://schemas.agentworks.dev/types/ReviewReport"
+      },
+      "version" : 1
+    }
+  }, {
+    "binding" : {
+      "artifact" : {
+        "digest" : {
+          "algorithm" : "sha256",
+          "profile" : "raw-file/v1",
+          "value" : "293105bf3d88b1006e8d899670e4aa17e922da618c00a4845128cd0c91250a70"
+        },
+        "kind" : "classpath",
+        "locator" : "/io/github/markpollack/prreview/steps/AssessBackportStep.class"
+      },
+      "entryPoint" : "io.github.markpollack.prreview.steps.AssessBackportStep",
+      "runtime" : "java"
+    },
+    "contract" : {
+      "description" : "AI-powered backport candidacy assessment",
+      "displayName" : "Assess backport",
+      "input" : {
+        "digest" : "sha256:0905f090e1dbdfd914d4c82794a9133e3760b6e5bf8f399b69cdb867737572ee",
+        "schema" : {
+          "additionalProperties" : false,
+          "properties" : {
+            "prContext" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "author" : {
+                  "type" : "string"
+                },
+                "baseBranch" : {
+                  "type" : "string"
+                },
+                "comments" : {
+                  "type" : "array"
+                },
+                "description" : {
+                  "type" : "string"
+                },
+                "files" : {
+                  "type" : "array"
+                },
+                "headBranch" : {
+                  "type" : "string"
+                },
+                "labels" : {
+                  "type" : "array"
+                },
+                "linkedIssues" : {
+                  "type" : "array"
+                },
+                "number" : {
+                  "type" : "integer"
+                },
+                "reviews" : {
+                  "type" : "array"
+                },
+                "state" : {
+                  "type" : "string"
+                },
+                "title" : {
+                  "type" : "string"
+                }
+              },
+              "required" : [ "number", "title", "description", "author", "labels", "state", "baseBranch", "headBranch", "files", "comments", "reviews", "linkedIssues" ],
+              "type" : "object"
+            }
+          },
+          "required" : [ "prContext" ],
+          "type" : "object"
+        },
+        "schemaId" : "https://schemas.agentworks.dev/types/AssessBackportRequest"
+      },
+      "kind" : "operation",
+      "name" : "pr-review.assess-backport",
+      "output" : {
+        "digest" : "sha256:29efa048cc344402ecdda1c2b54e6fd92bf8b35c98b2826c7bacd579d28eaf07",
+        "schema" : {
+          "additionalProperties" : false,
+          "properties" : {
+            "findings" : {
+              "type" : "array"
+            },
+            "judgeName" : {
+              "type" : "string"
+            },
+            "rationale" : {
+              "type" : "string"
+            },
+            "score" : {
+              "type" : "number"
+            },
+            "status" : {
+              "type" : "string"
+            }
+          },
+          "required" : [ "judgeName", "status", "score", "rationale", "findings" ],
+          "type" : "object"
+        },
+        "schemaId" : "https://schemas.agentworks.dev/types/AssessmentResult"
+      },
+      "version" : 1
+    }
+  }, {
+    "binding" : {
+      "artifact" : {
+        "digest" : {
+          "algorithm" : "sha256",
+          "profile" : "raw-file/v1",
+          "value" : "0906e852f56e9c69b1901f9983e11bd25b8d0b4eeeb2f572ecc1b6351e01147e"
+        },
+        "kind" : "classpath",
+        "locator" : "/io/github/markpollack/prreview/steps/AssessCodeQualityStep.class"
+      },
+      "entryPoint" : "io.github.markpollack.prreview.steps.AssessCodeQualityStep",
+      "runtime" : "java"
+    },
+    "contract" : {
+      "description" : "AI-powered code quality assessment using AgentClient",
+      "displayName" : "Assess code quality",
+      "input" : {
+        "digest" : "sha256:0905f090e1dbdfd914d4c82794a9133e3760b6e5bf8f399b69cdb867737572ee",
+        "schema" : {
+          "additionalProperties" : false,
+          "properties" : {
+            "prContext" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "author" : {
+                  "type" : "string"
+                },
+                "baseBranch" : {
+                  "type" : "string"
+                },
+                "comments" : {
+                  "type" : "array"
+                },
+                "description" : {
+                  "type" : "string"
+                },
+                "files" : {
+                  "type" : "array"
+                },
+                "headBranch" : {
+                  "type" : "string"
+                },
+                "labels" : {
+                  "type" : "array"
+                },
+                "linkedIssues" : {
+                  "type" : "array"
+                },
+                "number" : {
+                  "type" : "integer"
+                },
+                "reviews" : {
+                  "type" : "array"
+                },
+                "state" : {
+                  "type" : "string"
+                },
+                "title" : {
+                  "type" : "string"
+                }
+              },
+              "required" : [ "number", "title", "description", "author", "labels", "state", "baseBranch", "headBranch", "files", "comments", "reviews", "linkedIssues" ],
+              "type" : "object"
+            }
+          },
+          "required" : [ "prContext" ],
+          "type" : "object"
+        },
+        "schemaId" : "https://schemas.agentworks.dev/types/AssessCodeQualityRequest"
+      },
+      "kind" : "operation",
+      "name" : "pr-review.assess-code-quality",
+      "output" : {
+        "digest" : "sha256:29efa048cc344402ecdda1c2b54e6fd92bf8b35c98b2826c7bacd579d28eaf07",
+        "schema" : {
+          "additionalProperties" : false,
+          "properties" : {
+            "findings" : {
+              "type" : "array"
+            },
+            "judgeName" : {
+              "type" : "string"
+            },
+            "rationale" : {
+              "type" : "string"
+            },
+            "score" : {
+              "type" : "number"
+            },
+            "status" : {
+              "type" : "string"
+            }
+          },
+          "required" : [ "judgeName", "status", "score", "rationale", "findings" ],
+          "type" : "object"
+        },
+        "schemaId" : "https://schemas.agentworks.dev/types/AssessmentResult"
+      },
+      "version" : 1
+    }
+  }, {
+    "binding" : {
+      "artifact" : {
+        "digest" : {
+          "algorithm" : "sha256",
+          "profile" : "raw-file/v1",
+          "value" : "0669f72be17bee73c05988edb571f83afa19cdf1cf8bea8c4a541fd809a6bceb"
+        },
+        "kind" : "classpath",
+        "locator" : "/io/github/markpollack/prreview/v3/PrReviewV3Config.class"
+      },
+      "entryPoint" : "buildHealthJury",
+      "runtime" : "java"
+    },
+    "contract" : {
+      "displayName" : "Build health jury",
+      "input" : {
+        "digest" : "sha256:a2c799262a3ce3c19ef5cdd983bf3d12b43ab3c426227091b909dcb7054738c0",
+        "schema" : {
+          "type" : "object"
+        },
+        "schemaId" : "https://schemas.agentworks.dev/types/BuildHealthJuryRequest"
+      },
+      "kind" : "jury",
+      "name" : "pr-review.build-health-jury",
+      "output" : {
+        "digest" : "sha256:a2c799262a3ce3c19ef5cdd983bf3d12b43ab3c426227091b909dcb7054738c0",
+        "schema" : {
+          "type" : "object"
+        },
+        "schemaId" : "https://schemas.agentworks.dev/types/Verdict"
+      },
+      "version" : 1
+    }
+  }, {
+    "binding" : {
+      "artifact" : {
+        "digest" : {
+          "algorithm" : "sha256",
+          "profile" : "raw-file/v1",
+          "value" : "661fd7e71e59bdf32a15e5aeb94d6e810c2faa6143793a5f58d510dce5db745e"
+        },
+        "kind" : "classpath",
+        "locator" : "/io/github/markpollack/prreview/dsl/CleanupStep.class"
+      },
+      "entryPoint" : "io.github.markpollack.prreview.dsl.CleanupStep",
+      "runtime" : "java"
+    },
+    "contract" : {
+      "displayName" : "Cleanup branch",
+      "input" : {
+        "digest" : "sha256:0905f090e1dbdfd914d4c82794a9133e3760b6e5bf8f399b69cdb867737572ee",
+        "schema" : {
+          "additionalProperties" : false,
+          "properties" : {
+            "prContext" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "author" : {
+                  "type" : "string"
+                },
+                "baseBranch" : {
+                  "type" : "string"
+                },
+                "comments" : {
+                  "type" : "array"
+                },
+                "description" : {
+                  "type" : "string"
+                },
+                "files" : {
+                  "type" : "array"
+                },
+                "headBranch" : {
+                  "type" : "string"
+                },
+                "labels" : {
+                  "type" : "array"
+                },
+                "linkedIssues" : {
+                  "type" : "array"
+                },
+                "number" : {
+                  "type" : "integer"
+                },
+                "reviews" : {
+                  "type" : "array"
+                },
+                "state" : {
+                  "type" : "string"
+                },
+                "title" : {
+                  "type" : "string"
+                }
+              },
+              "required" : [ "number", "title", "description", "author", "labels", "state", "baseBranch", "headBranch", "files", "comments", "reviews", "linkedIssues" ],
+              "type" : "object"
+            }
+          },
+          "required" : [ "prContext" ],
+          "type" : "object"
+        },
+        "schemaId" : "https://schemas.agentworks.dev/types/CleanupBranchRequest"
+      },
+      "kind" : "operation",
+      "name" : "pr-review.cleanup-branch",
+      "output" : {
+        "digest" : "sha256:8cd8963a62af8d6832b42921733b983c1bee7e19d988e49594239816fd5c3d43",
+        "schema" : {
+          "additionalProperties" : false,
+          "properties" : {
+            "branch" : {
+              "type" : "string"
+            },
+            "cleaned" : {
+              "type" : "boolean"
+            }
+          },
+          "required" : [ "branch", "cleaned" ],
+          "type" : "object"
+        },
+        "schemaId" : "https://schemas.agentworks.dev/types/CleanupResult"
+      },
+      "version" : 1
+    }
+  }, {
+    "binding" : {
+      "artifact" : {
+        "digest" : {
+          "algorithm" : "sha256",
+          "profile" : "raw-file/v1",
+          "value" : "356d1555d7d5f305c27218cb293c39b236974ad2e92381991ac9466a703730b4"
+        },
+        "kind" : "classpath",
+        "locator" : "/io/github/markpollack/prreview/steps/ConflictDetectionStep.class"
+      },
+      "entryPoint" : "io.github.markpollack.prreview.steps.ConflictDetectionStep",
+      "runtime" : "java"
+    },
+    "contract" : {
+      "description" : "Classifies rebase conflicts as SIMPLE or COMPLEX",
+      "displayName" : "Detect conflicts",
+      "input" : {
+        "digest" : "sha256:8f321527a3fd5eeefb204375979f45fbe1c9d506e8fb48ebbf0dd3f391ae0d12",
+        "schema" : {
+          "additionalProperties" : false,
+          "properties" : {
+            "rebaseResult" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "branch" : {
+                  "type" : "string"
+                },
+                "conflictFiles" : {
+                  "type" : "array"
+                },
+                "errorMessage" : {
+                  "type" : "string"
+                },
+                "success" : {
+                  "type" : "boolean"
+                }
+              },
+              "required" : [ "success", "branch", "conflictFiles", "errorMessage" ],
+              "type" : "object"
+            }
+          },
+          "required" : [ "rebaseResult" ],
+          "type" : "object"
+        },
+        "schemaId" : "https://schemas.agentworks.dev/types/DetectConflictsRequest"
+      },
+      "kind" : "operation",
+      "name" : "pr-review.detect-conflicts",
+      "output" : {
+        "digest" : "sha256:5c8ab10c9006e7a327d0ae627a8209814d588c4d76d24738e8fb0c30891d4ae1",
+        "schema" : {
+          "additionalProperties" : false,
+          "properties" : {
+            "conflicts" : {
+              "type" : "array"
+            },
+            "hasComplexConflicts" : {
+              "type" : "boolean"
+            },
+            "summary" : {
+              "type" : "string"
+            }
+          },
+          "required" : [ "conflicts", "hasComplexConflicts", "summary" ],
+          "type" : "object"
+        },
+        "schemaId" : "https://schemas.agentworks.dev/types/ConflictReport"
+      },
+      "version" : 1
+    }
+  }, {
+    "binding" : {
+      "artifact" : {
+        "digest" : {
+          "algorithm" : "sha256",
+          "profile" : "raw-file/v1",
+          "value" : "c77d929f5bd7cf3610b8e2d6e1b26aaa0a735a49fbb94e4aa0d40021f77e6fbe"
+        },
+        "kind" : "classpath",
+        "locator" : "/io/github/markpollack/prreview/steps/FetchPrContextStep.class"
+      },
+      "entryPoint" : "io.github.markpollack.prreview.steps.FetchPrContextStep",
+      "runtime" : "java"
+    },
+    "contract" : {
+      "description" : "Fetches complete PR context from GitHub REST API",
+      "displayName" : "Fetch pr context",
+      "input" : {
+        "digest" : "sha256:5772f98d96052afd168a9fb0ae47045c1331001fd998e2b375165b0e21244905",
+        "schema" : {
+          "additionalProperties" : false,
+          "properties" : {
+            "prRequest" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "pr" : {
+                  "type" : "integer"
+                }
+              },
+              "required" : [ "pr" ],
+              "type" : "object"
+            }
+          },
+          "required" : [ "prRequest" ],
+          "type" : "object"
+        },
+        "schemaId" : "https://schemas.agentworks.dev/types/FetchPrContextRequest"
+      },
+      "kind" : "operation",
+      "name" : "pr-review.fetch-pr-context",
+      "output" : {
+        "digest" : "sha256:656514c44cdb5dd033455db5a680fd0b86b521cdc86579addd84662536f468ee",
+        "schema" : {
+          "additionalProperties" : false,
+          "properties" : {
+            "author" : {
+              "type" : "string"
+            },
+            "baseBranch" : {
+              "type" : "string"
+            },
+            "comments" : {
+              "type" : "array"
+            },
+            "description" : {
+              "type" : "string"
+            },
+            "files" : {
+              "type" : "array"
+            },
+            "headBranch" : {
+              "type" : "string"
+            },
+            "labels" : {
+              "type" : "array"
+            },
+            "linkedIssues" : {
+              "type" : "array"
+            },
+            "number" : {
+              "type" : "integer"
+            },
+            "reviews" : {
+              "type" : "array"
+            },
+            "state" : {
+              "type" : "string"
+            },
+            "title" : {
+              "type" : "string"
+            }
+          },
+          "required" : [ "number", "title", "description", "author", "labels", "state", "baseBranch", "headBranch", "files", "comments", "reviews", "linkedIssues" ],
+          "type" : "object"
+        },
+        "schemaId" : "https://schemas.agentworks.dev/types/PrContext"
+      },
+      "version" : 1
+    }
+  }, {
+    "binding" : {
+      "artifact" : {
+        "digest" : {
+          "algorithm" : "sha256",
+          "profile" : "raw-file/v1",
+          "value" : "80ba7bf3f100e38e73d3ae71b681a2243122eb92231a59a14b526affe91d3c06"
+        },
+        "kind" : "classpath",
+        "locator" : "/io/github/markpollack/prreview/steps/FixTestsStep.class"
+      },
+      "entryPoint" : "io.github.markpollack.prreview.steps.FixTestsStep",
+      "runtime" : "java"
+    },
+    "contract" : {
+      "description" : "AI-powered step that attempts to fix failing tests",
+      "displayName" : "Fix tests",
+      "input" : {
+        "digest" : "sha256:d980c9425911c127b067dc4ea12a9dd5488b84a499dd1eab3314fd1cdeef1f10",
+        "schema" : {
+          "additionalProperties" : false,
+          "properties" : {
+            "build" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "durationMs" : {
+                  "type" : "integer"
+                },
+                "modules" : {
+                  "type" : "array"
+                },
+                "output" : {
+                  "type" : "string"
+                },
+                "skipped" : {
+                  "type" : "boolean"
+                },
+                "success" : {
+                  "type" : "boolean"
+                }
+              },
+              "required" : [ "success", "skipped", "modules", "output", "durationMs" ],
+              "type" : "object"
+            },
+            "context" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "author" : {
+                  "type" : "string"
+                },
+                "baseBranch" : {
+                  "type" : "string"
+                },
+                "comments" : {
+                  "type" : "array"
+                },
+                "description" : {
+                  "type" : "string"
+                },
+                "files" : {
+                  "type" : "array"
+                },
+                "headBranch" : {
+                  "type" : "string"
+                },
+                "labels" : {
+                  "type" : "array"
+                },
+                "linkedIssues" : {
+                  "type" : "array"
+                },
+                "number" : {
+                  "type" : "integer"
+                },
+                "reviews" : {
+                  "type" : "array"
+                },
+                "state" : {
+                  "type" : "string"
+                },
+                "title" : {
+                  "type" : "string"
+                }
+              },
+              "required" : [ "number", "title", "description", "author", "labels", "state", "baseBranch", "headBranch", "files", "comments", "reviews", "linkedIssues" ],
+              "type" : "object"
+            }
+          },
+          "required" : [ "build", "context" ],
+          "type" : "object"
+        },
+        "schemaId" : "https://schemas.agentworks.dev/types/FixTestsRequest"
+      },
+      "kind" : "operation",
+      "name" : "pr-review.fix-tests",
+      "output" : {
+        "digest" : "sha256:f1305d8914cce9e964002f01990000f6ded755b662e0cd79d1673b8ec496bb26",
+        "schema" : {
+          "additionalProperties" : false,
+          "properties" : {
+            "attempted" : {
+              "type" : "boolean"
+            },
+            "filesChanged" : {
+              "type" : "array"
+            },
+            "fixed" : {
+              "type" : "boolean"
+            },
+            "summary" : {
+              "type" : "string"
+            }
+          },
+          "required" : [ "attempted", "fixed", "filesChanged", "summary" ],
+          "type" : "object"
+        },
+        "schemaId" : "https://schemas.agentworks.dev/types/FixResult"
+      },
+      "version" : 1
+    }
+  }, {
+    "binding" : {
+      "artifact" : {
+        "digest" : {
+          "algorithm" : "sha256",
+          "profile" : "raw-file/v1",
+          "value" : "fd56bb56af09c5f5031a5f0c5f65b5ea62fae8b4bcecce217f7f6d412fc61936"
+        },
+        "kind" : "classpath",
+        "locator" : "/io/github/markpollack/prreview/v3/GenerateReportV3Step.class"
+      },
+      "entryPoint" : "io.github.markpollack.prreview.v3.GenerateReportV3Step",
+      "runtime" : "java"
+    },
+    "contract" : {
+      "displayName" : "Generate report",
+      "input" : {
+        "digest" : "sha256:cdb644bab090613c532afdc52b28ec5c5f003e3e22baff1b305f20e1339bb963",
+        "schema" : {
+          "additionalProperties" : false,
+          "properties" : {
+            "reviewReport" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "assessments" : {
+                  "type" : "array"
+                },
+                "buildResult" : {
+                  "additionalProperties" : false,
+                  "properties" : {
+                    "durationMs" : {
+                      "type" : "integer"
+                    },
+                    "modules" : {
+                      "type" : "array"
+                    },
+                    "output" : {
+                      "type" : "string"
+                    },
+                    "skipped" : {
+                      "type" : "boolean"
+                    },
+                    "success" : {
+                      "type" : "boolean"
+                    }
+                  },
+                  "required" : [ "success", "skipped", "modules", "output", "durationMs" ],
+                  "type" : "object"
+                },
+                "conflictReport" : {
+                  "additionalProperties" : false,
+                  "properties" : {
+                    "conflicts" : {
+                      "type" : "array"
+                    },
+                    "hasComplexConflicts" : {
+                      "type" : "boolean"
+                    },
+                    "summary" : {
+                      "type" : "string"
+                    }
+                  },
+                  "required" : [ "conflicts", "hasComplexConflicts", "summary" ],
+                  "type" : "object"
+                },
+                "fixResult" : {
+                  "additionalProperties" : false,
+                  "properties" : {
+                    "attempted" : {
+                      "type" : "boolean"
+                    },
+                    "filesChanged" : {
+                      "type" : "array"
+                    },
+                    "fixed" : {
+                      "type" : "boolean"
+                    },
+                    "summary" : {
+                      "type" : "string"
+                    }
+                  },
+                  "required" : [ "attempted", "fixed", "filesChanged", "summary" ],
+                  "type" : "object"
+                },
+                "generatedAt" : { },
+                "judgments" : {
+                  "type" : "array"
+                },
+                "prContext" : {
+                  "additionalProperties" : false,
+                  "properties" : {
+                    "author" : {
+                      "type" : "string"
+                    },
+                    "baseBranch" : {
+                      "type" : "string"
+                    },
+                    "comments" : {
+                      "type" : "array"
+                    },
+                    "description" : {
+                      "type" : "string"
+                    },
+                    "files" : {
+                      "type" : "array"
+                    },
+                    "headBranch" : {
+                      "type" : "string"
+                    },
+                    "labels" : {
+                      "type" : "array"
+                    },
+                    "linkedIssues" : {
+                      "type" : "array"
+                    },
+                    "number" : {
+                      "type" : "integer"
+                    },
+                    "reviews" : {
+                      "type" : "array"
+                    },
+                    "state" : {
+                      "type" : "string"
+                    },
+                    "title" : {
+                      "type" : "string"
+                    }
+                  },
+                  "required" : [ "number", "title", "description", "author", "labels", "state", "baseBranch", "headBranch", "files", "comments", "reviews", "linkedIssues" ],
+                  "type" : "object"
+                },
+                "rebaseResult" : {
+                  "additionalProperties" : false,
+                  "properties" : {
+                    "branch" : {
+                      "type" : "string"
+                    },
+                    "conflictFiles" : {
+                      "type" : "array"
+                    },
+                    "errorMessage" : {
+                      "type" : "string"
+                    },
+                    "success" : {
+                      "type" : "boolean"
+                    }
+                  },
+                  "required" : [ "success", "branch", "conflictFiles", "errorMessage" ],
+                  "type" : "object"
+                }
+              },
+              "required" : [ "prContext", "rebaseResult", "conflictReport", "buildResult", "fixResult", "assessments", "judgments", "generatedAt" ],
+              "type" : "object"
+            }
+          },
+          "required" : [ "reviewReport" ],
+          "type" : "object"
+        },
+        "schemaId" : "https://schemas.agentworks.dev/types/GenerateReportRequest"
+      },
+      "kind" : "operation",
+      "name" : "pr-review.generate-report",
+      "output" : {
+        "digest" : "sha256:00404e686415370f1711c4d7acfa2905444d3cf23cef2e10c47d445ebe690f96",
+        "schema" : {
+          "type" : "string"
+        },
+        "schemaId" : "https://schemas.agentworks.dev/types/String"
+      },
+      "version" : 1
+    }
+  }, {
+    "binding" : {
+      "artifact" : {
+        "digest" : {
+          "algorithm" : "sha256",
+          "profile" : "raw-file/v1",
+          "value" : "65b518e1de2500ae532d66ac5fc9eae86386e90968df293d0301c7d1eadbfebe"
+        },
+        "kind" : "classpath",
+        "locator" : "/io/github/markpollack/prreview/dsl/QualityJudgeStep.class"
+      },
+      "entryPoint" : "io.github.markpollack.prreview.dsl.QualityJudgeStep",
+      "runtime" : "java"
+    },
+    "contract" : {
+      "displayName" : "Quality judge",
+      "input" : {
+        "digest" : "sha256:d06a2b2c5fd3f5deadceb328c45fadc40eca2e7bbfd8d99c4b37940e0b01c666",
+        "schema" : {
+          "additionalProperties" : false,
+          "properties" : {
+            "input" : { }
+          },
+          "required" : [ "input" ],
+          "type" : "object"
+        },
+        "schemaId" : "https://schemas.agentworks.dev/types/QualityJudgeRequest"
+      },
+      "kind" : "operation",
+      "name" : "pr-review.quality-judge",
+      "output" : {
+        "digest" : "sha256:b4f2dbd75ccb6658862851b90328c7fbab5175525a4ae40cb332212990f33f31",
+        "schema" : {
+          "additionalProperties" : false,
+          "properties" : {
+            "reasoning" : {
+              "type" : "string"
+            },
+            "status" : {
+              "type" : "string"
+            }
+          },
+          "required" : [ "status", "reasoning" ],
+          "type" : "object"
+        },
+        "schemaId" : "https://schemas.agentworks.dev/types/QualityVerdict"
+      },
+      "version" : 1
+    }
+  }, {
+    "binding" : {
+      "artifact" : {
+        "digest" : {
+          "algorithm" : "sha256",
+          "profile" : "raw-file/v1",
+          "value" : "2b1a88b173717462740d4f4158de8dc770c00cd6d75cbb6c328379fe93442f5e"
+        },
+        "kind" : "classpath",
+        "locator" : "/io/github/markpollack/prreview/steps/RebaseStep.class"
+      },
+      "entryPoint" : "io.github.markpollack.prreview.steps.RebaseStep",
+      "runtime" : "java"
+    },
+    "contract" : {
+      "description" : "Rebases the PR branch onto main to check for conflicts",
+      "displayName" : "Rebase on main",
+      "input" : {
+        "digest" : "sha256:0905f090e1dbdfd914d4c82794a9133e3760b6e5bf8f399b69cdb867737572ee",
+        "schema" : {
+          "additionalProperties" : false,
+          "properties" : {
+            "prContext" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "author" : {
+                  "type" : "string"
+                },
+                "baseBranch" : {
+                  "type" : "string"
+                },
+                "comments" : {
+                  "type" : "array"
+                },
+                "description" : {
+                  "type" : "string"
+                },
+                "files" : {
+                  "type" : "array"
+                },
+                "headBranch" : {
+                  "type" : "string"
+                },
+                "labels" : {
+                  "type" : "array"
+                },
+                "linkedIssues" : {
+                  "type" : "array"
+                },
+                "number" : {
+                  "type" : "integer"
+                },
+                "reviews" : {
+                  "type" : "array"
+                },
+                "state" : {
+                  "type" : "string"
+                },
+                "title" : {
+                  "type" : "string"
+                }
+              },
+              "required" : [ "number", "title", "description", "author", "labels", "state", "baseBranch", "headBranch", "files", "comments", "reviews", "linkedIssues" ],
+              "type" : "object"
+            }
+          },
+          "required" : [ "prContext" ],
+          "type" : "object"
+        },
+        "schemaId" : "https://schemas.agentworks.dev/types/RebaseOnMainRequest"
+      },
+      "kind" : "operation",
+      "name" : "pr-review.rebase-on-main",
+      "output" : {
+        "digest" : "sha256:956dd9192aeb91842888257965564046a6dc2142108b51c646234ec5836100a9",
+        "schema" : {
+          "additionalProperties" : false,
+          "properties" : {
+            "branch" : {
+              "type" : "string"
+            },
+            "conflictFiles" : {
+              "type" : "array"
+            },
+            "errorMessage" : {
+              "type" : "string"
+            },
+            "success" : {
+              "type" : "boolean"
+            }
+          },
+          "required" : [ "success", "branch", "conflictFiles", "errorMessage" ],
+          "type" : "object"
+        },
+        "schemaId" : "https://schemas.agentworks.dev/types/RebaseResult"
+      },
+      "version" : 1
+    }
+  }, {
+    "binding" : {
+      "artifact" : {
+        "digest" : {
+          "algorithm" : "sha256",
+          "profile" : "raw-file/v1",
+          "value" : "ba3dad723e99761d9168c4a027069efaa7b347445822dcb8e91507fa30eff9e0"
+        },
+        "kind" : "classpath",
+        "locator" : "/io/github/markpollack/prreview/steps/RunTestsStep.class"
+      },
+      "entryPoint" : "io.github.markpollack.prreview.steps.RunTestsStep",
+      "runtime" : "java"
+    },
+    "contract" : {
+      "description" : "Runs targeted Maven tests on affected modules",
+      "displayName" : "Run tests",
+      "input" : {
+        "digest" : "sha256:02999ad9240ebb58ea4d5359e1da401f59fa78a78a938ea33a22652f93a8e2a4",
+        "schema" : {
+          "additionalProperties" : false,
+          "properties" : {
+            "conflicts" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "conflicts" : {
+                  "type" : "array"
+                },
+                "hasComplexConflicts" : {
+                  "type" : "boolean"
+                },
+                "summary" : {
+                  "type" : "string"
+                }
+              },
+              "required" : [ "conflicts", "hasComplexConflicts", "summary" ],
+              "type" : "object"
+            },
+            "context" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "author" : {
+                  "type" : "string"
+                },
+                "baseBranch" : {
+                  "type" : "string"
+                },
+                "comments" : {
+                  "type" : "array"
+                },
+                "description" : {
+                  "type" : "string"
+                },
+                "files" : {
+                  "type" : "array"
+                },
+                "headBranch" : {
+                  "type" : "string"
+                },
+                "labels" : {
+                  "type" : "array"
+                },
+                "linkedIssues" : {
+                  "type" : "array"
+                },
+                "number" : {
+                  "type" : "integer"
+                },
+                "reviews" : {
+                  "type" : "array"
+                },
+                "state" : {
+                  "type" : "string"
+                },
+                "title" : {
+                  "type" : "string"
+                }
+              },
+              "required" : [ "number", "title", "description", "author", "labels", "state", "baseBranch", "headBranch", "files", "comments", "reviews", "linkedIssues" ],
+              "type" : "object"
+            }
+          },
+          "required" : [ "conflicts", "context" ],
+          "type" : "object"
+        },
+        "schemaId" : "https://schemas.agentworks.dev/types/RunTestsRequest"
+      },
+      "kind" : "operation",
+      "name" : "pr-review.run-tests",
+      "output" : {
+        "digest" : "sha256:367b48fb5456ce12129d514f31f878d3e5f79fedc4e4d1eb3e1b4efe19e1b925",
+        "schema" : {
+          "additionalProperties" : false,
+          "properties" : {
+            "durationMs" : {
+              "type" : "integer"
+            },
+            "modules" : {
+              "type" : "array"
+            },
+            "output" : {
+              "type" : "string"
+            },
+            "skipped" : {
+              "type" : "boolean"
+            },
+            "success" : {
+              "type" : "boolean"
+            }
+          },
+          "required" : [ "success", "skipped", "modules", "output", "durationMs" ],
+          "type" : "object"
+        },
+        "schemaId" : "https://schemas.agentworks.dev/types/BuildResult"
+      },
+      "version" : 1
+    }
+  }, {
+    "binding" : {
+      "artifact" : {
+        "digest" : {
+          "algorithm" : "sha256",
+          "profile" : "raw-file/v1",
+          "value" : "e36dc304c0e7ce38f7e9600ae2f19b07c8919a7841d2083aae5acbfce5b81904"
+        },
+        "kind" : "classpath",
+        "locator" : "/io/github/markpollack/prreview/steps/ShouldAttemptFixStep.class"
+      },
+      "entryPoint" : "io.github.markpollack.prreview.steps.ShouldAttemptFixStep",
+      "runtime" : "java"
+    },
+    "contract" : {
+      "displayName" : "Should attempt fix",
+      "input" : {
+        "digest" : "sha256:bdf5738b884adc2df9434d6297ddaa2f70db3f44e542a530aaa9a89687593e9b",
+        "schema" : {
+          "additionalProperties" : false,
+          "properties" : {
+            "build" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "durationMs" : {
+                  "type" : "integer"
+                },
+                "modules" : {
+                  "type" : "array"
+                },
+                "output" : {
+                  "type" : "string"
+                },
+                "skipped" : {
+                  "type" : "boolean"
+                },
+                "success" : {
+                  "type" : "boolean"
+                }
+              },
+              "required" : [ "success", "skipped", "modules", "output", "durationMs" ],
+              "type" : "object"
+            },
+            "conflicts" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "conflicts" : {
+                  "type" : "array"
+                },
+                "hasComplexConflicts" : {
+                  "type" : "boolean"
+                },
+                "summary" : {
+                  "type" : "string"
+                }
+              },
+              "required" : [ "conflicts", "hasComplexConflicts", "summary" ],
+              "type" : "object"
+            },
+            "rebase" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "branch" : {
+                  "type" : "string"
+                },
+                "conflictFiles" : {
+                  "type" : "array"
+                },
+                "errorMessage" : {
+                  "type" : "string"
+                },
+                "success" : {
+                  "type" : "boolean"
+                }
+              },
+              "required" : [ "success", "branch", "conflictFiles", "errorMessage" ],
+              "type" : "object"
+            }
+          },
+          "required" : [ "build", "conflicts", "rebase" ],
+          "type" : "object"
+        },
+        "schemaId" : "https://schemas.agentworks.dev/types/ShouldAttemptFixRequest"
+      },
+      "kind" : "operation",
+      "name" : "pr-review.should-attempt-fix",
+      "output" : {
+        "digest" : "sha256:00404e686415370f1711c4d7acfa2905444d3cf23cef2e10c47d445ebe690f96",
+        "schema" : {
+          "type" : "string"
+        },
+        "schemaId" : "https://schemas.agentworks.dev/types/FixOutcome"
+      },
+      "version" : 1
+    }
+  }, {
+    "binding" : {
+      "artifact" : {
+        "digest" : {
+          "algorithm" : "sha256",
+          "profile" : "raw-file/v1",
+          "value" : "3f4bbd79ff2039349daf563933f8f3a79f1711f45fa9d4074e6d9a508818ef0e"
+        },
+        "kind" : "classpath",
+        "locator" : "/io/github/markpollack/prreview/dsl/VersionPatternStep.class"
+      },
+      "entryPoint" : "io.github.markpollack.prreview.dsl.VersionPatternStep",
+      "runtime" : "java"
+    },
+    "contract" : {
+      "displayName" : "Version pattern check",
+      "input" : {
+        "digest" : "sha256:0905f090e1dbdfd914d4c82794a9133e3760b6e5bf8f399b69cdb867737572ee",
+        "schema" : {
+          "additionalProperties" : false,
+          "properties" : {
+            "prContext" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "author" : {
+                  "type" : "string"
+                },
+                "baseBranch" : {
+                  "type" : "string"
+                },
+                "comments" : {
+                  "type" : "array"
+                },
+                "description" : {
+                  "type" : "string"
+                },
+                "files" : {
+                  "type" : "array"
+                },
+                "headBranch" : {
+                  "type" : "string"
+                },
+                "labels" : {
+                  "type" : "array"
+                },
+                "linkedIssues" : {
+                  "type" : "array"
+                },
+                "number" : {
+                  "type" : "integer"
+                },
+                "reviews" : {
+                  "type" : "array"
+                },
+                "state" : {
+                  "type" : "string"
+                },
+                "title" : {
+                  "type" : "string"
+                }
+              },
+              "required" : [ "number", "title", "description", "author", "labels", "state", "baseBranch", "headBranch", "files", "comments", "reviews", "linkedIssues" ],
+              "type" : "object"
+            }
+          },
+          "required" : [ "prContext" ],
+          "type" : "object"
+        },
+        "schemaId" : "https://schemas.agentworks.dev/types/VersionPatternCheckRequest"
+      },
+      "kind" : "operation",
+      "name" : "pr-review.version-pattern-check",
+      "output" : {
+        "digest" : "sha256:b4f2dbd75ccb6658862851b90328c7fbab5175525a4ae40cb332212990f33f31",
+        "schema" : {
+          "additionalProperties" : false,
+          "properties" : {
+            "reasoning" : {
+              "type" : "string"
+            },
+            "status" : {
+              "type" : "string"
+            }
+          },
+          "required" : [ "status", "reasoning" ],
+          "type" : "object"
+        },
+        "schemaId" : "https://schemas.agentworks.dev/types/VersionPatternFinding"
+      },
+      "version" : 1
+    }
+  } ],
+  "kind" : "CuratedCatalog",
+  "schemas" : [ ],
+  "workflows" : [ {
+    "name" : "pr-review",
+    "spec" : {
+      "apiVersion" : "workflow/v3alpha",
+      "budget" : {
+        "maxCostUsd" : 5,
+        "maxDuration" : "PT30M"
+      },
+      "edges" : [ {
+        "from" : "fetch-pr-context",
+        "to" : "rebase-on-main",
+        "when" : {
+          "kind" : "always"
+        }
+      }, {
+        "from" : "rebase-on-main",
+        "to" : "detect-conflicts",
+        "when" : {
+          "kind" : "always"
+        }
+      }, {
+        "from" : "detect-conflicts",
+        "to" : "run-tests",
+        "when" : {
+          "kind" : "always"
+        }
+      }, {
+        "from" : "run-tests",
+        "to" : "should-attempt-fix",
+        "when" : {
+          "kind" : "always"
+        }
+      }, {
+        "from" : "should-attempt-fix",
+        "to" : "fix-tests",
+        "when" : {
+          "kind" : "decisionResult",
+          "value" : "fix"
+        }
+      }, {
+        "from" : "fix-tests",
+        "to" : "retest",
+        "when" : {
+          "kind" : "always"
+        }
+      }, {
+        "from" : "retest",
+        "to" : "cleanup-branch",
+        "when" : {
+          "kind" : "always"
+        }
+      }, {
+        "from" : "should-attempt-fix",
+        "to" : "cleanup-branch",
+        "when" : {
+          "kind" : "decisionResult",
+          "value" : "skip"
+        }
+      }, {
+        "from" : "cleanup-branch",
+        "to" : "build-health",
+        "when" : {
+          "kind" : "always"
+        }
+      }, {
+        "from" : "build-health",
+        "to" : "version-pattern-check",
+        "when" : {
+          "kind" : "verdict",
+          "value" : "pass"
+        }
+      }, {
+        "from" : "version-pattern-check",
+        "to" : "assess",
+        "when" : {
+          "kind" : "always"
+        }
+      }, {
+        "from" : "assess-join",
+        "to" : "quality-judge",
+        "when" : {
+          "kind" : "always"
+        }
+      }, {
+        "from" : "quality-judge",
+        "to" : "assemble-report",
+        "when" : {
+          "kind" : "always"
+        }
+      }, {
+        "from" : "assemble-report",
+        "to" : "generate-report",
+        "when" : {
+          "kind" : "always"
+        }
+      }, {
+        "from" : "generate-report",
+        "to" : "published",
+        "when" : {
+          "kind" : "always"
+        }
+      }, {
+        "from" : "build-health",
+        "to" : "assemble-early-report",
+        "when" : {
+          "kind" : "verdict",
+          "value" : "fail"
+        }
+      }, {
+        "from" : "assemble-early-report",
+        "to" : "generate-early-report",
+        "when" : {
+          "kind" : "always"
+        }
+      }, {
+        "from" : "generate-early-report",
+        "to" : "early-published",
+        "when" : {
+          "kind" : "always"
+        }
+      } ],
+      "entrypoint" : "fetch-pr-context",
+      "inputSchema" : {
+        "additionalProperties" : false,
+        "properties" : {
+          "pr" : {
+            "type" : "integer"
+          }
+        },
+        "required" : [ "pr" ],
+        "type" : "object"
+      },
+      "kind" : "Workflow",
+      "metadata" : {
+        "labels" : {
+          "app" : "agentworks-pr-review"
+        },
+        "name" : "pr-review",
+        "version" : "1.0.0"
+      },
+      "nodes" : [ {
+        "id" : "fetch-pr-context",
+        "input" : {
+          "prRequest" : {
+            "from" : "$input"
+          }
+        },
+        "kind" : "operation",
+        "operation" : "fetch-pr-context"
+      }, {
+        "id" : "rebase-on-main",
+        "input" : {
+          "prContext" : {
+            "from" : "$node.fetch-pr-context.output"
+          }
+        },
+        "kind" : "operation",
+        "operation" : "rebase-on-main"
+      }, {
+        "id" : "detect-conflicts",
+        "input" : {
+          "rebaseResult" : {
+            "from" : "$node.rebase-on-main.output"
+          }
+        },
+        "kind" : "operation",
+        "operation" : "detect-conflicts"
+      }, {
+        "contextWrites" : {
+          "build.result" : {
+            "from" : "$node.run-tests.output"
+          }
+        },
+        "id" : "run-tests",
+        "input" : {
+          "conflicts" : {
+            "from" : "$node.detect-conflicts.output"
+          },
+          "context" : {
+            "from" : "$node.fetch-pr-context.output"
+          }
+        },
+        "kind" : "operation",
+        "operation" : "run-tests"
+      }, {
+        "config" : {
+          "fixTestsEnabled" : false
+        },
+        "id" : "should-attempt-fix",
+        "input" : {
+          "build" : {
+            "from" : "$node.run-tests.output"
+          },
+          "conflicts" : {
+            "from" : "$node.detect-conflicts.output"
+          },
+          "rebase" : {
+            "from" : "$node.rebase-on-main.output"
+          }
+        },
+        "kind" : "decision",
+        "operation" : "should-attempt-fix",
+        "outcomes" : [ "fix", "skip" ]
+      }, {
+        "id" : "fix-tests",
+        "input" : {
+          "build" : {
+            "from" : "$node.run-tests.output"
+          },
+          "context" : {
+            "from" : "$node.fetch-pr-context.output"
+          }
+        },
+        "kind" : "operation",
+        "operation" : "fix-tests",
+        "policies" : {
+          "retry" : {
+            "backoff" : {
+              "initialMillis" : 5000,
+              "multiplier" : 2,
+              "strategy" : "exponential"
+            },
+            "maxAttempts" : 1
+          }
+        }
+      }, {
+        "contextWrites" : {
+          "build.result" : {
+            "from" : "$node.retest.output"
+          }
+        },
+        "id" : "retest",
+        "input" : {
+          "conflicts" : {
+            "from" : "$node.detect-conflicts.output"
+          },
+          "context" : {
+            "from" : "$node.fetch-pr-context.output"
+          }
+        },
+        "kind" : "operation",
+        "operation" : "run-tests"
+      }, {
+        "id" : "cleanup-branch",
+        "input" : {
+          "prContext" : {
+            "from" : "$node.fetch-pr-context.output"
+          }
+        },
+        "kind" : "operation",
+        "operation" : "cleanup-branch"
+      }, {
+        "id" : "build-health",
+        "input" : {
+          "buildResult" : {
+            "from" : "$context.build.result"
+          }
+        },
+        "judge" : {
+          "jury" : "build-health-jury",
+          "threshold" : 0.7
+        },
+        "kind" : "gate",
+        "mode" : "judge"
+      }, {
+        "id" : "version-pattern-check",
+        "input" : {
+          "prContext" : {
+            "from" : "$node.fetch-pr-context.output"
+          }
+        },
+        "kind" : "operation",
+        "operation" : "version-pattern-check"
+      }, {
+        "branches" : [ {
+          "id" : "assess-code-quality",
+          "input" : {
+            "prContext" : {
+              "from" : "$node.fetch-pr-context.output"
+            }
+          },
+          "operation" : "assess-code-quality"
+        }, {
+          "id" : "assess-backport",
+          "input" : {
+            "prContext" : {
+              "from" : "$node.fetch-pr-context.output"
+            }
+          },
+          "operation" : "assess-backport"
+        } ],
+        "id" : "assess",
+        "join" : "assess-join",
+        "kind" : "parallel",
+        "maxConcurrency" : 2
+      }, {
+        "id" : "assess-join",
+        "kind" : "join",
+        "mode" : "ENRICHMENT"
+      }, {
+        "id" : "quality-judge",
+        "input" : {
+          "input" : {
+            "from" : "$node.assess-join.output"
+          }
+        },
+        "kind" : "operation",
+        "operation" : "quality-judge"
+      }, {
+        "id" : "assemble-report",
+        "input" : {
+          "build" : {
+            "from" : "$context.build.result"
+          },
+          "conflicts" : {
+            "from" : "$node.detect-conflicts.output"
+          },
+          "context" : {
+            "from" : "$node.fetch-pr-context.output"
+          },
+          "quality" : {
+            "from" : "$node.quality-judge.output"
+          },
+          "rebase" : {
+            "from" : "$node.rebase-on-main.output"
+          },
+          "verdict" : {
+            "from" : "$node.build-health.verdict"
+          }
+        },
+        "kind" : "operation",
+        "operation" : "assemble-report",
+        "policies" : {
+          "timeout" : {
+            "perAttemptMillis" : 120000
+          }
+        }
+      }, {
+        "id" : "generate-report",
+        "input" : {
+          "reviewReport" : {
+            "from" : "$node.assemble-report.output"
+          }
+        },
+        "kind" : "operation",
+        "operation" : "generate-report"
+      }, {
+        "id" : "published",
+        "kind" : "terminate",
+        "result" : {
+          "from" : "$node.generate-report.output"
+        },
+        "status" : "completed"
+      }, {
+        "id" : "assemble-early-report",
+        "input" : {
+          "build" : {
+            "from" : "$context.build.result"
+          },
+          "conflicts" : {
+            "from" : "$node.detect-conflicts.output"
+          },
+          "context" : {
+            "from" : "$node.fetch-pr-context.output"
+          },
+          "rebase" : {
+            "from" : "$node.rebase-on-main.output"
+          },
+          "verdict" : {
+            "from" : "$node.build-health.verdict"
+          }
+        },
+        "kind" : "operation",
+        "operation" : "assemble-early-report",
+        "policies" : {
+          "timeout" : {
+            "perAttemptMillis" : 120000
+          }
+        }
+      }, {
+        "id" : "generate-early-report",
+        "input" : {
+          "reviewReport" : {
+            "from" : "$node.assemble-early-report.output"
+          }
+        },
+        "kind" : "operation",
+        "operation" : "generate-report"
+      }, {
+        "id" : "early-published",
+        "kind" : "terminate",
+        "result" : {
+          "from" : "$node.generate-early-report.output"
+        },
+        "status" : "completed"
+      } ],
+      "outputSchema" : {
+        "type" : "string"
+      },
+      "policies" : {
+        "retry" : {
+          "backoff" : {
+            "initialMillis" : 1000,
+            "multiplier" : 2,
+            "strategy" : "exponential"
+          },
+          "maxAttempts" : 2
+        }
+      },
+      "providers" : {
+        "assemble-early-report" : {
+          "contract" : {
+            "name" : "pr-review.assemble-early-report",
+            "version" : 1
+          }
+        },
+        "assemble-report" : {
+          "contract" : {
+            "name" : "pr-review.assemble-report",
+            "version" : 1
+          }
+        },
+        "assess-backport" : {
+          "contract" : {
+            "name" : "pr-review.assess-backport",
+            "version" : 1
+          }
+        },
+        "assess-code-quality" : {
+          "contract" : {
+            "name" : "pr-review.assess-code-quality",
+            "version" : 1
+          }
+        },
+        "build-health-jury" : {
+          "contract" : {
+            "name" : "pr-review.build-health-jury",
+            "version" : 1
+          }
+        },
+        "cleanup-branch" : {
+          "contract" : {
+            "name" : "pr-review.cleanup-branch",
+            "version" : 1
+          }
+        },
+        "detect-conflicts" : {
+          "contract" : {
+            "name" : "pr-review.detect-conflicts",
+            "version" : 1
+          }
+        },
+        "fetch-pr-context" : {
+          "contract" : {
+            "name" : "pr-review.fetch-pr-context",
+            "version" : 1
+          }
+        },
+        "fix-tests" : {
+          "contract" : {
+            "name" : "pr-review.fix-tests",
+            "version" : 1
+          }
+        },
+        "generate-report" : {
+          "contract" : {
+            "name" : "pr-review.generate-report",
+            "version" : 1
+          }
+        },
+        "quality-judge" : {
+          "contract" : {
+            "name" : "pr-review.quality-judge",
+            "version" : 1
+          }
+        },
+        "rebase-on-main" : {
+          "contract" : {
+            "name" : "pr-review.rebase-on-main",
+            "version" : 1
+          }
+        },
+        "run-tests" : {
+          "contract" : {
+            "name" : "pr-review.run-tests",
+            "version" : 1
+          },
+          "defaultPolicies" : {
+            "timeout" : {
+              "perAttemptMillis" : 600000
+            }
+          }
+        },
+        "should-attempt-fix" : {
+          "contract" : {
+            "name" : "pr-review.should-attempt-fix",
+            "version" : 1
+          }
+        },
+        "version-pattern-check" : {
+          "contract" : {
+            "name" : "pr-review.version-pattern-check",
+            "version" : 1
+          }
+        }
+      }
+    },
+    "specHash" : "sha256:30c353a540087be764a1bec542f3bb999d97a9412ad78653e5583ff859f7e207"
+  } ]
+}

@@ -40,8 +40,7 @@ import org.springframework.stereotype.Component;
 @Component
 @StepName("generate-report")
 @Description("Assembles pipeline outputs into markdown and HTML report")
-public class GenerateReportStep
-		implements Step<ReviewReport, Path>, io.github.markpollack.workflow.flows.v3.Step<ReviewReport, Path> {
+public class GenerateReportStep implements Step<ReviewReport, Path> {
 
 	private static final Logger logger = LoggerFactory.getLogger(GenerateReportStep.class);
 
@@ -65,7 +64,6 @@ public class GenerateReportStep
 		return execute(report);
 	}
 
-	@Override
 	public Path execute(ReviewReport report) {
 		logger.info("Generating review report for PR #{}", report.prContext().number());
 
@@ -264,7 +262,9 @@ public class GenerateReportStep
 		}
 		for (var judgment : report.judgments()) {
 			sb.append("### ").append(judgment.status()).append("\n\n");
-			sb.append("- **Score**: ").append(judgment.score()).append("\n");
+			if (judgment.score() != null) {
+				sb.append("- **Score**: ").append(judgment.score()).append("\n");
+			}
 			sb.append("- **Reasoning**: ").append(judgment.reasoning()).append("\n");
 			if (!judgment.checks().isEmpty()) {
 				sb.append("- **Checks**:\n");

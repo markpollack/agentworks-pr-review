@@ -10,8 +10,6 @@ import io.github.markpollack.judge.Judge;
 import io.github.markpollack.judge.context.JudgmentContext;
 import io.github.markpollack.judge.result.Check;
 import io.github.markpollack.judge.result.Judgment;
-import io.github.markpollack.judge.result.JudgmentStatus;
-import io.github.markpollack.judge.score.BooleanScore;
 
 import org.springframework.stereotype.Component;
 
@@ -54,11 +52,7 @@ public class VersionPatternJudge implements Judge {
 		PrContext prContext = extract(context, PR_CONTEXT, PrContext.class);
 
 		if (prContext == null) {
-			return Judgment.builder()
-				.score(new BooleanScore(true))
-				.status(JudgmentStatus.PASS)
-				.reasoning("No PR context available — skipping version pattern check")
-				.build();
+			return Judgment.verdict(true).reasoning("No PR context available — skipping version pattern check").build();
 		}
 
 		List<Check> checks = new ArrayList<>();
@@ -82,12 +76,7 @@ public class VersionPatternJudge implements Judge {
 			reasoning = "Version pattern judge: no migration anti-patterns detected";
 		}
 
-		return Judgment.builder()
-			.score(new BooleanScore(!hasFindings))
-			.status(hasFindings ? JudgmentStatus.FAIL : JudgmentStatus.PASS)
-			.reasoning(reasoning)
-			.checks(checks)
-			.build();
+		return Judgment.verdict(!hasFindings).reasoning(reasoning).checks(checks).build();
 	}
 
 	private static void scanFile(FileChange file, List<Check> checks) {

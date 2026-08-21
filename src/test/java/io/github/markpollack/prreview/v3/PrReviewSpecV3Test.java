@@ -29,7 +29,10 @@ import io.github.markpollack.workflow.spec.CanonicalJson;
 import io.github.markpollack.workflow.spec.v3.DefaultWorkflowSpecWriter;
 import io.github.markpollack.workflow.spec.v3.WireJson;
 import io.github.markpollack.workflow.spec.v3.WorkflowSpec;
-import io.github.markpollack.workflow.spec.v3.envelope.OperationCatalog;
+import io.github.markpollack.workflow.flows.v3.WorkflowEmission;
+import io.github.markpollack.workflow.spec.v3.envelope.CuratedCatalog;
+import io.github.markpollack.workflow.spec.v3.envelope.WorkflowArtifactRecord;
+import io.github.markpollack.workflow.spec.v3.envelope.WorkflowCatalogSelection;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -57,13 +60,25 @@ class PrReviewSpecV3Test {
 
 	private static final Path SERVED_SPEC = Path.of("src", "main", "resources", "v3alpha", "workflow-pr-review.json");
 
-	private static final Path SERVED_CATALOG = Path.of("src", "main", "resources", "v3alpha", "operation-catalog.json");
+	private static final Path SERVED_CATALOG = Path.of("src", "main", "resources", "v3alpha", "curated-catalog.json");
+
+	private static final Path SERVED_SELECTION = Path.of("src", "main", "resources", "v3alpha",
+			"workflow-catalog-selection.json");
+
+	private static final Path SERVED_ARTIFACT_RECORD = Path.of("src", "main", "resources", "v3alpha",
+			"workflow-artifact-record.json");
 
 	private static final String REGENERATE_PROPERTY = "v3.spec.regenerate";
 
 	@Test
 	void springAssemblesTheSpecFromTheApplicationsOwnBeans() {
-		contextRunner().run(context -> assertThat(context).hasSingleBean(WorkflowSpec.class));
+		contextRunner().run(context -> {
+			assertThat(context).hasSingleBean(WorkflowEmission.class);
+			assertThat(context).hasSingleBean(WorkflowSpec.class);
+			assertThat(context).hasSingleBean(CuratedCatalog.class);
+			assertThat(context).hasSingleBean(WorkflowCatalogSelection.class);
+			assertThat(context).hasSingleBean(WorkflowArtifactRecord.class);
+		});
 	}
 
 	@Test
@@ -84,7 +99,11 @@ class PrReviewSpecV3Test {
 		if (Boolean.getBoolean(REGENERATE_PROPERTY)) {
 			regenerate();
 		}
-		assertMatchesCommitted(canonical(emit(context -> context.getBean(OperationCatalog.class))), SERVED_CATALOG);
+		assertMatchesCommitted(canonical(emit(context -> context.getBean(CuratedCatalog.class))), SERVED_CATALOG);
+		assertMatchesCommitted(canonical(emit(context -> context.getBean(WorkflowCatalogSelection.class))),
+				SERVED_SELECTION);
+		assertMatchesCommitted(canonical(emit(context -> context.getBean(WorkflowArtifactRecord.class))),
+				SERVED_ARTIFACT_RECORD);
 	}
 
 	private static void assertMatchesCommitted(byte[] emitted, Path committed) throws Exception {
@@ -119,18 +138,19 @@ class PrReviewSpecV3Test {
 	 * served document names the line of <em>this</em> repository's DSL that declared it.
 	 */
 	@Test
-	void everyNodeInTheServedSpecCarriesItsDeclarationSiteInThisRepository() throws Exception {
-		JsonNode document = WireJson.mapper().readTree(Files.readAllBytes(SERVED_SPEC));
-		JsonNode nodes = document.get("nodes");
+	void everyNodeHasSiblingSourceEvidenceInThisRepository() throws Exception {
+		WorkflowSpec spec = WireJson.mapper().readValue(SERVED_SPEC.toFile(), WorkflowSpec.class);
+		WorkflowArtifactRecord record = WireJson.mapper()
+			.readValue(SERVED_ARTIFACT_RECORD.toFile(), WorkflowArtifactRecord.class);
 
-		assertThat(nodes).isNotEmpty();
-		nodes.forEach(node -> {
-			JsonNode source = node.get("source");
-			assertThat(source).as("node '%s' carries a source", node.get("id").asText()).isNotNull();
-			assertThat(Path.of(source.get("uri").asText()))
-				.as("node '%s' source.uri resolves in this repository", node.get("id").asText())
+		assertThat(record.specHash()).isEqualTo(io.github.markpollack.workflow.spec.v3.ContentDigest.sha256(spec));
+		assertThat(record.sources()).hasSize(spec.nodes().size());
+		spec.nodes().forEach(node -> {
+			var source = record.sources().get(node.id());
+			assertThat(source).as("node '%s' carries source evidence", node.id()).isNotNull();
+			assertThat(Path.of(source.uri())).as("node '%s' source.uri resolves in this repository", node.id())
 				.isRegularFile();
-			assertThat(source.get("startLine").asInt()).isPositive();
+			assertThat(source.startLine()).isPositive();
 		});
 	}
 
@@ -185,7 +205,9 @@ class PrReviewSpecV3Test {
 	 */
 	private static void regenerate() throws Exception {
 		write(canonical(emit(context -> context.getBean(WorkflowSpec.class))), SERVED_SPEC);
-		write(canonical(emit(context -> context.getBean(OperationCatalog.class))), SERVED_CATALOG);
+		write(canonical(emit(context -> context.getBean(CuratedCatalog.class))), SERVED_CATALOG);
+		write(canonical(emit(context -> context.getBean(WorkflowCatalogSelection.class))), SERVED_SELECTION);
+		write(canonical(emit(context -> context.getBean(WorkflowArtifactRecord.class))), SERVED_ARTIFACT_RECORD);
 	}
 
 	private static void write(byte[] canonical, Path target) throws Exception {

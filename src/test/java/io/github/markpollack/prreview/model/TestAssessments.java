@@ -6,8 +6,6 @@ import java.util.List;
 import io.github.markpollack.judge.result.Check;
 import io.github.markpollack.judge.result.Judgment;
 import io.github.markpollack.judge.result.JudgmentStatus;
-import io.github.markpollack.judge.score.BooleanScore;
-import io.github.markpollack.judge.score.NumericalScore;
 
 /**
  * Factory methods for sample assessment results and judgments used in tests.
@@ -61,8 +59,7 @@ public final class TestAssessments {
 	/** T0 passing judgment with metadata. */
 	public static Judgment buildPassJudgment() {
 		return Judgment.builder()
-			.score(new BooleanScore(true))
-			.status(JudgmentStatus.PASS)
+			.pass()
 			.reasoning("Build judge: 4/4 checks passed")
 			.check(Check.pass("rebase-clean"))
 			.check(Check.pass("no-complex-conflicts"))
@@ -76,8 +73,7 @@ public final class TestAssessments {
 	/** T1 passing judgment with metadata. */
 	public static Judgment versionPatternPassJudgment() {
 		return Judgment.builder()
-			.score(new BooleanScore(true))
-			.status(JudgmentStatus.PASS)
+			.pass()
 			.reasoning("Version pattern judge: no migration anti-patterns detected")
 			.metadata("judge_name", "Version Pattern Judge")
 			.metadata("tier", "T1")
@@ -87,8 +83,8 @@ public final class TestAssessments {
 	/** T2 passing judgment with metadata. */
 	public static Judgment qualityPassJudgment() {
 		return Judgment.builder()
-			.score(NumericalScore.normalized(0.895))
-			.status(JudgmentStatus.PASS)
+			.pass()
+			.score(0.895)
 			.reasoning("Quality judge: 5/5 checks passed, composite score 0.90")
 			.check(Check.pass("quality-present"))
 			.check(Check.pass("backport-present"))
@@ -103,8 +99,7 @@ public final class TestAssessments {
 	/** T0 failing judgment with metadata. */
 	public static Judgment buildFailJudgment() {
 		return Judgment.builder()
-			.score(new BooleanScore(false))
-			.status(JudgmentStatus.FAIL)
+			.fail()
 			.reasoning("Build judge: 3/4 checks passed. Failures: tests-passed (Tests failed)")
 			.check(Check.pass("rebase-clean"))
 			.check(Check.pass("no-complex-conflicts"))

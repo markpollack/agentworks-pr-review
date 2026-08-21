@@ -1,6 +1,6 @@
 package io.github.markpollack.prreview.model;
 
-import io.github.markpollack.workflow.spec.v3.envelope.VerdictRecord;
+import io.github.markpollack.workflow.spec.v3.envelope.GateEvaluation;
 
 /**
  * What the full report is assembled from, on the arm where the build-health gate passed.
@@ -15,8 +15,8 @@ import io.github.markpollack.workflow.spec.v3.envelope.VerdictRecord;
  * @param conflicts the conflict analysis
  * @param build the build the gate passed on
  * @param quality the T2 meta-judge's verdict
- * @param verdict the gate's own verdict record (CD-9)
+ * @param verdict the gate's own evaluation (CD-9)
  */
 public record FullReportRequest(PrContext context, RebaseResult rebase, ConflictReport conflicts, BuildResult build,
-		QualityVerdict quality, VerdictRecord verdict) {
+		QualityVerdict quality, GateEvaluation verdict) {
 }

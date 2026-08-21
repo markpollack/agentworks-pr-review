@@ -1,6 +1,6 @@
 package io.github.markpollack.prreview.model;
 
-import io.github.markpollack.workflow.spec.v3.envelope.VerdictRecord;
+import io.github.markpollack.workflow.spec.v3.envelope.GateEvaluation;
 
 /**
  * What the early report is assembled from, on the arm where the build-health gate failed:
@@ -10,8 +10,8 @@ import io.github.markpollack.workflow.spec.v3.envelope.VerdictRecord;
  * @param rebase the rebase outcome
  * @param conflicts the conflict analysis
  * @param build the build the gate failed on
- * @param verdict the gate's own verdict record (CD-9)
+ * @param verdict the gate's own evaluation (CD-9)
  */
 public record EarlyReportRequest(PrContext context, RebaseResult rebase, ConflictReport conflicts, BuildResult build,
-		VerdictRecord verdict) {
+		GateEvaluation verdict) {
 }

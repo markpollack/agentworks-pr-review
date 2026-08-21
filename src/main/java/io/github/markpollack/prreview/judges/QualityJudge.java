@@ -11,7 +11,6 @@ import io.github.markpollack.judge.context.JudgmentContext;
 import io.github.markpollack.judge.result.Check;
 import io.github.markpollack.judge.result.Judgment;
 import io.github.markpollack.judge.result.JudgmentStatus;
-import io.github.markpollack.judge.score.NumericalScore;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -74,12 +73,7 @@ public class QualityJudge implements Judge {
 		boolean allPassed = checks.stream().allMatch(Check::passed);
 		double score = computeScore(quality, backport, allPassed);
 
-		return Judgment.builder()
-			.score(NumericalScore.normalized(score))
-			.status(allPassed ? JudgmentStatus.PASS : JudgmentStatus.FAIL)
-			.reasoning(buildReasoning(checks, score))
-			.checks(checks)
-			.build();
+		return Judgment.verdict(allPassed).score(score).reasoning(buildReasoning(checks, score)).checks(checks).build();
 	}
 
 	private static void checkAssessmentPresent(String name, AssessmentResult assessment, List<Check> checks) {
