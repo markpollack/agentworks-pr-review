@@ -140,22 +140,22 @@ class DomainModelTest {
 		@Test
 		void shouldCreateWithAllFields() {
 			var result = new AssessmentResult("QualityJudge", JudgmentStatus.PASS, 0.85, "Good quality",
-					List.of("Clean API", "Missing tests"));
+					List.of(finding("Clean API"), finding("Missing tests")));
 
 			assertThat(result.judgeName()).isEqualTo("QualityJudge");
 			assertThat(result.status()).isEqualTo(JudgmentStatus.PASS);
 			assertThat(result.score()).isEqualTo(0.85);
 			assertThat(result.rationale()).isEqualTo("Good quality");
-			assertThat(result.findings()).containsExactly("Clean API", "Missing tests");
+			assertThat(result.findings()).extracting(Finding::claim).containsExactly("Clean API", "Missing tests");
 		}
 
 		@Test
 		void shouldDefensivelyCopyFindings() {
-			var mutableFindings = new ArrayList<>(List.of("finding1"));
+			var mutableFindings = new ArrayList<>(List.of(finding("finding1")));
 			var result = new AssessmentResult("Judge", JudgmentStatus.PASS, 1.0, "ok", mutableFindings);
 
 			mutableFindings.add("finding2");
-			assertThat(result.findings()).containsExactly("finding1");
+			assertThat(result.findings()).extracting(Finding::claim).containsExactly("finding1");
 		}
 
 	}
@@ -244,6 +244,10 @@ class DomainModelTest {
 			assertThat(a).isEqualTo(b);
 		}
 
+	}
+
+	private static Finding finding(String claim) {
+		return new Finding(null, null, null, 0, claim, null, null);
 	}
 
 }

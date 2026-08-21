@@ -172,6 +172,92 @@ The agent-experiment generalization of the PR reviewer (Forge multi-roadmap: one
 
 ---
 
+## Stage 3 amendment — 2026-08-21
+
+> Recorded after a session that built much of Stage 3 **outside this repo**, and learned two
+> things that change the plan. Read this before starting 3.1; it re-scopes 3.1 and 3.2 and
+> adds two prerequisites that were not visible when the stage was written.
+
+### What now exists, and where
+
+`~/projects/experiment-pr-review-polyglot` — a consumer of agent-experiment 0.6.0 with judges
+against agent-judge 0.15.0.
+
+- **Step 3.1 is substantially done, and wider than planned.** Benchmark cases exist for
+  **five** PRs, not three: Paul's `agent-experiment` #1–#3 (the calibrated touchpoint set this
+  ROADMAP names) *plus* `agentclientprotocol/java-sdk` #7 and #13. Cases are immutable offline
+  packets — full repo tree at head, diff, base files, sha256 manifest — so runs are repeatable.
+- **A second gold standard appeared.** The posted human review of java-sdk#7 (3 BLOCKING,
+  7 SIGNIFICANT, 3 MINOR, each anchored to file and method) is ground truth of a *different
+  kind* from the touchpoint findings. The two are not commensurable and must be reported
+  separately. #13 is deliberately unlabelled as a held-out precision probe.
+- **Step 3.2 produced six judges** — well-formed gate, finding-recall, calibration, over-map,
+  groundedness, red-flag — assembled into a `CascadedJury`. These are **outcome** judges: they
+  score the review a run produced. They are not the per-step judges of the amendment below.
+
+### The two prerequisites this stage did not anticipate
+
+- [ ] **P1 — The assess step's output cannot be judged in its current shape.** `AssessmentResult`
+      carried `List<String> findings`, so a finding had no severity, no file, no symbol, and no
+      separable evidence. Recall matching needs an anchor and groundedness needs an evidence
+      field, so no judge could score the one step that does the reviewing. `AssessmentParser`
+      was regex-based and set that ceiling: its findings matcher stopped at the first `]`, so
+      structured findings were impossible. *(Work started 2026-08-21: `Finding` record, Jackson
+      parser, both render sites. Also fixes a live bug — the old rationale regex `"([^"]+)"`
+      truncates on the first embedded quote.)*
+- [ ] **P2 — The workflow is pinned to spring-ai.** `review.target` names the repo and a local
+      clone used for rebase and `mvnw test`. Running against `java-sdk` or `agent-experiment`
+      means retargeting both. **Owner decision 2026-08-21: not now.** Until then, Stage 3
+      measures reviews produced by the *packet* harness rather than by this pipeline.
+
+### The amendment: per-step judges
+
+Stage 3 as written measures the **outcome** — did the final review match the gold standard.
+That yields a verdict with no diagnosis, and ACT needs both: the jury and observer together
+produce *"the verdict and diagnosis the controller needs to choose the next intervention."*
+An outcome score says the run was bad. It does not say **which step** to point a lever at.
+
+- [ ] **3.2b — One judge per workflow step, scoring the step against its own spec.**
+
+| Step | Success means | Judge |
+|---|---|---|
+| `fetch-pr-context` | PR resolves; diff non-empty; file count matches GitHub | Deterministic |
+| `rebase-on-main` | Clean rebase, or conflicts correctly reported | Deterministic |
+| `detect-conflicts` | SIMPLE/COMPLEX classification matches the actual conflict shape | Deterministic |
+| `run-tests` | Right modules discovered; build ran; exit code captured | Deterministic |
+| `fix-tests` | Failures fixed **without changing semantics to do it** | AI |
+| `build-health` (T0) | Gate decision agrees with the actual build result | Deterministic |
+| `version-pattern-check` (T1) | Flagged anti-patterns are genuinely present/absent | Deterministic |
+| `assess-code-quality` | Each of the prompt's four criteria actually assessed, with evidence | AI *(blocked on P1)* |
+| `assess-backport` | Same shape, against its own prompt | AI *(blocked on P1)* |
+| `quality-judge` (T2) | Consistency check fires when assessments contradict | Deterministic |
+| `assemble-report` / `generate-report` | Every assessment and judgment reached the report | Deterministic |
+
+Most steps have checkable postconditions, so only three need an AI judge. That ratio is itself
+the ACT promotion signal — the cheapest judge is the one that does not call a model.
+
+**AI judge form**, per owner: *the prompt told the step to do a, b, c; the judge verifies a, b
+and c were done well.* Generate the judge's criteria **from the prompt file** rather than
+hand-writing them, so judge and prompt cannot drift apart.
+
+### One finding worth carrying into 3.3
+
+The assess step runs as a **full agentic CLI inside the repository clone**
+(`AgentExperimentReviewerConfig:74` — `ClaudeAgentModel.builder().workingDirectory(repoDir)`),
+but `prompts/code-quality-assessment.md` presents only `{fileSummary}` and `{diff}` and asks
+four questions about the diff. **The affordance is paid for and never invoked.**
+
+That matters most for correctness, because correctness defects are relational — they live
+between changed code and the code around it. Three independent confirmations: the human review
+of java-sdk#7 anchors one of its three BLOCKING findings in a file that PR does not modify;
+grok-4.6 reviewing #13 built its finding from `AcpAsyncClient`, `AcpSyncClient` and the
+scheduler wrappers, none of which appear in the diff; and the packet harness had the identical
+defect and had to be widened to the full repo tree.
+
+`prompts/code-quality-assessment-v2.md` is a draft of the corrected prompt. It is **not ready
+to ship** — its finding format was contorted into pipe-delimited strings to appease the regex
+parser, which is the wrong way round. Rewrite it with the nested schema once P1 lands.
+
 ## Stage 3 — Evaluation harness + optimization (eval-agent)
 
 ### Step 3.0 — Stage 3 entry *(inter-stage gate — do not skip)*

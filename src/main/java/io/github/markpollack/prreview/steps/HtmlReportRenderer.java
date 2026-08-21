@@ -10,6 +10,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import io.github.markpollack.prreview.model.AssessmentResult;
+import io.github.markpollack.prreview.model.Finding;
 import io.github.markpollack.prreview.model.BuildResult;
 import io.github.markpollack.prreview.model.Comment;
 import io.github.markpollack.prreview.model.ConflictReport;
@@ -559,14 +560,33 @@ class HtmlReportRenderer {
 		sb.append("</div>\n</details>\n");
 	}
 
-	private static void appendFindingsList(StringBuilder sb, List<String> findings) {
-		if (!findings.isEmpty()) {
-			sb.append("<ul class=\"findings-list\">\n");
-			for (String finding : findings) {
-				sb.append("<li>").append(escapeHtml(finding)).append("</li>\n");
-			}
-			sb.append("</ul>\n");
+	private static void appendFindingsList(StringBuilder sb, List<Finding> findings) {
+		if (findings.isEmpty()) {
+			return;
 		}
+		sb.append("<ul class=\"findings-list\">\n");
+		for (Finding finding : findings) {
+			sb.append("<li>");
+			sb.append("<span class=\"finding-severity\">")
+				.append(escapeHtml(finding.normalizedSeverity()))
+				.append("</span> ");
+			sb.append("<code>").append(escapeHtml(finding.location())).append("</code>");
+			if (finding.claim() != null && !finding.claim().isBlank()) {
+				sb.append(" — ").append(escapeHtml(finding.claim()));
+			}
+			// Evidence and correction are what let a reader check the claim rather than
+			// take it on trust, so they are rendered rather than summarised away.
+			if (finding.evidence() != null && !finding.evidence().isBlank()) {
+				sb.append("<div class=\"finding-evidence\">").append(escapeHtml(finding.evidence())).append("</div>\n");
+			}
+			if (finding.correction() != null && !finding.correction().isBlank()) {
+				sb.append("<div class=\"finding-correction\">Fix: ")
+					.append(escapeHtml(finding.correction()))
+					.append("</div>\n");
+			}
+			sb.append("</li>\n");
+		}
+		sb.append("</ul>\n");
 	}
 
 	// ── Code Changes (grouped by category) ─────────────────────────────

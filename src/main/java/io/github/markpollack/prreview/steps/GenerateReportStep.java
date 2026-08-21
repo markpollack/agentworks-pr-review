@@ -298,7 +298,19 @@ public class GenerateReportStep
 			sb.append("- **Rationale**: ").append(assessment.rationale()).append("\n");
 			if (!assessment.findings().isEmpty()) {
 				sb.append("- **Findings**:\n");
-				assessment.findings().forEach(f -> sb.append("  - ").append(f).append("\n"));
+				assessment.findings().forEach(f -> {
+					sb.append("  - **").append(f.normalizedSeverity()).append("** `").append(f.location()).append("`");
+					if (f.claim() != null && !f.claim().isBlank()) {
+						sb.append(" — ").append(f.claim());
+					}
+					sb.append("\n");
+					if (f.evidence() != null && !f.evidence().isBlank()) {
+						sb.append("    - Evidence: ").append(f.evidence()).append("\n");
+					}
+					if (f.correction() != null && !f.correction().isBlank()) {
+						sb.append("    - Fix: ").append(f.correction()).append("\n");
+					}
+				});
 			}
 			sb.append("\n");
 		}
