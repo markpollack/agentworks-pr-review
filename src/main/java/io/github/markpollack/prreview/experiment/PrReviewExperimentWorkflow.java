@@ -23,6 +23,7 @@ import io.github.markpollack.prreview.steps.ConflictDetectionStep;
 import io.github.markpollack.prreview.steps.FetchPrContextStep;
 import io.github.markpollack.prreview.steps.GenerateReportStep;
 import io.github.markpollack.prreview.steps.RebaseStep;
+import io.github.markpollack.prreview.steps.ResolveConflictsStep;
 import io.github.markpollack.prreview.steps.RunTestsStep;
 import io.github.markpollack.workflow.core.AgentContext;
 import io.github.markpollack.workflow.core.AgentHandler;
@@ -112,14 +113,33 @@ public class PrReviewExperimentWorkflow implements AgentHandler<Integer, Path> {
 	 * {@link #DEFAULT_MAX_COST_USD} budget.
 	 */
 	public PrReviewExperimentWorkflow(FetchPrContextStep fetchPrContext, RebaseStep rebaseStep,
+			ConflictDetectionStep conflictDetection, RunTestsStep runTests,
+			Step<RebaseResult, RebaseResult> resolveConflicts, Step<PrContext, AssessmentResult> assess,
+			BuildJudge buildJudge, QualityJudge qualityJudge, GenerateReportStep generateReport) {
+		this(fetchPrContext, rebaseStep, conflictDetection, runTests, resolveConflicts, assess, buildJudge,
+				qualityJudge, generateReport, DEFAULT_REPO, DEFAULT_MAX_COST_USD);
+	}
+
+	/**
+	 * Convenience constructor for a pipeline with no conflict resolution.
+	 *
+	 * <p>
+	 * Conflict resolution is an optional stage: {@code ResolveConflictsStep} is already a
+	 * no-op on a clean rebase and when {@code review.auto-resolve} is false. This
+	 * overload makes that absence expressible at construction rather than requiring a
+	 * step that will do nothing — the pipeline wires the stage unconditionally, so a null
+	 * is not an option.
+	 */
+	public PrReviewExperimentWorkflow(FetchPrContextStep fetchPrContext, RebaseStep rebaseStep,
 			ConflictDetectionStep conflictDetection, RunTestsStep runTests, Step<PrContext, AssessmentResult> assess,
 			BuildJudge buildJudge, QualityJudge qualityJudge, GenerateReportStep generateReport) {
-		this(fetchPrContext, rebaseStep, conflictDetection, runTests, assess, buildJudge, qualityJudge, generateReport,
-				DEFAULT_REPO, DEFAULT_MAX_COST_USD);
+		this(fetchPrContext, rebaseStep, conflictDetection, runTests, new PassThroughStep(), assess, buildJudge,
+				qualityJudge, generateReport, DEFAULT_REPO, DEFAULT_MAX_COST_USD);
 	}
 
 	public PrReviewExperimentWorkflow(FetchPrContextStep fetchPrContext, RebaseStep rebaseStep,
-			ConflictDetectionStep conflictDetection, RunTestsStep runTests, Step<PrContext, AssessmentResult> assess,
+			ConflictDetectionStep conflictDetection, RunTestsStep runTests,
+			Step<RebaseResult, RebaseResult> resolveConflicts, Step<PrContext, AssessmentResult> assess,
 			BuildJudge buildJudge, QualityJudge qualityJudge, GenerateReportStep generateReport, String repo,
 			double maxCostUsd) {
 
@@ -145,9 +165,14 @@ public class PrReviewExperimentWorkflow implements AgentHandler<Integer, Path> {
 		// The build gate's mapper populates JudgmentContext metadata from AgentContext.
 		JudgeGate<Object> buildGate = new JudgeGate<>(buildJury, BUILD_THRESHOLD, buildMapper());
 
+		// fetch -> rebase -> resolve-conflicts (Stage 2) -> detect (reclassifies the
+		// resolved result) -> tests. ResolveConflictsStep is a no-op on a clean rebase
+		// and
+		// on auto-resolve=false; on a conflict it squashes, re-rebases, and AI-resolves.
 		Workflow<Integer, Object> contextPhase = Workflow.<Integer, Object>define("context-phase")
 			.step(fetchPrContext)
 			.then(rebaseStep)
+			.then(resolveConflicts)
 			.then(conflictDetection)
 			.then(runTests)
 			.build();
@@ -259,6 +284,38 @@ public class PrReviewExperimentWorkflow implements AgentHandler<Integer, Path> {
 		if (value != null) {
 			builder.metadata(key, value);
 		}
+	}
+
+	/**
+	 * The conflict-resolution stage when there is none: hands the rebase result on
+	 * unchanged.
+	 *
+	 * <p>
+	 * Named so it is visible in the journal and in the emitted spec. A silent stage that
+	 * cannot be seen in the trace is worse than an explicit one that does nothing.
+	 */
+	static final class PassThroughStep implements Step<RebaseResult, RebaseResult> {
+
+		@Override
+		public String name() {
+			return "resolve-conflicts-disabled";
+		}
+
+		@Override
+		public RebaseResult execute(AgentContext ctx, RebaseResult input) {
+			return input;
+		}
+
+		@Override
+		public Class<?> inputType() {
+			return RebaseResult.class;
+		}
+
+		@Override
+		public Class<?> outputType() {
+			return RebaseResult.class;
+		}
+
 	}
 
 }

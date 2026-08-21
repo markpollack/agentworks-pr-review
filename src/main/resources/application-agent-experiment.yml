@@ -27,3 +27,6 @@ review:
       - /home/mark/projects/control-theory-kb/docs/pr-review-context-for-agent-experiment.md
       - /home/mark/projects/experiment-method-kb/PR-REVIEW-AGENT-BRIEF.md
   max-cost-usd: 5.0
+  # AI-resolve rebase conflicts (squash + rebase + agent edit-in-place) instead of
+  # escalating every one to a human (DD-7). A CLAUDE.md doc collision is the trivial win.
+  auto-resolve: true

@@ -10,6 +10,7 @@ import io.github.markpollack.prreview.steps.FetchPrContextStep;
 import io.github.markpollack.prreview.steps.GenerateReportStep;
 import io.github.markpollack.prreview.steps.KbConsultingAssessStep;
 import io.github.markpollack.prreview.steps.RebaseStep;
+import io.github.markpollack.prreview.steps.ResolveConflictsStep;
 import io.github.markpollack.prreview.steps.RunTestsStep;
 import io.github.markpollack.agents.claude.ClaudeAgentModel;
 import io.github.markpollack.agents.client.AgentClient;
@@ -83,16 +84,16 @@ public class AgentExperimentReviewerConfig {
 	 */
 	@Bean
 	PrReviewExperimentWorkflow agentExperimentReviewer(FetchPrContextStep fetchPrContext, RebaseStep rebaseStep,
-			ConflictDetectionStep conflictDetection, RunTestsStep runTests, KbConsultingAssessStep kbConsultingAssess,
-			BuildJudge buildJudge, GenerateReportStep generateReport, AgentClient agentExperimentAgentClient,
-			ReviewProperties reviewProperties) {
+			ConflictDetectionStep conflictDetection, RunTestsStep runTests, ResolveConflictsStep resolveConflicts,
+			KbConsultingAssessStep kbConsultingAssess, BuildJudge buildJudge, GenerateReportStep generateReport,
+			AgentClient agentExperimentAgentClient, ReviewProperties reviewProperties) {
 
 		QualityJudge qualityJudge = new QualityJudge(agentExperimentAgentClient, false);
 
 		double maxCost = reviewProperties.maxCostUsd() > 0 ? reviewProperties.maxCostUsd()
 				: PrReviewExperimentWorkflow.DEFAULT_MAX_COST_USD;
 
-		return new PrReviewExperimentWorkflow(fetchPrContext, rebaseStep, conflictDetection, runTests,
+		return new PrReviewExperimentWorkflow(fetchPrContext, rebaseStep, conflictDetection, runTests, resolveConflicts,
 				kbConsultingAssess, buildJudge, qualityJudge, generateReport, reviewProperties.target().repo(),
 				maxCost);
 	}

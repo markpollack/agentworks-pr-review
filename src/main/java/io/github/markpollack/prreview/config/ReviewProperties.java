@@ -19,9 +19,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @param target the repository under review
  * @param kb the knowledge bases to consult at assess time
  * @param maxCostUsd per-run cost ceiling in USD (0 → use the reviewer's default)
+ * @param autoResolve whether to AI-resolve rebase conflicts (DD-7); when false, a
+ * conflict escalates to the human path (report only). Defaults to false when unset — the
+ * agent-experiment profile turns it on.
  */
 @ConfigurationProperties(prefix = "review")
-public record ReviewProperties(Target target, Kb kb, double maxCostUsd) {
+public record ReviewProperties(Target target, Kb kb, double maxCostUsd, boolean autoResolve) {
 
 	public ReviewProperties {
 		if (target == null) {
