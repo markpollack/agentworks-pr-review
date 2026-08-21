@@ -15,6 +15,7 @@ import io.github.markpollack.prreview.judges.QualityJudge;
 import io.github.markpollack.prreview.model.AssessmentResult;
 import io.github.markpollack.prreview.model.BuildResult;
 import io.github.markpollack.prreview.model.ConflictReport;
+import io.github.markpollack.prreview.model.Finding;
 import io.github.markpollack.prreview.model.RebaseResult;
 import io.github.markpollack.prreview.model.ReviewReport;
 import io.github.markpollack.prreview.model.TestPrContexts;
@@ -52,7 +53,8 @@ class CompositeJuryContractTest {
 		assertThat(gates).hasSize(3);
 
 		AssessmentResult failedQuality = new AssessmentResult("KbConsultingAssessStep", JudgmentStatus.ERROR, 0.0,
-				"Assessment unavailable", List.of("LLM did not return a review"));
+				"Assessment unavailable",
+				List.of(new Finding(null, null, null, 0, "LLM did not return a review", null, null)));
 		RebaseResult rebase = RebaseResult.clean("fix/889-body-error-propagation");
 		ConflictReport conflicts = ConflictReport.clean();
 		BuildResult build = new BuildResult(true, false, List.of("mcp-spring-webflux"), "BUILD SUCCESS", 5_000);

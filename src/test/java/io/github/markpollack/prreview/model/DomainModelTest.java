@@ -154,7 +154,7 @@ class DomainModelTest {
 			var mutableFindings = new ArrayList<>(List.of(finding("finding1")));
 			var result = new AssessmentResult("Judge", JudgmentStatus.PASS, 1.0, "ok", mutableFindings);
 
-			mutableFindings.add("finding2");
+			mutableFindings.add(finding("finding2"));
 			assertThat(result.findings()).extracting(Finding::claim).containsExactly("finding1");
 		}
 

@@ -20,13 +20,14 @@ public final class TestAssessments {
 	/** Passing quality assessment with good score. */
 	public static AssessmentResult qualityPass() {
 		return new AssessmentResult("QualityJudge", JudgmentStatus.PASS, 0.85, "Clean code with good test coverage",
-				List.of("Well-structured error handling", "Integration test included"));
+				List.of(finding("Well-structured error handling"), finding("Integration test included")));
 	}
 
 	/** Failing quality assessment with specific findings. */
 	public static AssessmentResult qualityFail() {
 		return new AssessmentResult("QualityJudge", JudgmentStatus.FAIL, 0.35, "Multiple issues found",
-				List.of("Missing null checks on public API", "No test for error paths", "Hardcoded timeout value"));
+				List.of(finding("Missing null checks on public API"), finding("No test for error paths"),
+						finding("Hardcoded timeout value")));
 	}
 
 	/** Passing version pattern assessment — no Boot 3→4 issues. */
@@ -39,8 +40,8 @@ public final class TestAssessments {
 	public static AssessmentResult versionPatternFail() {
 		return new AssessmentResult("VersionPatternJudge", JudgmentStatus.FAIL, 0.0,
 				"Uses deprecated javax.* imports (Boot 4 requires jakarta.*)",
-				List.of("javax.servlet.http.HttpServletRequest → jakarta.servlet.http.HttpServletRequest",
-						"javax.persistence.Entity → jakarta.persistence.Entity"));
+				List.of(finding("javax.servlet.http.HttpServletRequest → jakarta.servlet.http.HttpServletRequest"),
+						finding("javax.persistence.Entity → jakarta.persistence.Entity")));
 	}
 
 	/** Passing build judge — compile + tests green. */
@@ -51,7 +52,7 @@ public final class TestAssessments {
 	/** Failing build judge — test failure. */
 	public static AssessmentResult buildFail() {
 		return new AssessmentResult("BuildJudge", JudgmentStatus.FAIL, 0.0, "Test failures detected",
-				List.of("OllamaToolSupportTest.shouldHandleUnsupportedTools: expected FAIL but was PASS"));
+				List.of(finding("OllamaToolSupportTest.shouldHandleUnsupportedTools: expected FAIL but was PASS")));
 	}
 
 	// -- Judgment factories (from agent-judge-core) --
@@ -169,6 +170,14 @@ public final class TestAssessments {
 		return new ReviewReport(TestPrContexts.pr5774(), RebaseResult.clean("fix/889-body-error-propagation"),
 				ConflictReport.clean(), buildFailure(), null, List.of(buildFail()), List.of(buildFailJudgment()),
 				Instant.parse("2026-04-08T20:00:00Z"));
+	}
+
+	/**
+	 * An unanchored finding, matching what a model that ignores the schema produces.
+	 * Fixtures that need severity or a location should build {@link Finding} directly.
+	 */
+	private static Finding finding(String claim) {
+		return new Finding(null, null, null, 0, claim, null, null);
 	}
 
 }
