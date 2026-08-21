@@ -67,30 +67,44 @@ teaches them to distrust you. Never report a concern you cannot point at in the 
 ## Response Format
 
 Respond with ONLY a JSON object (no markdown fences):
+
+```
 {
   "score": 0.0-1.0,
   "status": "PASS" or "FAIL",
   "rationale": "one paragraph summary",
-  "findings": ["BLOCKING | path/to/File.java:ClassName.methodName | what is wrong, why it is wrong, and the smallest fix"]
+  "findings": [
+    {
+      "severity": "BLOCKING",
+      "file": "acp-core/src/main/java/com/example/Session.java",
+      "symbol": "Session.closeGracefully",
+      "line": 375,
+      "claim": "what is wrong, in one sentence",
+      "evidence": "the code or behaviour that makes the claim true",
+      "correction": "the smallest change that fixes it"
+    }
+  ]
 }
+```
 
 Score >= 0.7 means PASS. Below 0.7 means FAIL.
 
-Each finding is a single string with three parts separated by ` | `:
+**severity** — one of:
 
-1. **Severity** — one of `BLOCKING`, `SIGNIFICANT`, `MINOR`.
-   - `BLOCKING` — would cause a real production problem: lost data, a deadlock, corrupted
-     state, a security hole, a broken contract.
-   - `SIGNIFICANT` — should be fixed, but safe to merge without it.
-   - `MINOR` — worth saying, not worth blocking on.
-2. **Location** — repository-relative path, then the enclosing class and method. Give the file
-   the defect is *in*, which may not be a file this PR changed.
-3. **Substance** — what is wrong, the mechanism that makes it wrong, and the smallest
-   correction. Name the mechanism; do not assert it. "This is racy" is not a finding. "B is
-   disposed on the same thread immediately after A is signalled, so queued items are discarded
-   before the drain runs" is.
+- `BLOCKING` — would cause a real production problem: lost data, a deadlock, corrupted state,
+  a security hole, a broken contract.
+- `SIGNIFICANT` — should be fixed, but safe to merge without it.
+- `MINOR` — worth saying, not worth blocking on.
 
-Two formatting rules the parser depends on:
+**file** — repository-relative path of the file the defect is *in*. This is often **not** a
+file this PR changed. If the defect is in a caller, name the caller.
 
-- **No double quotes anywhere inside a finding or the rationale.** Use single quotes or none.
-- **No nested arrays or objects inside `findings`.** It is a flat list of strings.
+**symbol** — the enclosing class and method, e.g. `Session.closeGracefully`.
+
+**evidence** — kept separate from `claim` on purpose. A reader must be able to check your
+reasoning without trusting you, and a judge scores whether the evidence supports the claim.
+Restating the claim in other words is not evidence. Name the mechanism; do not assert it.
+"This is racy" is not a finding. "B is disposed on the same thread immediately after A is
+signalled, so queued items are discarded before the drain runs" is.
+
+**correction** — the smallest change that fixes it. A finding without a fix is a complaint.
