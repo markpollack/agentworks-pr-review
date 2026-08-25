@@ -14,6 +14,7 @@ import io.github.markpollack.prreview.steps.RebaseStep;
 import io.github.markpollack.prreview.steps.RunTestsStep;
 import io.github.markpollack.workflow.core.AgentContext;
 import io.github.markpollack.workflow.flows.workflow.Gate;
+import io.github.markpollack.workflow.flows.workflow.GateAssessment;
 import io.github.markpollack.workflow.flows.workflow.GateDecision;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +42,7 @@ public class BuildGate implements Gate<Object> {
 	}
 
 	@Override
-	public GateDecision evaluate(AgentContext ctx, Object output) {
+	public GateAssessment evaluate(AgentContext ctx, Object output) {
 		RebaseResult rebase = ctx.get(RebaseStep.REBASE_RESULT).orElse(null);
 		ConflictReport conflicts = ctx.get(ConflictDetectionStep.CONFLICT_REPORT).orElse(null);
 		BuildResult build = ctx.get(RunTestsStep.BUILD_RESULT).orElse(null);
@@ -60,7 +61,7 @@ public class BuildGate implements Gate<Object> {
 
 		logger.info("T0 verdict: {} — {}", judgment.status(), judgment.reasoning());
 
-		return judgment.status() == JudgmentStatus.PASS ? GateDecision.PASS : GateDecision.FAIL;
+		return GateAssessment.decided(judgment.status() == JudgmentStatus.PASS ? GateDecision.PASS : GateDecision.FAIL);
 	}
 
 	@Override
@@ -75,14 +76,7 @@ public class BuildGate implements Gate<Object> {
 	}
 
 	private static Judgment withMeta(Judgment judgment) {
-		return Judgment.builder()
-			.score(judgment.score())
-			.status(judgment.status())
-			.reasoning(judgment.reasoning())
-			.checks(judgment.checks())
-			.metadata("judge_name", "Build Judge")
-			.metadata("tier", "T0")
-			.build();
+		return judgment.toBuilder().metadata("judge_name", "Build Judge").metadata("tier", "T0").build();
 	}
 
 	private static void putIfNotNull(JudgmentContext.Builder builder, String key, Object value) {

@@ -10,8 +10,6 @@ import io.github.markpollack.judge.Judge;
 import io.github.markpollack.judge.context.JudgmentContext;
 import io.github.markpollack.judge.result.Check;
 import io.github.markpollack.judge.result.Judgment;
-import io.github.markpollack.judge.result.JudgmentStatus;
-import io.github.markpollack.judge.score.BooleanScore;
 
 import org.springframework.stereotype.Component;
 
@@ -55,12 +53,7 @@ public class BuildJudge implements Judge {
 
 		boolean allPassed = checks.stream().allMatch(Check::passed);
 
-		return Judgment.builder()
-			.score(new BooleanScore(allPassed))
-			.status(allPassed ? JudgmentStatus.PASS : JudgmentStatus.FAIL)
-			.reasoning(buildReasoning(checks, allPassed))
-			.checks(checks)
-			.build();
+		return Judgment.verdict(allPassed).reasoning(buildReasoning(checks, allPassed)).checks(checks).build();
 	}
 
 	private static void checkRebase(RebaseResult rebase, List<Check> checks) {

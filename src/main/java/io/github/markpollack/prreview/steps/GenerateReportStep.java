@@ -258,7 +258,9 @@ public class GenerateReportStep implements Step<ReviewReport, Path> {
 		}
 		for (var judgment : report.judgments()) {
 			sb.append("### ").append(judgment.status()).append("\n\n");
-			sb.append("- **Score**: ").append(judgment.score()).append("\n");
+			if (judgment.score() != null) {
+				sb.append("- **Score**: ").append(judgment.score()).append("\n");
+			}
 			sb.append("- **Reasoning**: ").append(judgment.reasoning()).append("\n");
 			if (!judgment.checks().isEmpty()) {
 				sb.append("- **Checks**:\n");

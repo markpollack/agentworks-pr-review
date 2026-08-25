@@ -329,14 +329,7 @@ public class PrReviewWorkflow implements AgentHandler<Integer, Path> {
 	}
 
 	private static Judgment withJudgeMeta(Judgment judgment, String judgeName, String tier) {
-		return Judgment.builder()
-			.score(judgment.score())
-			.status(judgment.status())
-			.reasoning(judgment.reasoning())
-			.checks(judgment.checks())
-			.metadata("judge_name", judgeName)
-			.metadata("tier", tier)
-			.build();
+		return judgment.toBuilder().metadata("judge_name", judgeName).metadata("tier", tier).build();
 	}
 
 	private Path generateFinalReport(Run run, AgentContext ctx, PrContext prContext, RebaseResult rebase,

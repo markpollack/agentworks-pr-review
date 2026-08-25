@@ -72,15 +72,17 @@ public class AssembleReportStep implements Step<Object, ReviewReport> {
 		if (!(verdictObj instanceof Verdict verdict)) {
 			return;
 		}
-		if (verdict.subVerdicts() != null && !verdict.subVerdicts().isEmpty()) {
-			for (Verdict sub : verdict.subVerdicts()) {
-				collectJudgments(sub, out);
+		if (!verdict.compositeAttempts().isEmpty()) {
+			for (var attempt : verdict.compositeAttempts()) {
+				if (attempt.verdict() != null) {
+					collectJudgments(attempt.verdict(), out);
+				}
 			}
 		}
-		else if (verdict.individual() != null && !verdict.individual().isEmpty()) {
+		else if (!verdict.individual().isEmpty()) {
 			out.addAll(verdict.individual());
 		}
-		else if (verdict.aggregated() != null) {
+		else {
 			out.add(verdict.aggregated());
 		}
 	}
