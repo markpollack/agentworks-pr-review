@@ -44,3 +44,6 @@ build/
 journal/
 reports/
 traces/
+
+# Planning lives in the private steward: markpollack/agentworks-pr-review-steward
+plans/
